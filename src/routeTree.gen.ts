@@ -10,7 +10,12 @@
 
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as CvsRouteImport } from './routes/cvs'
+import { Route as EvidenceRouteImport } from './routes/evidence'
 import { Route as JobScanRouteImport } from './routes/job-scan'
+import { Route as MarketRouteImport } from './routes/market'
+import { Route as ProfileRouteImport } from './routes/profile'
+import { Route as SettingsRouteImport } from './routes/settings'
 import { Route as ApplicationsIndexRouteImport } from './routes/applications.index'
 import { Route as ApplicationsIdRouteImport } from './routes/applications.$id'
 
@@ -19,9 +24,34 @@ const IndexRoute = IndexRouteImport.update({
   path: '/',
   getParentRoute: () => rootRouteImport,
 } as any)
+const CvsRoute = CvsRouteImport.update({
+  id: '/cvs',
+  path: '/cvs',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const EvidenceRoute = EvidenceRouteImport.update({
+  id: '/evidence',
+  path: '/evidence',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const JobScanRoute = JobScanRouteImport.update({
   id: '/job-scan',
   path: '/job-scan',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const MarketRoute = MarketRouteImport.update({
+  id: '/market',
+  path: '/market',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ProfileRoute = ProfileRouteImport.update({
+  id: '/profile',
+  path: '/profile',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const SettingsRoute = SettingsRouteImport.update({
+  id: '/settings',
+  path: '/settings',
   getParentRoute: () => rootRouteImport,
 } as any)
 const ApplicationsIndexRoute = ApplicationsIndexRouteImport.update({
@@ -37,34 +67,82 @@ const ApplicationsIdRoute = ApplicationsIdRouteImport.update({
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
+  '/cvs': typeof CvsRoute
+  '/evidence': typeof EvidenceRoute
   '/job-scan': typeof JobScanRoute
+  '/market': typeof MarketRoute
+  '/profile': typeof ProfileRoute
+  '/settings': typeof SettingsRoute
   '/applications/$id': typeof ApplicationsIdRoute
   '/applications/': typeof ApplicationsIndexRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
+  '/cvs': typeof CvsRoute
+  '/evidence': typeof EvidenceRoute
   '/job-scan': typeof JobScanRoute
+  '/market': typeof MarketRoute
+  '/profile': typeof ProfileRoute
+  '/settings': typeof SettingsRoute
   '/applications/$id': typeof ApplicationsIdRoute
   '/applications': typeof ApplicationsIndexRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
+  '/cvs': typeof CvsRoute
+  '/evidence': typeof EvidenceRoute
   '/job-scan': typeof JobScanRoute
+  '/market': typeof MarketRoute
+  '/profile': typeof ProfileRoute
+  '/settings': typeof SettingsRoute
   '/applications/$id': typeof ApplicationsIdRoute
   '/applications/': typeof ApplicationsIndexRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/' | '/job-scan' | '/applications/$id' | '/applications/'
+  fullPaths:
+    | '/'
+    | '/cvs'
+    | '/evidence'
+    | '/job-scan'
+    | '/market'
+    | '/profile'
+    | '/settings'
+    | '/applications/$id'
+    | '/applications/'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/job-scan' | '/applications/$id' | '/applications'
-  id: '__root__' | '/' | '/job-scan' | '/applications/$id' | '/applications/'
+  to:
+    | '/'
+    | '/cvs'
+    | '/evidence'
+    | '/job-scan'
+    | '/market'
+    | '/profile'
+    | '/settings'
+    | '/applications/$id'
+    | '/applications'
+  id:
+    | '__root__'
+    | '/'
+    | '/cvs'
+    | '/evidence'
+    | '/job-scan'
+    | '/market'
+    | '/profile'
+    | '/settings'
+    | '/applications/$id'
+    | '/applications/'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
+  CvsRoute: typeof CvsRoute
+  EvidenceRoute: typeof EvidenceRoute
   JobScanRoute: typeof JobScanRoute
+  MarketRoute: typeof MarketRoute
+  ProfileRoute: typeof ProfileRoute
+  SettingsRoute: typeof SettingsRoute
   ApplicationsIdRoute: typeof ApplicationsIdRoute
   ApplicationsIndexRoute: typeof ApplicationsIndexRoute
 }
@@ -78,11 +156,46 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof IndexRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/cvs': {
+      id: '/cvs'
+      path: '/cvs'
+      fullPath: '/cvs'
+      preLoaderRoute: typeof CvsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/evidence': {
+      id: '/evidence'
+      path: '/evidence'
+      fullPath: '/evidence'
+      preLoaderRoute: typeof EvidenceRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/job-scan': {
       id: '/job-scan'
       path: '/job-scan'
       fullPath: '/job-scan'
       preLoaderRoute: typeof JobScanRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/market': {
+      id: '/market'
+      path: '/market'
+      fullPath: '/market'
+      preLoaderRoute: typeof MarketRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/profile': {
+      id: '/profile'
+      path: '/profile'
+      fullPath: '/profile'
+      preLoaderRoute: typeof ProfileRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/settings': {
+      id: '/settings'
+      path: '/settings'
+      fullPath: '/settings'
+      preLoaderRoute: typeof SettingsRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/applications/': {
@@ -104,7 +217,12 @@ declare module '@tanstack/react-router' {
 
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
+  CvsRoute: CvsRoute,
+  EvidenceRoute: EvidenceRoute,
   JobScanRoute: JobScanRoute,
+  MarketRoute: MarketRoute,
+  ProfileRoute: ProfileRoute,
+  SettingsRoute: SettingsRoute,
   ApplicationsIdRoute: ApplicationsIdRoute,
   ApplicationsIndexRoute: ApplicationsIndexRoute,
 }
