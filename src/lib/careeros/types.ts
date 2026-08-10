@@ -1,0 +1,242 @@
+export type EvidenceStatus = "Verified" | "Needs Evidence" | "Archived" | "Excluded";
+
+export type EvidenceCategory =
+  | "Delivery"
+  | "Performance Marketing"
+  | "Analytics"
+  | "Stakeholder Management"
+  | "Product & Innovation"
+  | "Technology"
+  | "Commercial"
+  | "Education";
+
+export interface EvidenceRecord {
+  id: string;
+  employer: string;
+  category: EvidenceCategory;
+  claim: string;
+  metricValue?: string;
+  metricBasis?: string;
+  source: string;
+  notes?: string;
+  confidence: "High" | "Medium" | "Low";
+  status: EvidenceStatus;
+  skills: string[];
+  updatedAt: string;
+}
+
+export interface EmploymentRecord {
+  id: string;
+  title: string;
+  company: string;
+  employmentType: string;
+  start: string;
+  end: string;
+  location: string;
+  summary: string;
+  highlights: string[];
+  skills: string[];
+}
+
+export interface EducationRecord {
+  id: string;
+  qualification: string;
+  institution: string;
+  detail: string;
+  period: string;
+}
+
+export interface CertificationRecord {
+  id: string;
+  name: string;
+  issuer: string;
+  completed: string;
+}
+
+export interface ProjectRecord {
+  id: string;
+  name: string;
+  summary: string;
+  skills: string[];
+}
+
+export interface CareerProfile {
+  name: string;
+  location: string;
+  headline: string;
+  summary: string;
+  employment: EmploymentRecord[];
+  education: EducationRecord[];
+  certifications: CertificationRecord[];
+  projects: ProjectRecord[];
+  skills: string[];
+  tools: string[];
+  domains: string[];
+}
+
+export interface ProfileVersion {
+  id: string;
+  createdAt: string;
+  label: string;
+  note: string;
+}
+
+export type ApplicationStage =
+  | "Interested"
+  | "Preparing"
+  | "Applied"
+  | "Screening"
+  | "Interview"
+  | "Assessment"
+  | "Offer"
+  | "Accepted"
+  | "Rejected"
+  | "Withdrawn"
+  | "On Hold";
+
+export const APPLICATION_STAGES: ApplicationStage[] = [
+  "Interested",
+  "Preparing",
+  "Applied",
+  "Screening",
+  "Interview",
+  "Assessment",
+  "Offer",
+  "Accepted",
+  "Rejected",
+  "Withdrawn",
+  "On Hold",
+];
+
+export interface ApplicationHistoryEntry {
+  at: string;
+  entry: string;
+}
+
+export interface JobRecord {
+  id: string;
+  company: string;
+  title: string;
+  location: string;
+  url?: string;
+  description: string;
+  createdAt: string;
+  sourceType: "url" | "paste";
+}
+
+export interface Application {
+  id: string;
+  jobId: string;
+  company: string;
+  title: string;
+  location: string;
+  workingArrangement: "On-site" | "Hybrid" | "Remote" | "Unspecified";
+  employmentType: "Permanent" | "Contract" | "Fixed-term" | "Unspecified";
+  priority: "High" | "Medium" | "Low";
+  stage: ApplicationStage;
+  dateAdded: string;
+  deadline?: string;
+  salary?: string;
+  source?: string;
+  contact?: string;
+  url?: string;
+  linkedCvId?: string;
+  notes: string;
+  nextAction?: string;
+  nextActionDue?: string;
+  compatibilityScore?: number;
+  history: ApplicationHistoryEntry[];
+}
+
+export type CvCategory =
+  | "Product Management"
+  | "Product Marketing"
+  | "Technology Consulting"
+  | "Project Delivery"
+  | "Programme Management"
+  | "Innovation"
+  | "Marketing Strategy"
+  | "General";
+
+export interface CvVersion {
+  id: string;
+  version: number;
+  createdAt: string;
+  note: string;
+  body: string;
+  evidenceIds: string[];
+}
+
+export interface CvDocument {
+  id: string;
+  name: string;
+  category: CvCategory;
+  status: "Draft" | "Approved" | "Archived";
+  applicationId?: string;
+  jobId?: string;
+  versions: CvVersion[];
+  updatedAt: string;
+}
+
+export interface CoverLetter {
+  id: string;
+  applicationId?: string;
+  jobId?: string;
+  status: "Draft" | "Approved";
+  body: string;
+  emailVersion: string;
+  evidenceIds: string[];
+  createdAt: string;
+}
+
+export interface ScanSubScore {
+  key: string;
+  label: string;
+  score: number;
+  reason: string;
+}
+
+export type Verdict = "Strong Fit" | "Competitive" | "Plausible Stretch" | "Weak Fit";
+
+export interface ScanResult {
+  id: string;
+  jobId: string;
+  createdAt: string;
+  overall: number;
+  verdict: Verdict;
+  subScores: ScanSubScore[];
+  strengths: { text: string; evidenceId?: string }[];
+  partials: string[];
+  gaps: string[];
+  missingKeywords: string[];
+  matchedKeywords: string[];
+  blockedEvidence: { id: string; claim: string; status: EvidenceStatus }[];
+  strategy: "Apply" | "Apply with tailored positioning" | "Consider" | "Skip";
+  reasons: string[];
+}
+
+export interface ActivityEntry {
+  id: string;
+  at: string;
+  text: string;
+}
+
+export interface Settings {
+  claudeReviewEnabled: boolean;
+  googleDriveFolder: string;
+  driveConnected: boolean;
+  dataSource: "Local seeded data";
+}
+
+export interface CareerOsData {
+  profile: CareerProfile;
+  profileVersions: ProfileVersion[];
+  evidence: EvidenceRecord[];
+  jobs: JobRecord[];
+  applications: Application[];
+  cvs: CvDocument[];
+  coverLetters: CoverLetter[];
+  scans: ScanResult[];
+  activity: ActivityEntry[];
+  settings: Settings;
+}
