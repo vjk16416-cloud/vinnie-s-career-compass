@@ -205,7 +205,7 @@ export interface ScanResult {
   overall: number;
   verdict: Verdict;
   subScores: ScanSubScore[];
-  strengths: { text: string; evidenceId?: string }[];
+  strengths: { text: string; evidenceId?: string | undefined }[];
   partials: string[];
   gaps: string[];
   missingKeywords: string[];
