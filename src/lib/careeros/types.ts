@@ -15,10 +15,10 @@ export interface EvidenceRecord {
   employer: string;
   category: EvidenceCategory;
   claim: string;
-  metricValue?: string;
-  metricBasis?: string;
+  metricValue?: string | undefined;
+  metricBasis?: string | undefined;
   source: string;
-  notes?: string;
+  notes?: string | undefined;
   confidence: "High" | "Medium" | "Low";
   status: EvidenceStatus;
   skills: string[];
@@ -118,7 +118,7 @@ export interface JobRecord {
   company: string;
   title: string;
   location: string;
-  url?: string;
+  url?: string | undefined;
   description: string;
   createdAt: string;
   sourceType: "url" | "paste";
@@ -135,16 +135,16 @@ export interface Application {
   priority: "High" | "Medium" | "Low";
   stage: ApplicationStage;
   dateAdded: string;
-  deadline?: string;
-  salary?: string;
-  source?: string;
-  contact?: string;
-  url?: string;
-  linkedCvId?: string;
+  deadline?: string | undefined;
+  salary?: string | undefined;
+  source?: string | undefined;
+  contact?: string | undefined;
+  url?: string | undefined;
+  linkedCvId?: string | undefined;
   notes: string;
-  nextAction?: string;
-  nextActionDue?: string;
-  compatibilityScore?: number;
+  nextAction?: string | undefined;
+  nextActionDue?: string | undefined;
+  compatibilityScore?: number | undefined;
   history: ApplicationHistoryEntry[];
 }
 
@@ -172,16 +172,16 @@ export interface CvDocument {
   name: string;
   category: CvCategory;
   status: "Draft" | "Approved" | "Archived";
-  applicationId?: string;
-  jobId?: string;
+  applicationId?: string | undefined;
+  jobId?: string | undefined;
   versions: CvVersion[];
   updatedAt: string;
 }
 
 export interface CoverLetter {
   id: string;
-  applicationId?: string;
-  jobId?: string;
+  applicationId?: string | undefined;
+  jobId?: string | undefined;
   status: "Draft" | "Approved";
   body: string;
   emailVersion: string;

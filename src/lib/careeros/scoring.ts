@@ -184,7 +184,7 @@ export function runScan(job: JobRecord, data: CareerOsData): ScanResult {
 
   // --- Evidence strength ---
   const relevantEvidence = verified.filter((e) =>
-    e.skills.some((s) => jdTokens.has(s.toLowerCase().split(" ")[0])),
+    e.skills.some((s) => jdTokens.has(s.toLowerCase().split(" ")[0] ?? "")),
   );
   const highConfidence = relevantEvidence.filter((e) => e.confidence === "High").length;
   const evidenceScore = pct(
@@ -320,7 +320,7 @@ export function runScan(job: JobRecord, data: CareerOsData): ScanResult {
 
   const blockedEvidence = unusable
     .filter((e: EvidenceRecord) =>
-      e.skills.some((s) => jdLower.includes(s.toLowerCase().split(" ")[0])),
+      e.skills.some((s) => jdLower.includes(s.toLowerCase().split(" ")[0] ?? "")),
     )
     .map((e) => ({ id: e.id, claim: e.claim, status: e.status }));
 
