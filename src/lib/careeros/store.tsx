@@ -1,5 +1,6 @@
 import { createContext, useCallback, useContext, useEffect, useMemo, useState } from "react";
 import type { ReactNode } from "react";
+import { normaliseData } from "./normalise";
 import { createSeedData } from "./seed";
 import type { ActivityEntry, CareerOsData } from "./types";
 
@@ -26,7 +27,7 @@ export function CareerOsProvider({ children }: { children: ReactNode }) {
   useEffect(() => {
     try {
       const raw = window.localStorage.getItem(STORAGE_KEY);
-      if (raw) setData(JSON.parse(raw) as CareerOsData);
+      if (raw) setData(normaliseData(JSON.parse(raw)));
     } catch {
       /* fall back to seed */
     }

@@ -41,7 +41,9 @@ function JobScanPage() {
   const [location, setLocation] = useState("");
   const [description, setDescription] = useState("");
   const [fetching, setFetching] = useState(false);
+  const [scanning, setScanning] = useState(false);
   const [fallback, setFallback] = useState<string | null>(null);
+  const [scanError, setScanError] = useState<string | null>(null);
   const [scan, setScan] = useState<ScanResult | null>(null);
   const [job, setJob] = useState<JobRecord | null>(null);
 
@@ -55,8 +57,11 @@ function JobScanPage() {
     try {
       const result = await extractJobFromUrl({ data: { url: url.trim() } });
       if (result.ok) {
-        setDescription(result.text);
-        if (!title && result.title) setTitle(result.title);
+        // Only fill fields the user has left empty.
+        if (!description.trim()) setDescription(result.text);
+        if (!title.trim() && result.title) setTitle(result.title);
+        if (!company.trim() && result.company) setCompany(result.company);
+        if (!location.trim() && result.location) setLocation(result.location);
         toast.success("Job description pulled from the link. Check it before scanning.");
       } else {
         setFallback(
@@ -73,30 +78,41 @@ function JobScanPage() {
   }
 
   function handleScan() {
-    if (description.trim().split(/\s+/).length < 40) {
+    setScanError(null);
+    if (description.trim().split(/\s+/).filter(Boolean).length < 40) {
       toast.error("Add more of the job description — at least a few sentences.");
       return;
     }
-    const record: JobRecord = {
-      id: uid("job"),
-      company: company.trim() || "Unspecified company",
-      title: title.trim() || "Unspecified role",
-      location: location.trim() || "Unspecified",
-      url: url.trim() || undefined,
-      description: description.trim(),
-      createdAt: new Date().toISOString(),
-      sourceType: url.trim() ? "url" : "paste",
-    };
-    const result = runScan(record, data);
-    update((draft) => {
-      draft.jobs = [record, ...draft.jobs];
-      draft.scans = [result, ...draft.scans];
-      return draft;
-    });
-    logActivity(`Ran a role scan for ${record.title} at ${record.company} — ${result.overall}% fit.`);
-    setJob(record);
-    setScan(result);
+    setScanning(true);
+    try {
+      const record: JobRecord = {
+        id: uid("job"),
+        company: company.trim() || "Unspecified company",
+        title: title.trim() || "Unspecified role",
+        location: location.trim() || "Unspecified",
+        url: url.trim() || undefined,
+        description: description.trim(),
+        createdAt: new Date().toISOString(),
+        sourceType: url.trim() ? "url" : "paste",
+      };
+      const result = runScan(record, data);
+      update((draft) => {
+        draft.jobs = [record, ...(draft.jobs ?? [])];
+        draft.scans = [result, ...(draft.scans ?? [])];
+        return draft;
+      });
+      logActivity(`Ran a role scan for ${record.title} at ${record.company} — ${result.overall}% fit.`);
+      setJob(record);
+      setScan(result);
+    } catch (err) {
+      const message = err instanceof Error ? err.message : "Unknown error";
+      setScanError(`The scan could not complete: ${message}`);
+      toast.error("Scan failed — see the message below.");
+    } finally {
+      setScanning(false);
+    }
   }
+
 
   function createApplication() {
     if (!job || !scan) return;
@@ -203,8 +219,20 @@ function JobScanPage() {
             </div>
           ) : null}
 
+          {scanError ? (
+            <div
+              role="alert"
+              className="mt-3 rounded-md border border-destructive/40 bg-destructive/10 p-3 text-sm text-foreground"
+            >
+              <p className="font-medium">Scan failed</p>
+              <p className="mt-1 text-muted-foreground">{scanError}</p>
+            </div>
+          ) : null}
+
           <div className="mt-4 flex flex-wrap gap-2">
-            <Button onClick={handleScan}>Analyse role / run scan</Button>
+            <Button onClick={handleScan} disabled={scanning}>
+              {scanning ? "Analysing…" : "Analyse role / run scan"}
+            </Button>
             <Button
               variant="ghost"
               onClick={() => {
@@ -212,11 +240,13 @@ function JobScanPage() {
                 setScan(null);
                 setJob(null);
                 setFallback(null);
+                setScanError(null);
               }}
             >
               Clear
             </Button>
           </div>
+
         </Panel>
 
         {scan && job ? <ScanResultView scan={scan} onCreate={createApplication} /> : null}
