@@ -117,15 +117,34 @@ function strategyFor(score: number, gaps: number): ScanResult["strategy"] {
   return "Skip";
 }
 
-export function runScan(job: JobRecord, data: CareerOsData): ScanResult {
+function arr<T>(v: T[] | undefined | null): T[] {
+  return Array.isArray(v) ? v : [];
+}
+
+export function runScan(job: JobRecord, input: CareerOsData): ScanResult {
+  const profileIn = input?.profile ?? ({} as CareerOsData["profile"]);
+  const data = {
+    ...input,
+    evidence: arr(input?.evidence).filter((e) => e && typeof e === "object"),
+    profile: {
+      ...profileIn,
+      skills: arr(profileIn.skills),
+      tools: arr(profileIn.tools),
+      domains: arr(profileIn.domains),
+      employment: arr(profileIn.employment),
+      summary: profileIn.summary ?? "",
+    },
+  } as CareerOsData;
+
   const jd = job.description || "";
   const jdLower = jd.toLowerCase();
-  const verified = data.evidence.filter((e) => e.status === "Verified");
-  const unusable = data.evidence.filter((e) => e.status !== "Verified");
+  const evidence = data.evidence.map((e) => ({ ...e, skills: arr(e.skills) }));
+  const verified = evidence.filter((e) => e.status === "Verified");
+  const unusable = evidence.filter((e) => e.status !== "Verified");
 
   const verifiedSkills = new Set<string>();
-  verified.forEach((e) => e.skills.forEach((s) => verifiedSkills.add(s.toLowerCase())));
-  data.profile.skills.forEach((s) => verifiedSkills.add(s.toLowerCase()));
+  verified.forEach((e) => e.skills.forEach((s) => verifiedSkills.add(String(s).toLowerCase())));
+  data.profile.skills.forEach((s) => verifiedSkills.add(String(s).toLowerCase()));
 
   // --- Responsibilities ---
   const requiredResponsibilities = RESPONSIBILITY_SIGNALS.filter((r) => has(jdLower, r.phrase));
@@ -204,7 +223,9 @@ export function runScan(job: JobRecord, data: CareerOsData): ScanResult {
     data.profile.tools.join(" "),
     data.profile.domains.join(" "),
     verified.map((e) => `${e.claim} ${e.skills.join(" ")}`).join(" "),
-    data.profile.employment.map((e) => `${e.title} ${e.summary} ${e.highlights.join(" ")}`).join(" "),
+    data.profile.employment
+      .map((e) => `${e.title ?? ""} ${e.summary ?? ""} ${arr(e.highlights).join(" ")}`)
+      .join(" "),
   ]
     .join(" ")
     .toLowerCase();
