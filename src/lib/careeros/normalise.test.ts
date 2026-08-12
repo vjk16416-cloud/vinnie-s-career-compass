@@ -1,3 +1,4 @@
+// @ts-expect-error Bun provides bun:test at runtime; the app tsconfig intentionally only includes Vite client types.
 import { describe, expect, test } from "bun:test";
 import { createSeedData } from "./seed";
 import { normaliseData } from "./normalise";
