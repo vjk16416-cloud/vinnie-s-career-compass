@@ -1,3 +1,4 @@
+// @ts-expect-error Bun provides bun:test at runtime; the app tsconfig intentionally only includes Vite client types.
 import { describe, expect, test } from "bun:test";
 import { buildCoverLetter, buildTailoredCv, usableEvidence } from "./generate";
 import { createSeedData } from "./seed";
@@ -32,6 +33,8 @@ describe("CareerOS generation rules", () => {
     const letter = buildCoverLetter(data, job, undefined);
 
     expect(letter.body).not.toContain("I am currently Performance Marketing Manager");
-    expect(letter.emailVersion).not.toContain("I am Performance Marketing Manager at Northeastern University London");
+    expect(letter.emailVersion).not.toContain(
+      "I am Performance Marketing Manager at Northeastern University London",
+    );
   });
 });
