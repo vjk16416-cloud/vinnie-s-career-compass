@@ -7,9 +7,9 @@ export function createSeedData(): CareerOsData {
     profile: {
       name: "Vinnie Jegathees",
       location: "London, UK",
-      headline: "Performance Marketing Manager | UCL MSc Technology Management candidate",
+      headline: "Project & Technology Delivery | APM PFQ | UCL MSc Technology Management candidate",
       summary:
-        "Performance Marketing Manager and part-time UCL MSc Technology Management candidate, combining multi-market digital acquisition experience with technology evaluation, new product development, analytics, stakeholder management, project delivery, and product/innovation work.",
+        "APM PFQ-qualified technology management professional and part-time UCL MSc Technology Management candidate with experience coordinating project delivery, reporting, budgets, stakeholders and technology change across higher education, enterprise software and recruitment. Previously managed a £140k+ digital media portfolio at Northeastern University London and delivered software-adoption, CRM-migration, reporting and workflow-improvement initiatives.",
       employment: [
         {
           id: "emp-nul",
@@ -17,15 +17,15 @@ export function createSeedData(): CareerOsData {
           company: "Northeastern University London",
           employmentType: "Contract",
           start: "Jun 2025",
-          end: "Present",
+          end: "Dec 2025",
           location: "London, UK",
           summary:
-            "Own paid acquisition across PPC, paid social, display and third-party platforms for a multi-market student recruitment portfolio.",
+            "Managed paid acquisition, reporting, budget allocation and cross-functional delivery across a multi-market student recruitment portfolio.",
           highlights: [
-            "Own an annual digital media budget of £140k+ across PPC, paid social, display and third-party platforms.",
-            "Produce RAG-status analysis and multi-market reporting across UK, India and UAE.",
-            "Run agency performance reviews and manage vendor delivery against agreed targets.",
-            "Collaborate with website and stakeholder teams on landing-page delivery and A/B testing.",
+            "Managed an annual digital media budget of £140k+ across PPC, paid social, display and third-party platforms.",
+            "Produced RAG-status analysis and multi-market reporting across UK, India and UAE.",
+            "Ran agency performance reviews and managed vendor delivery against agreed targets.",
+            "Collaborated with website and stakeholder teams on landing-page delivery and A/B testing.",
           ],
           skills: [
             "PPC",
@@ -224,8 +224,14 @@ export function createSeedData(): CareerOsData {
       {
         id: "pv-1",
         createdAt: now,
-        label: "v1 — Seeded baseline",
+        label: "v1 - Seeded baseline",
         note: "Initial career record seeded locally. Approved by Vinnie.",
+      },
+      {
+        id: "pv-2026-08-12-career-sync",
+        createdAt: now,
+        label: "v2 - August 2026 career sync",
+        note: "Corrected Northeastern end date to Dec 2025 and aligned CareerOS toward project and technology delivery. Approved by Vinnie.",
       },
     ],
     evidence: [
@@ -283,7 +289,7 @@ export function createSeedData(): CareerOsData {
         claim: "Improved enquiry conversion rate following landing-page testing programme",
         metricValue: "Percentage uplift not yet confirmed",
         metricBasis: "Requires GA4 export to confirm exact figure",
-        source: "Pending — GA4 comparison export",
+        source: "Pending - GA4 comparison export",
         notes: "Cannot be used in generated documents until the uplift figure is confirmed.",
         confidence: "Low",
         status: "Needs Evidence",
@@ -341,7 +347,7 @@ export function createSeedData(): CareerOsData {
         category: "Performance Marketing",
         claim: "Improved paid search performance and delivered campaigns cross-functionally",
         metricValue: "Improvement size not yet confirmed",
-        source: "Pending — historic Google Ads export",
+        source: "Pending - historic Google Ads export",
         notes: "Directional claim only. Do not quantify in generated documents.",
         confidence: "Low",
         status: "Needs Evidence",
@@ -389,7 +395,7 @@ export function createSeedData(): CareerOsData {
         category: "Delivery",
         claim: "Managed a formal PMO governance function",
         source: "None",
-        notes: "Excluded — not an accurate description of past responsibilities.",
+        notes: "Excluded - not an accurate description of past responsibilities.",
         confidence: "Low",
         status: "Excluded",
         skills: ["Programme management"],
@@ -408,6 +414,17 @@ export function createSeedData(): CareerOsData {
         description:
           "We are looking for a Product Marketing Manager to own go-to-market for new products. You will work with product managers, analysts and agencies to define positioning and value propositions, run A/B testing, manage budget across paid social and PPC, report performance to senior stakeholders, and use GA4 and SQL dashboards to measure impact. Experience with stakeholder management, roadmapping, MVP definition and agile delivery is required. Degree-level education expected.",
       },
+      {
+        id: "job-southeastern-apm-3577",
+        company: "Southeastern",
+        title: "Assistant Project Manager",
+        location: "London Bridge / London & Kent",
+        url: "https://jobs.southeasternrailway.co.uk/jobs/job/Assistant-Project-Manager/3577",
+        sourceType: "url",
+        createdAt: now,
+        description:
+          "Support delivery across Southeastern's Major Programmes portfolio, including infrastructure, engineering, digital and business transformation projects. Coordinate project activities and workstreams, maintain plans and documentation, monitor budgets, risks, assumptions, issues, dependencies, milestones and change activity, support governance and reporting, build stakeholder and supplier relationships, and help transition project outcomes into business as usual. The role requires experience supporting structured project delivery, project management principles, planning and organisation, accurate reporting and documentation, stakeholder communication, project controls, Microsoft Office 365 and APM PFQ or an equivalent foundation-level project management qualification.",
+      },
     ],
     applications: [
       {
@@ -422,7 +439,7 @@ export function createSeedData(): CareerOsData {
         stage: "Preparing",
         dateAdded: now,
         deadline: "2026-08-24",
-        salary: "£60,000 – £70,000",
+        salary: "£60,000 - £70,000",
         source: "Company careers site",
         contact: "Talent team",
         url: "https://example.com/monzo/product-marketing-manager",
@@ -431,11 +448,38 @@ export function createSeedData(): CareerOsData {
         nextActionDue: "2026-08-14",
         history: [{ at: now, entry: "Application created from seeded job scan." }],
       },
+      {
+        id: "app-southeastern-apm-3577",
+        jobId: "job-southeastern-apm-3577",
+        company: "Southeastern",
+        title: "Assistant Project Manager",
+        location: "London Bridge / London & Kent",
+        workingArrangement: "Unspecified",
+        employmentType: "Permanent",
+        priority: "High",
+        stage: "Preparing",
+        dateAdded: now,
+        deadline: "2026-08-24",
+        salary: "£40,000 - £44,000 per annum DOE",
+        source: "Southeastern careers site",
+        url: "https://jobs.southeasternrailway.co.uk/jobs/job/Assistant-Project-Manager/3577",
+        linkedCvId: "cv-southeastern-apm-3577",
+        notes:
+          "High-priority project-delivery application. APM PFQ is an explicit requirement. Rail-sector experience is a gap and must not be implied.",
+        nextAction: "Review final application and submit before the closing date",
+        history: [
+          {
+            at: now,
+            entry:
+              "Southeastern Assistant Project Manager application added during the August 2026 CareerOS data sync.",
+          },
+        ],
+      },
     ],
     cvs: [
       {
         id: "cv-seed-1",
-        name: "Master CV — General",
+        name: "Master CV - General",
         category: "General",
         status: "Approved",
         updatedAt: now,
@@ -450,18 +494,84 @@ export function createSeedData(): CareerOsData {
           },
         ],
       },
+      {
+        id: "cv-southeastern-apm-3577",
+        name: "Vinnie Jegathees - Assistant Project Manager CV - Southeastern",
+        category: "Project Delivery",
+        status: "Approved",
+        applicationId: "app-southeastern-apm-3577",
+        jobId: "job-southeastern-apm-3577",
+        updatedAt: now,
+        versions: [
+          {
+            id: "cvv-southeastern-apm-1",
+            version: 1,
+            createdAt: now,
+            note:
+              "Approved two-page STAR-style application CV. External filename: Vinnie_Jegathees_Assistant_Project_Manager_CV_Southeastern.pdf. Metadata record only. Metrics remain reusable only when linked evidence is Verified.",
+            body: "",
+            evidenceIds: [
+              "ev-budget",
+              "ev-rag",
+              "ev-agency",
+              "ev-ab",
+              "ev-adoption",
+              "ev-powerbi",
+              "ev-agile",
+              "ev-crm",
+              "ev-npd",
+              "ev-trl",
+            ],
+          },
+        ],
+      },
     ],
     coverLetters: [],
     scans: [],
     activity: [
       { id: "act-1", at: now, text: "CareerOS seeded with local career record and evidence bank." },
       { id: "act-2", at: now, text: "Application created: Product Marketing Manager at Monzo." },
+      {
+        id: "act-sync-2026-08-12",
+        at: now,
+        text: "CareerOS profile corrected and synced to the August 2026 approved career record.",
+      },
+      {
+        id: "act-southeastern-app",
+        at: now,
+        text: "Application added: Assistant Project Manager at Southeastern.",
+      },
+      {
+        id: "act-southeastern-cv",
+        at: now,
+        text: "Approved Southeastern Assistant Project Manager CV registered in CareerOS.",
+      },
     ],
     settings: {
       claudeReviewEnabled: false,
       googleDriveFolder: "",
       driveConnected: false,
       dataSource: "Local seeded data",
+      cvRules: {
+        language: "British English",
+        noEmDashes: true,
+        experienceBulletStyle: "Compact STAR/CAR",
+        metricUsage: "Roughly half, verified only",
+        neverInventMetrics: true,
+        allowUnsupportedScope: false,
+        allowFormalLineManagementWithoutEvidence: false,
+        fontFamily: "Times New Roman",
+        fontSizeMinPt: 10,
+        fontSizeMaxPt: 12,
+        blackTextOnly: true,
+        leftAligned: true,
+        allowGraphics: false,
+        allowTables: false,
+        allowIcons: false,
+        allowRatingBars: false,
+        targetPages: 2,
+        preserveBaseCv: true,
+      },
     },
   };
 }
