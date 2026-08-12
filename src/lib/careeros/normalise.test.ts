@@ -2,6 +2,7 @@
 import { describe, expect, test } from "bun:test";
 import { createSeedData } from "./seed";
 import { normaliseData } from "./normalise";
+import type { CareerOsData } from "./types";
 
 describe("normaliseData August 2026 sync", () => {
   test("corrects known stale baseline values without overwriting unrelated saved values", () => {
@@ -25,7 +26,7 @@ describe("normaliseData August 2026 sync", () => {
   });
 
   test("adds cvRules and Southeastern records once", () => {
-    const old: any = {
+    const old = {
       profile: createSeedData().profile,
       profileVersions: [{ id: "pv-1", createdAt: "x", label: "old", note: "old" }],
       evidence: createSeedData().evidence,
@@ -41,7 +42,7 @@ describe("normaliseData August 2026 sync", () => {
         driveConnected: false,
         dataSource: "Local seeded data",
       },
-    };
+    } as unknown as CareerOsData;
 
     const once = normaliseData(old);
     const twice = normaliseData(once);
