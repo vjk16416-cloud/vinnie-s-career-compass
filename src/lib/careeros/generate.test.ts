@@ -25,4 +25,13 @@ describe("CareerOS generation rules", () => {
       ),
     ).toBe(true);
   });
+
+  test("cover letter does not describe a completed role as current employment", () => {
+    const data = createSeedData();
+    const job = data.jobs.find((j) => j.id === "job-southeastern-apm-3577")!;
+    const letter = buildCoverLetter(data, job, undefined);
+
+    expect(letter.body).not.toContain("I am currently Performance Marketing Manager");
+    expect(letter.emailVersion).not.toContain("I am Performance Marketing Manager at Northeastern University London");
+  });
 });
