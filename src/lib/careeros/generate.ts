@@ -23,6 +23,11 @@ function relevantEvidence(data: CareerOsData, job: JobRecord, limit = 10) {
     .map((x) => x.e);
 }
 
+function applyCvWritingRules(text: string, data: CareerOsData): string {
+  if (!data.settings.cvRules.noEmDashes) return text;
+  return text.replace(/\s*—\s*/g, ", ");
+}
+
 export function buildTailoredCv(
   data: CareerOsData,
   job: JobRecord,
@@ -62,7 +67,7 @@ export function buildTailoredCv(
   lines.push("");
   lines.push("## Professional Experience");
   p.employment.forEach((role) => {
-    lines.push(`### ${role.title} — ${role.company} (${role.employmentType})`);
+    lines.push(`### ${role.title} | ${role.company} (${role.employmentType})`);
     lines.push(`${role.start} – ${role.end} | ${role.location}`);
     const evidenceBullets = (claimsByEmployer.get(role.company) ?? []).map((e) =>
       e.metricValue && e.status === "Verified" && !/not yet confirmed/i.test(e.metricValue)
@@ -76,7 +81,7 @@ export function buildTailoredCv(
     lines.push("");
   });
   lines.push("## Education");
-  p.education.forEach((e) => lines.push(`- ${e.qualification}, ${e.institution} — ${e.detail}`));
+  p.education.forEach((e) => lines.push(`- ${e.qualification}, ${e.institution}, ${e.detail}`));
   lines.push("");
   lines.push("## Certifications");
   p.certifications.forEach((c) => lines.push(`- ${c.name}, ${c.issuer} (${c.completed})`));
@@ -84,7 +89,7 @@ export function buildTailoredCv(
   lines.push("## Selected Projects");
   p.projects.forEach((pr) => lines.push(`- ${pr.name}: ${pr.summary}`));
 
-  return { body: lines.join("\n"), evidenceIds: pickedIds };
+  return { body: applyCvWritingRules(lines.join("\n"), data), evidenceIds: pickedIds };
 }
 
 export function suggestCvCategory(job: JobRecord): CvCategory {
@@ -111,7 +116,7 @@ export function buildCoverLetter(
   const bodyLines = [
     `Dear Hiring Team,`,
     ``,
-    `I am applying for the ${job.title} role at ${job.company}. I am currently ${p.employment[0]?.title} at ${p.employment[0]?.company} and a part-time MSc Technology Management candidate at UCL, and the role matches how I already work: evidence-led delivery across marketing, analytics and technology.`,
+    `I am applying for the ${job.title} role at ${job.company}. I hold the APM Project Fundamentals Qualification and am a part-time MSc Technology Management candidate at UCL. My recent experience includes project delivery, reporting, budget ownership and technology change across higher education, enterprise software and recruitment.`,
     ``,
     `Three points from my record that are directly relevant:`,
     ...picked.map(
@@ -131,11 +136,11 @@ export function buildCoverLetter(
   ];
 
   const emailVersion = [
-    `Subject: Application — ${job.title}`,
+    `Subject: Application: ${job.title}`,
     ``,
     `Hello,`,
     ``,
-    `I am applying for the ${job.title} role at ${job.company}. I am ${p.employment[0]?.title} at ${p.employment[0]?.company} and a part-time UCL MSc Technology Management candidate.`,
+    `I am applying for the ${job.title} role at ${job.company}. I hold the APM PFQ and am a part-time UCL MSc Technology Management candidate, with recent experience spanning project delivery, reporting, budget ownership and technology change.`,
     ``,
     picked
       .slice(0, 2)
@@ -149,8 +154,8 @@ export function buildCoverLetter(
   ].join("\n");
 
   return {
-    body: bodyLines.join("\n"),
-    emailVersion,
+    body: applyCvWritingRules(bodyLines.join("\n"), data),
+    emailVersion: applyCvWritingRules(emailVersion, data),
     evidenceIds: picked.map((e) => e.id),
   };
 }
@@ -208,7 +213,7 @@ export function runCvHealthCheck(
 
   const unsupportedClaims = unverified
     .filter((e) => lower.includes(e.claim.toLowerCase().slice(0, 28)))
-    .map((e) => `${e.claim} — status: ${e.status}. Remove or verify before export.`);
+    .map((e) => `${e.claim}, status: ${e.status}. Remove or verify before export.`);
 
   const responsibilitiesCoverage = scan
     ? (scan.subScores.find((s) => s.key === "responsibilities")?.score ?? 0)
