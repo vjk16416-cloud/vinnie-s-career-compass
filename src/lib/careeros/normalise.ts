@@ -77,7 +77,9 @@ function applyAugust2026Sync(data: CareerOsData, seed: CareerOsData): CareerOsDa
     if (savedNul.end === "Present") savedNul.end = "Dec 2025";
     if (savedNul.summary === STALE_NUL_SUMMARY) savedNul.summary = seedNul.summary;
     savedNul.highlights = savedNul.highlights.map((highlight) =>
-      highlight === STALE_NUL_BUDGET_HIGHLIGHT ? seedNul.highlights[0] : highlight,
+      highlight === STALE_NUL_BUDGET_HIGHLIGHT
+        ? (seedNul.highlights[0] ?? highlight)
+        : highlight,
     );
   }
 
