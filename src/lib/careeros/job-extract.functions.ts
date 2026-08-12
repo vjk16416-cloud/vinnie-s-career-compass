@@ -19,7 +19,7 @@ export const extractJobFromUrl = createServerFn({ method: "POST" })
       if (!res.ok) {
         return { ok: false as const, reason: `The site responded with status ${res.status}.` };
       }
-      return extractJobPosting(await res.text());
+      return extractJobPosting(await res.text(), data.url);
     } catch {
       return {
         ok: false as const,
