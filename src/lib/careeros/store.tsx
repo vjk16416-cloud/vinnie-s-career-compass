@@ -21,7 +21,7 @@ export function uid(prefix: string) {
 }
 
 export function CareerOsProvider({ children }: { children: ReactNode }) {
-  const [data, setData] = useState<CareerOsData>(() => createSeedData());
+  const [data, setData] = useState<CareerOsData>(() => normaliseData(createSeedData()));
   const [hydrated, setHydrated] = useState(false);
 
   useEffect(() => {
@@ -59,7 +59,7 @@ export function CareerOsProvider({ children }: { children: ReactNode }) {
   );
 
   const resetToSeed = useCallback(() => {
-    setData(createSeedData());
+    setData(normaliseData(createSeedData()));
   }, []);
 
   const value = useMemo(
