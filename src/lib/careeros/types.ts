@@ -221,11 +221,33 @@ export interface ActivityEntry {
   text: string;
 }
 
+export interface CvRules {
+  language: "British English";
+  noEmDashes: boolean;
+  experienceBulletStyle: "Compact STAR/CAR";
+  metricUsage: "Roughly half, verified only";
+  neverInventMetrics: boolean;
+  allowUnsupportedScope: boolean;
+  allowFormalLineManagementWithoutEvidence: boolean;
+  fontFamily: "Times New Roman";
+  fontSizeMinPt: number;
+  fontSizeMaxPt: number;
+  blackTextOnly: boolean;
+  leftAligned: boolean;
+  allowGraphics: boolean;
+  allowTables: boolean;
+  allowIcons: boolean;
+  allowRatingBars: boolean;
+  targetPages: number;
+  preserveBaseCv: boolean;
+}
+
 export interface Settings {
   claudeReviewEnabled: boolean;
   googleDriveFolder: string;
   driveConnected: boolean;
   dataSource: "Local seeded data";
+  cvRules: CvRules;
 }
 
 export interface CareerOsData {
