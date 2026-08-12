@@ -95,7 +95,8 @@ export function buildTailoredCv(
 export function suggestCvCategory(job: JobRecord): CvCategory {
   const t = `${job.title} ${job.description}`.toLowerCase();
   if (t.includes("product marketing")) return "Product Marketing";
-  if (t.includes("product manager") || t.includes("product management")) return "Product Management";
+  if (t.includes("product manager") || t.includes("product management"))
+    return "Product Management";
   if (t.includes("consult")) return "Technology Consulting";
   if (t.includes("programme")) return "Programme Management";
   if (t.includes("project")) return "Project Delivery";
@@ -234,7 +235,9 @@ export function runCvHealthCheck(
     }
   });
   weakBullets.slice(0, 3).forEach((b) => {
-    suggestions.push({ text: `Tighten this bullet with a concrete, verified outcome: ${b.trim()}` });
+    suggestions.push({
+      text: `Tighten this bullet with a concrete, verified outcome: ${b.trim()}`,
+    });
   });
 
   const formatting = [
@@ -242,8 +245,14 @@ export function runCvHealthCheck(
     { rule: "Body sizing between 10 and 12 pt", pass: true },
     { rule: "Full black text", pass: true },
     { rule: "Left aligned throughout", pass: true },
-    { rule: "No tables, columns, icons, graphics or rating bars", pass: !/\|{2,}|<img|▮|★/.test(cvBody) },
-    { rule: "British English spelling", pass: !/\b(optimize|organiz|analyze|program manager)\b/i.test(cvBody) },
+    {
+      rule: "No tables, columns, icons, graphics or rating bars",
+      pass: !/\|{2,}|<img|▮|★/.test(cvBody),
+    },
+    {
+      rule: "British English spelling",
+      pass: !/\b(optimize|organiz|analyze|program manager)\b/i.test(cvBody),
+    },
     { rule: "Concise 2-page target", pass: cvBody.split(/\s+/).length <= 900 },
   ];
 

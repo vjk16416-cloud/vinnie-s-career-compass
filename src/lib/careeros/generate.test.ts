@@ -21,9 +21,7 @@ describe("CareerOS generation rules", () => {
     expect(letter.body).not.toContain("—");
     expect(letter.emailVersion).not.toContain("—");
     expect(
-      cv.evidenceIds.every(
-        (id) => data.evidence.find((e) => e.id === id)?.status === "Verified",
-      ),
+      cv.evidenceIds.every((id) => data.evidence.find((e) => e.id === id)?.status === "Verified"),
     ).toBe(true);
   });
 

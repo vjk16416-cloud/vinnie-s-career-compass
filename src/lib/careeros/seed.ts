@@ -147,7 +147,12 @@ export function createSeedData(): CareerOsData {
           issuer: "Google",
           completed: "Completed",
         },
-        { id: "cert-hotjar", name: "Hotjar Levels 1 & 2", issuer: "Hotjar", completed: "Completed" },
+        {
+          id: "cert-hotjar",
+          name: "Hotjar Levels 1 & 2",
+          issuer: "Hotjar",
+          completed: "Completed",
+        },
         {
           id: "cert-pbi",
           name: "Introduction to Power BI",
@@ -159,7 +164,8 @@ export function createSeedData(): CareerOsData {
         {
           id: "proj-unidrop",
           name: "UniDrop",
-          summary: "AI-enabled campus logistics service concept, covering MVP definition and user journey mapping.",
+          summary:
+            "AI-enabled campus logistics service concept, covering MVP definition and user journey mapping.",
           skills: ["New product development", "MVP definition", "User journey mapping"],
         },
         {
@@ -239,7 +245,8 @@ export function createSeedData(): CareerOsData {
         id: "ev-budget",
         employer: "Northeastern University London",
         category: "Commercial",
-        claim: "Owned annual digital media budget across PPC, paid social, display and third-party platforms",
+        claim:
+          "Owned annual digital media budget across PPC, paid social, display and third-party platforms",
         metricValue: "£140k+ annual budget",
         metricBasis: "Media plan and finance tracker",
         source: "Annual media plan, 2025/26",
@@ -252,7 +259,8 @@ export function createSeedData(): CareerOsData {
         id: "ev-rag",
         employer: "Northeastern University London",
         category: "Delivery",
-        claim: "Produced RAG-status reporting across UK, India and UAE markets for senior stakeholders",
+        claim:
+          "Produced RAG-status reporting across UK, India and UAE markets for senior stakeholders",
         metricBasis: "Monthly reporting pack",
         source: "Monthly performance pack",
         confidence: "High",
@@ -312,7 +320,8 @@ export function createSeedData(): CareerOsData {
         id: "ev-powerbi",
         employer: "IDEA StatiCa UK",
         category: "Analytics",
-        claim: "Built Power BI reporting integrating HubSpot and Salesforce data for commercial visibility",
+        claim:
+          "Built Power BI reporting integrating HubSpot and Salesforce data for commercial visibility",
         source: "Power BI workspace and data model notes",
         confidence: "High",
         status: "Verified",
@@ -323,7 +332,8 @@ export function createSeedData(): CareerOsData {
         id: "ev-agile",
         employer: "IDEA StatiCa UK",
         category: "Delivery",
-        claim: "Ran delivery in Agile cycles using Asana workflows across sales, support and marketing",
+        claim:
+          "Ran delivery in Agile cycles using Asana workflows across sales, support and marketing",
         source: "Asana workspace history",
         confidence: "High",
         status: "Verified",
@@ -334,7 +344,8 @@ export function createSeedData(): CareerOsData {
         id: "ev-crm",
         employer: "Buchanan Staffing Group",
         category: "Technology",
-        claim: "Supported CRM migration involving Salesforce and Zoho with agency and manager coordination",
+        claim:
+          "Supported CRM migration involving Salesforce and Zoho with agency and manager coordination",
         source: "Migration plan and handover notes",
         confidence: "Medium",
         status: "Verified",
@@ -443,7 +454,8 @@ export function createSeedData(): CareerOsData {
         source: "Company careers site",
         contact: "Talent team",
         url: "https://example.com/monzo/product-marketing-manager",
-        notes: "Strong overlap with product marketing and analytics evidence. Needs tailored positioning on B2C fintech.",
+        notes:
+          "Strong overlap with product marketing and analytics evidence. Needs tailored positioning on B2C fintech.",
         nextAction: "Tailor CV from verified evidence",
         nextActionDue: "2026-08-14",
         history: [{ at: now, entry: "Application created from seeded job scan." }],
@@ -507,8 +519,7 @@ export function createSeedData(): CareerOsData {
             id: "cvv-southeastern-apm-1",
             version: 1,
             createdAt: now,
-            note:
-              "Approved two-page STAR-style application CV. External filename: Vinnie_Jegathees_Assistant_Project_Manager_CV_Southeastern.pdf. Metadata record only. Metrics remain reusable only when linked evidence is Verified.",
+            note: "Approved two-page STAR-style application CV. External filename: Vinnie_Jegathees_Assistant_Project_Manager_CV_Southeastern.pdf. Metadata record only. Metrics remain reusable only when linked evidence is Verified.",
             body: "",
             evidenceIds: [
               "ev-budget",

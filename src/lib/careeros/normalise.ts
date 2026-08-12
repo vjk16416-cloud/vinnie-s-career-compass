@@ -8,8 +8,7 @@ const SOUTHEASTERN_CV_ID = "cv-southeastern-apm-3577";
 const SOUTHEASTERN_URL =
   "https://jobs.southeasternrailway.co.uk/jobs/job/Assistant-Project-Manager/3577";
 
-const STALE_HEADLINE =
-  "Performance Marketing Manager | UCL MSc Technology Management candidate";
+const STALE_HEADLINE = "Performance Marketing Manager | UCL MSc Technology Management candidate";
 const STALE_SUMMARY =
   "Performance Marketing Manager and part-time UCL MSc Technology Management candidate, combining multi-market digital acquisition experience with technology evaluation, new product development, analytics, stakeholder management, project delivery, and product/innovation work.";
 const STALE_NUL_SUMMARY =
@@ -77,9 +76,7 @@ function applyAugust2026Sync(data: CareerOsData, seed: CareerOsData): CareerOsDa
     if (savedNul.end === "Present") savedNul.end = "Dec 2025";
     if (savedNul.summary === STALE_NUL_SUMMARY) savedNul.summary = seedNul.summary;
     savedNul.highlights = savedNul.highlights.map((highlight) =>
-      highlight === STALE_NUL_BUDGET_HIGHLIGHT
-        ? (seedNul.highlights[0] ?? highlight)
-        : highlight,
+      highlight === STALE_NUL_BUDGET_HIGHLIGHT ? (seedNul.highlights[0] ?? highlight) : highlight,
     );
   }
 
