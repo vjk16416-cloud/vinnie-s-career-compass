@@ -19,7 +19,7 @@ describe("normaliseData August 2026 sync", () => {
     const result = normaliseData(old);
 
     expect(result.profile.name).toBe("Vinnie Custom");
-    expect(result.profile.headline).toContain("Project & Technology Delivery");
+    expect(result.profile.headline).toBe("Project Delivery | Product & Technology | Innovation");
     expect(result.profile.employment.find((e) => e.id === "emp-nul")?.end).toBe("Dec 2025");
   });
 
