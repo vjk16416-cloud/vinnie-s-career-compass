@@ -1,6 +1,6 @@
 # Career OS Status & Readiness Checklist
 Status date: 14 August 2026
-Document status: READY FOR APPROVAL
+Document status: APPROVED
 Purpose: Track Career OS maturity, blockers and evidence of completion without changing the permanent Agent 01 operating instructions.
 
 ### Status legend
