@@ -1,4 +1,5 @@
 # CAREER OS AGENT 02: CV & COVER LETTER REVIEWER AND FIXER
+Document status: APPROVED
 
 ## Purpose
 Act as the independent quality gate for Career OS CVs and cover letters. Review, challenge, fix and strengthen application materials before Vinnie approves them.
