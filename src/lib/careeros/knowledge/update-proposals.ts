@@ -15,15 +15,16 @@ export interface CreateKnowledgeProposalInput extends DetectedKnowledgeProposal 
   knowledgeItemId?: string | null;
 }
 
-const FACTUAL_SIGNAL = new RegExp(
+const CONCRETE_FACT_SIGNAL = new RegExp(
   [
     String.raw`\b\d+(?:[,.]\d+)*(?:\s?%)?\b`,
     String.raw`[£$€]\s?\d`,
-    String.raw`\b(?:budget|revenue|saving|conversion|leads?|users?|audience|stakeholders?|teams?|project|migration|launch|certification)\b`,
-    String.raw`\b(?:using|with|via|in)\s+[A-Z][A-Za-z0-9+.#-]*(?:\s+[A-Z][A-Za-z0-9+.#-]*){0,3}\b`,
+    String.raw`\b(?:budget|revenue|saving|conversion|project|migration|launch|certification)\b`,
   ].join("|"),
   "i",
 );
+
+const NAMED_TOOL_SIGNAL = /\b(?:using|with|via|in)\s+[A-Z][A-Za-z0-9+.#-]*(?:\s+[A-Z][A-Za-z0-9+.#-]*){0,3}\b/;
 
 const STOP_WORDS = new Set([
   "a",
@@ -75,6 +76,10 @@ function sentences(value: string) {
     .filter(Boolean);
 }
 
+function hasFactualSignal(sentence: string) {
+  return CONCRETE_FACT_SIGNAL.test(sentence) || NAMED_TOOL_SIGNAL.test(sentence);
+}
+
 function alreadyKnown(sentence: string, currentKnowledge: KnowledgeItem[]) {
   return currentKnowledge.some((item) => {
     const combined = `${item.title} ${item.content} ${item.star_action ?? ""} ${item.star_result ?? ""}`;
@@ -102,7 +107,7 @@ export function detectKnowledgeChanges(
   const originalSentences = sentences(original);
   const candidates = sentences(edited).filter(
     (sentence) =>
-      FACTUAL_SIGNAL.test(sentence) &&
+      hasFactualSignal(sentence) &&
       isNewAgainstOriginal(sentence, originalSentences) &&
       !alreadyKnown(sentence, currentKnowledge),
   );
