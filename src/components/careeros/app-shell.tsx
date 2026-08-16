@@ -13,7 +13,7 @@ import {
 } from "lucide-react";
 import type { ReactNode } from "react";
 import { cn } from "@/lib/utils";
-import { useAuth } from "@/lib/careeros/auth";
+import { useAuth } from "@/lib/auth/auth-context";
 
 export const NAV_ITEMS = [
   { to: "/", label: "Home", icon: Home },
@@ -60,7 +60,9 @@ export function AppShell({
           </div>
           <div className="min-w-0">
             <p className="truncate text-sm font-semibold text-sidebar-foreground">CareerOS</p>
-            <p className="truncate text-[11px] text-muted-foreground">Vinnie Jegathees</p>
+            <p className="truncate text-[11px] text-muted-foreground">
+              {email ?? "CareerOS account"}
+            </p>
           </div>
         </div>
         <nav className="flex-1 space-y-0.5 px-2 py-2" aria-label="Main">
