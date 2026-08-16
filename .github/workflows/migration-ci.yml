@@ -101,6 +101,9 @@ jobs:
       - name: Run tests
         run: bun run test -- --passWithNoTests
 
+      - name: Verify canonical migration dry run
+        run: bun run migrate:vinnie:dry-run
+
       - name: Run lint
         run: bun run lint
 
