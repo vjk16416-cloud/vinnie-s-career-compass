@@ -19,12 +19,4 @@
       "globs": ["**/*.mjs", "**/*.js"],
     },
   ],
-  "env": {
-    "staging": {
-      "name": "careeros-staging",
-    },
-    "production": {
-      "name": "careeros",
-    },
-  },
 }
