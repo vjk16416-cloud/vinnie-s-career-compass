@@ -12,6 +12,8 @@ import { useEffect, type ReactNode } from "react";
 import appCss from "../styles.css?url";
 import { reportLovableError } from "../lib/lovable-error-reporting";
 import { CareerOsProvider } from "../lib/careeros/store";
+import { AuthProvider } from "../lib/careeros/auth";
+import { AuthGate } from "../components/careeros/auth-gate";
 import { Toaster } from "../components/ui/sonner";
 
 function NotFoundComponent() {
@@ -126,11 +128,15 @@ function RootComponent() {
 
   return (
     <QueryClientProvider client={queryClient}>
-      <CareerOsProvider>
-        {/* Required: nested routes render here. Removing <Outlet /> breaks all child routes. */}
-        <Outlet />
+      <AuthProvider>
+        <AuthGate>
+          <CareerOsProvider>
+            {/* Required: nested routes render here. Removing <Outlet /> breaks all child routes. */}
+            <Outlet />
+          </CareerOsProvider>
+        </AuthGate>
         <Toaster />
-      </CareerOsProvider>
+      </AuthProvider>
     </QueryClientProvider>
   );
 }

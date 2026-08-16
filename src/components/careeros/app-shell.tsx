@@ -9,9 +9,11 @@ import {
   ShieldCheck,
   UserRound,
   Plus,
+  LogOut,
 } from "lucide-react";
 import type { ReactNode } from "react";
 import { cn } from "@/lib/utils";
+import { useAuth } from "@/lib/careeros/auth";
 
 export const NAV_ITEMS = [
   { to: "/", label: "Home", icon: Home },
@@ -40,6 +42,7 @@ export function AppShell({
   children: ReactNode;
 }) {
   const pathname = useRouterState({ select: (s) => s.location.pathname });
+  const { email, signOut } = useAuth();
 
   return (
     <div className="min-h-screen bg-background text-foreground">
@@ -80,12 +83,20 @@ export function AppShell({
             );
           })}
         </nav>
-        <div className="border-t border-sidebar-border px-3 py-3">
+        <div className="space-y-2 border-t border-sidebar-border px-3 py-3">
           <p className="text-[11px] leading-relaxed text-muted-foreground">
             Data source: <span className="text-foreground">Local seeded data</span>
             <br />
-            No external systems connected.
+            {email ? <span className="truncate">Signed in as {email}</span> : "No account"}
           </p>
+          <button
+            type="button"
+            onClick={() => void signOut()}
+            className="flex w-full items-center gap-2 rounded-md px-2 py-1.5 text-xs text-muted-foreground transition-colors hover:bg-sidebar-accent/60 hover:text-sidebar-foreground"
+          >
+            <LogOut className="h-3.5 w-3.5" aria-hidden="true" />
+            Sign out
+          </button>
         </div>
       </aside>
 
