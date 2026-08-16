@@ -1,15 +1,15 @@
 import type { CareerOsData } from "./types";
 
-const now = "2026-08-10T09:00:00.000Z";
+const now = "2026-08-16T10:00:00.000Z";
 
 export function createSeedData(): CareerOsData {
   return {
     profile: {
       name: "Vinnie Jegathees",
       location: "London, UK",
-      headline: "Performance Marketing Manager | UCL MSc Technology Management candidate",
+      headline: "Project Delivery | Product & Technology | Innovation",
       summary:
-        "Performance Marketing Manager and part-time UCL MSc Technology Management candidate, combining multi-market digital acquisition experience with technology evaluation, new product development, analytics, stakeholder management, project delivery, and product/innovation work.",
+        "Digital marketing and technology management professional and part-time UCL MSc Technology Management candidate, combining multi-market digital acquisition experience with technology evaluation, new product development, analytics, stakeholder management, project delivery, and product and innovation work.",
       employment: [
         {
           id: "emp-nul",
@@ -17,15 +17,15 @@ export function createSeedData(): CareerOsData {
           company: "Northeastern University London",
           employmentType: "Contract",
           start: "Jun 2025",
-          end: "Present",
+          end: "Dec 2025",
           location: "London, UK",
           summary:
-            "Own paid acquisition across PPC, paid social, display and third-party platforms for a multi-market student recruitment portfolio.",
+            "Managed paid acquisition across PPC, paid social, display and third-party platforms for a multi-market student recruitment portfolio.",
           highlights: [
-            "Own an annual digital media budget of £140k+ across PPC, paid social, display and third-party platforms.",
-            "Produce RAG-status analysis and multi-market reporting across UK, India and UAE.",
-            "Run agency performance reviews and manage vendor delivery against agreed targets.",
-            "Collaborate with website and stakeholder teams on landing-page delivery and A/B testing.",
+            "Managed a £140k+ annual digital media budget across PPC, paid social, display and third-party platforms.",
+            "Produced RAG-status analysis and multi-market reporting across UK, India and UAE.",
+            "Ran agency performance reviews and managed vendor delivery against agreed targets.",
+            "Collaborated with website and stakeholder teams on landing-page delivery and A/B testing.",
           ],
           skills: [
             "PPC",
@@ -85,7 +85,7 @@ export function createSeedData(): CareerOsData {
           id: "emp-nas",
           title: "Digital Advertising Officer",
           company: "National Autistic Society",
-          employmentType: "Permanent",
+          employmentType: "Unspecified",
           start: "Apr 2022",
           end: "Feb 2023",
           location: "London, UK",
@@ -100,7 +100,7 @@ export function createSeedData(): CareerOsData {
           id: "emp-infinite",
           title: "Senior Digital Marketing Executive",
           company: "Infinite Entertainment UK",
-          employmentType: "Permanent",
+          employmentType: "Unspecified",
           start: "Jun 2016",
           end: "Apr 2022",
           location: "London, UK",
@@ -147,7 +147,12 @@ export function createSeedData(): CareerOsData {
           issuer: "Google",
           completed: "Completed",
         },
-        { id: "cert-hotjar", name: "Hotjar Levels 1 & 2", issuer: "Hotjar", completed: "Completed" },
+        {
+          id: "cert-hotjar",
+          name: "Hotjar Levels 1 & 2",
+          issuer: "Hotjar",
+          completed: "Completed",
+        },
         {
           id: "cert-pbi",
           name: "Introduction to Power BI",
@@ -159,20 +164,42 @@ export function createSeedData(): CareerOsData {
         {
           id: "proj-unidrop",
           name: "UniDrop",
-          summary: "AI-enabled campus logistics service concept, covering MVP definition and user journey mapping.",
+          summary:
+            "UCL academic concept for an AI-enabled campus logistics service, covering new product development, MVP definition and user journey mapping.",
           skills: ["New product development", "MVP definition", "User journey mapping"],
         },
         {
           id: "proj-intentionally",
           name: "Intentionally",
-          summary: "Video-first dating app concept with value proposition development and roadmap.",
-          skills: ["Product roadmapping", "Value proposition development"],
+          summary:
+            "Founder-led mobile-first dating MVP centred on guided Vibe Checks, mutual Continue or Pass and safety; defined the core journey, MVP scope, roadmap and product documentation, and developed a clickable prototype using a Next.js and Supabase project stack.",
+          skills: [
+            "Product vision",
+            "MVP definition",
+            "User journey mapping",
+            "Product roadmapping",
+            "Safety requirements",
+            "Prototyping",
+          ],
+        },
+        {
+          id: "proj-atlas",
+          name: "Atlas",
+          summary:
+            "Internal founder review and decision-support concept for Intentionally; produced a static prototype, evidence-first product specification and gated prototype-to-production roadmap. It is not a production system.",
+          skills: [
+            "Product specification",
+            "Prototyping",
+            "Decision governance",
+            "Product roadmapping",
+          ],
         },
         {
           id: "proj-bioprinting",
           name: "3D Bioprinting",
-          summary: "Emerging technology maturity assessment using TRL and the Gartner Hype Cycle.",
-          skills: ["Technology evaluation", "TRL", "Gartner Hype Cycle", "Risk assessment"],
+          summary:
+            "UCL group emerging-technology review of 3D bioprinting using TRL, AD² and S-curve analysis alongside market, risk and roadmapping frameworks.",
+          skills: ["Technology evaluation", "TRL", "AD²", "S-curve analysis", "Risk assessment"],
         },
       ],
       skills: [
@@ -193,7 +220,8 @@ export function createSeedData(): CareerOsData {
         "User journey mapping",
         "Technology evaluation",
         "TRL",
-        "Gartner Hype Cycle",
+        "AD²",
+        "S-curve analysis",
         "Product roadmapping",
         "Value proposition development",
         "Risk assessment",
@@ -233,10 +261,12 @@ export function createSeedData(): CareerOsData {
         id: "ev-budget",
         employer: "Northeastern University London",
         category: "Commercial",
-        claim: "Owned annual digital media budget across PPC, paid social, display and third-party platforms",
+        claim:
+          "Owned annual digital media budget across PPC, paid social, display and third-party platforms",
         metricValue: "£140k+ annual budget",
-        metricBasis: "Media plan and finance tracker",
-        source: "Annual media plan, 2025/26",
+        metricBasis: "Supplied master CV and direct user confirmation",
+        source: "VINNIE JEGATHEES master CV, confirmed 16 Aug 2026",
+        notes: "Verified from the supplied career record and Vinnie's direct confirmation.",
         confidence: "High",
         status: "Verified",
         skills: ["Budget ownership", "PPC", "Paid social", "Programmatic", "Vendor management"],
@@ -246,7 +276,8 @@ export function createSeedData(): CareerOsData {
         id: "ev-rag",
         employer: "Northeastern University London",
         category: "Delivery",
-        claim: "Produced RAG-status reporting across UK, India and UAE markets for senior stakeholders",
+        claim:
+          "Produced RAG-status reporting across UK, India and UAE markets for senior stakeholders",
         metricBasis: "Monthly reporting pack",
         source: "Monthly performance pack",
         confidence: "High",
@@ -281,12 +312,12 @@ export function createSeedData(): CareerOsData {
         employer: "Northeastern University London",
         category: "Performance Marketing",
         claim: "Improved enquiry conversion rate following landing-page testing programme",
-        metricValue: "Percentage uplift not yet confirmed",
-        metricBasis: "Requires GA4 export to confirm exact figure",
-        source: "Pending — GA4 comparison export",
-        notes: "Cannot be used in generated documents until the uplift figure is confirmed.",
-        confidence: "Low",
-        status: "Needs Evidence",
+        metricValue: "27% increase in conversion rates",
+        metricBasis: "Supplied master CV and direct user confirmation",
+        source: "VINNIE JEGATHEES master CV, confirmed 16 Aug 2026",
+        notes: "Verified from the supplied career record and Vinnie's direct confirmation.",
+        confidence: "High",
+        status: "Verified",
         skills: ["A/B testing", "GA4", "Conversion optimisation"],
         updatedAt: now,
       },
@@ -306,7 +337,8 @@ export function createSeedData(): CareerOsData {
         id: "ev-powerbi",
         employer: "IDEA StatiCa UK",
         category: "Analytics",
-        claim: "Built Power BI reporting integrating HubSpot and Salesforce data for commercial visibility",
+        claim:
+          "Built Power BI reporting integrating HubSpot and Salesforce data for commercial visibility",
         source: "Power BI workspace and data model notes",
         confidence: "High",
         status: "Verified",
@@ -317,7 +349,8 @@ export function createSeedData(): CareerOsData {
         id: "ev-agile",
         employer: "IDEA StatiCa UK",
         category: "Delivery",
-        claim: "Ran delivery in Agile cycles using Asana workflows across sales, support and marketing",
+        claim:
+          "Ran delivery in Agile cycles using Asana workflows across sales, support and marketing",
         source: "Asana workspace history",
         confidence: "High",
         status: "Verified",
@@ -328,7 +361,8 @@ export function createSeedData(): CareerOsData {
         id: "ev-crm",
         employer: "Buchanan Staffing Group",
         category: "Technology",
-        claim: "Supported CRM migration involving Salesforce and Zoho with agency and manager coordination",
+        claim:
+          "Supported CRM migration involving Salesforce and Zoho with agency and manager coordination",
         source: "Migration plan and handover notes",
         confidence: "Medium",
         status: "Verified",
@@ -339,12 +373,14 @@ export function createSeedData(): CareerOsData {
         id: "ev-nas",
         employer: "National Autistic Society",
         category: "Performance Marketing",
-        claim: "Improved paid search performance and delivered campaigns cross-functionally",
-        metricValue: "Improvement size not yet confirmed",
-        source: "Pending — historic Google Ads export",
-        notes: "Directional claim only. Do not quantify in generated documents.",
-        confidence: "Low",
-        status: "Needs Evidence",
+        claim:
+          "Rebuilt underperforming paid-search content and keyword strategy with an external agency",
+        metricValue: "30% increase in clicks and 60% increase in impressions",
+        metricBasis: "Supplied master CV and direct user confirmation",
+        source: "VINNIE JEGATHEES master CV, confirmed 16 Aug 2026",
+        notes: "Verified from the supplied career record and Vinnie's direct confirmation.",
+        confidence: "High",
+        status: "Verified",
         skills: ["Paid search", "Campaign delivery"],
         updatedAt: now,
       },
@@ -365,11 +401,51 @@ export function createSeedData(): CareerOsData {
         employer: "UCL MSc Technology Management",
         category: "Technology",
         claim:
-          "Assessed 3D bioprinting maturity using TRL and the Gartner Hype Cycle, including risk assessment",
-        source: "UCL technology assessment report",
+          "Contributed to a UCL group assessment of 3D bioprinting maturity using TRL, AD² and S-curve analysis, including market, risk and roadmapping work",
+        source: "UCL 3D Bioprinting group report, July 2026",
         confidence: "High",
         status: "Verified",
-        skills: ["Technology evaluation", "TRL", "Gartner Hype Cycle", "Risk assessment"],
+        skills: ["Technology evaluation", "TRL", "AD²", "S-curve analysis", "Risk assessment"],
+        updatedAt: now,
+      },
+      {
+        id: "ev-intentionally",
+        employer: "Founder project: Intentionally",
+        category: "Product & Innovation",
+        claim:
+          "Founded and led product development for a mobile-first dating MVP; defined the core journey, MVP scope, roadmap, safety requirements and product documentation, and developed a clickable prototype using a Next.js and Supabase project stack",
+        source: "Vinnie CV Evidence Audit, 23 Jul 2026 (P03, P05-P10)",
+        notes:
+          "Pre-commercial founder project. Do not claim a managed team, paying users, commercial performance or production-grade delivery.",
+        confidence: "High",
+        status: "Verified",
+        skills: [
+          "Product vision",
+          "MVP definition",
+          "User journey mapping",
+          "Product roadmapping",
+          "Safety requirements",
+          "Prototyping",
+        ],
+        updatedAt: now,
+      },
+      {
+        id: "ev-atlas",
+        employer: "Internal founder project: Atlas",
+        category: "Product & Innovation",
+        claim:
+          "Defined and prototyped an internal founder review and decision-support concept, producing a static three-flow prototype, evidence-first product specification and gated prototype-to-production roadmap",
+        source: "Vinnie CV Evidence Audit, 23 Jul 2026 (P10-P17)",
+        notes:
+          "Static prototype and planning evidence only. Do not describe Atlas as an operational or commercial platform.",
+        confidence: "Medium",
+        status: "Verified",
+        skills: [
+          "Product specification",
+          "Prototyping",
+          "Decision governance",
+          "Product roadmapping",
+        ],
         updatedAt: now,
       },
       {
@@ -426,7 +502,8 @@ export function createSeedData(): CareerOsData {
         source: "Company careers site",
         contact: "Talent team",
         url: "https://example.com/monzo/product-marketing-manager",
-        notes: "Strong overlap with product marketing and analytics evidence. Needs tailored positioning on B2C fintech.",
+        notes:
+          "Strong overlap with product marketing and analytics evidence. Needs tailored positioning on B2C fintech.",
         nextAction: "Tailor CV from verified evidence",
         nextActionDue: "2026-08-14",
         history: [{ at: now, entry: "Application created from seeded job scan." }],
@@ -445,7 +522,7 @@ export function createSeedData(): CareerOsData {
             version: 1,
             createdAt: now,
             note: "Seeded master CV built from verified evidence only.",
-            evidenceIds: ["ev-budget", "ev-rag", "ev-adoption", "ev-powerbi"],
+            evidenceIds: ["ev-rag", "ev-adoption", "ev-powerbi"],
             body: "",
           },
         ],

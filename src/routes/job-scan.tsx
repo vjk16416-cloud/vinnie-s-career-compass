@@ -2,7 +2,13 @@ import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useRef, useState } from "react";
 import { toast } from "sonner";
 import { AppShell } from "@/components/careeros/app-shell";
-import { Panel, ScoreBar, ScoreRing, StatusPill, evidenceTone } from "@/components/careeros/ui-bits";
+import {
+  Panel,
+  ScoreBar,
+  ScoreRing,
+  StatusPill,
+  evidenceTone,
+} from "@/components/careeros/ui-bits";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -169,7 +175,8 @@ function JobScanPage() {
         id: uid("job"),
         company: company.trim() || "Unspecified company",
         title: title.trim() || "Unspecified role",
-        location: [location.trim(), detail?.workplaceType].filter(Boolean).join(" · ") || "Unspecified",
+        location:
+          [location.trim(), detail?.workplaceType].filter(Boolean).join(" · ") || "Unspecified",
         url: url.trim() || undefined,
         description: description.trim(),
         createdAt: new Date().toISOString(),
@@ -317,7 +324,9 @@ function JobScanPage() {
               />
               <p className="mt-1.5 text-xs text-muted-foreground">
                 {jdWords} words{" "}
-                {insufficient ? "— add at least 40 words to run a reliable scan." : "— ready to analyse."}
+                {insufficient
+                  ? "— add at least 40 words to run a reliable scan."
+                  : "— ready to analyse."}
               </p>
             </div>
           </div>
@@ -473,13 +482,7 @@ const PLAIN_VERDICT: Record<string, string> = {
   "Weak Fit": "The evidence does not support this role well. Your time is better spent elsewhere.",
 };
 
-export function ScanResultView({
-  scan,
-  onCreate,
-}: {
-  scan: ScanResult;
-  onCreate?: () => void;
-}) {
+export function ScanResultView({ scan, onCreate }: { scan: ScanResult; onCreate?: () => void }) {
   const tone = scan.overall >= 70 ? "success" : scan.overall >= 50 ? "warning" : "danger";
   const topDimensions = [...scan.subScores].sort((a, b) => b.score - a.score);
 

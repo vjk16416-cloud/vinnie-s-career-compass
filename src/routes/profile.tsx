@@ -7,9 +7,15 @@ export const Route = createFileRoute("/profile")({
   head: () => ({
     meta: [
       { title: "Career Profile — CareerOS" },
-      { name: "description", content: "Structured employment, education, certifications and skills record." },
+      {
+        name: "description",
+        content: "Structured employment, education, certifications and skills record.",
+      },
       { property: "og:title", content: "Career Profile — CareerOS" },
-      { property: "og:description", content: "The master career record behind every scan and document." },
+      {
+        property: "og:description",
+        content: "The master career record behind every scan and document.",
+      },
     ],
   }),
   component: ProfilePage,

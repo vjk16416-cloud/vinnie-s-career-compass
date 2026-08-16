@@ -30,7 +30,8 @@ export const Route = createFileRoute("/applications/$id")({
       { title: "Application workspace — CareerOS" },
       {
         name: "description",
-        content: "Job description, match analysis, evidence map, CV and cover letter in one workspace.",
+        content:
+          "Job description, match analysis, evidence map, CV and cover letter in one workspace.",
       },
       { property: "og:title", content: "Application workspace — CareerOS" },
       {
@@ -53,7 +54,10 @@ function ApplicationWorkspace() {
   const [jdDraft, setJdDraft] = useState(job?.description ?? "");
   const [healthOpen, setHealthOpen] = useState(false);
 
-  const verified = useMemo(() => data.evidence.filter((e) => e.status === "Verified"), [data.evidence]);
+  const verified = useMemo(
+    () => data.evidence.filter((e) => e.status === "Verified"),
+    [data.evidence],
+  );
   const latestCvBody = cv?.versions[cv.versions.length - 1]?.body ?? "";
   const health = useMemo(
     () => (latestCvBody ? runCvHealthCheck(latestCvBody, data, job, scan) : null),
@@ -347,7 +351,10 @@ function ApplicationWorkspace() {
               <div className="grid gap-4 md:grid-cols-2">
                 <ScoreBar label="Role compatibility" value={health.compatibility} />
                 <ScoreBar label="ATS / keyword coverage" value={health.atsCoverage} />
-                <ScoreBar label="Responsibilities coverage" value={health.responsibilitiesCoverage} />
+                <ScoreBar
+                  label="Responsibilities coverage"
+                  value={health.responsibilitiesCoverage}
+                />
                 <ScoreBar label="Evidence coverage" value={health.evidenceCoverage} />
               </div>
 
@@ -356,14 +363,18 @@ function ApplicationWorkspace() {
                   <h3 className="text-xs font-semibold text-muted-foreground">Missing keywords</h3>
                   <div className="mt-1.5 flex flex-wrap gap-1.5">
                     {health.missingKeywords.length ? (
-                      health.missingKeywords.map((k) => <StatusPill key={k} label={k} tone="warning" />)
+                      health.missingKeywords.map((k) => (
+                        <StatusPill key={k} label={k} tone="warning" />
+                      ))
                     ) : (
                       <p className="text-sm text-muted-foreground">None.</p>
                     )}
                   </div>
                 </div>
                 <div>
-                  <h3 className="text-xs font-semibold text-muted-foreground">Weak or vague bullets</h3>
+                  <h3 className="text-xs font-semibold text-muted-foreground">
+                    Weak or vague bullets
+                  </h3>
                   <ul className="mt-1.5 space-y-1 text-sm text-muted-foreground">
                     {health.weakBullets.length ? (
                       health.weakBullets.map((b) => <li key={b}>{b.trim()}</li>)
@@ -385,7 +396,9 @@ function ApplicationWorkspace() {
                   </ul>
                 </div>
                 <div>
-                  <h3 className="text-xs font-semibold text-muted-foreground">Formatting compliance</h3>
+                  <h3 className="text-xs font-semibold text-muted-foreground">
+                    Formatting compliance
+                  </h3>
                   <ul className="mt-1.5 space-y-1 text-sm">
                     {health.formatting.map((f) => (
                       <li key={f.rule} className="flex flex-wrap items-center gap-2">
@@ -401,7 +414,9 @@ function ApplicationWorkspace() {
               </div>
 
               <div className="mt-4">
-                <h3 className="text-xs font-semibold text-muted-foreground">Suggested refinements</h3>
+                <h3 className="text-xs font-semibold text-muted-foreground">
+                  Suggested refinements
+                </h3>
                 <ul className="mt-1.5 space-y-1.5 text-sm">
                   {health.suggestions.map((s) => (
                     <li key={s.text} className="rounded-md border border-border p-2.5">
@@ -451,7 +466,10 @@ function ApplicationWorkspace() {
                 </p>
               </div>
             ) : (
-              <EmptyState title="No cover letter yet." hint="Generate one from verified evidence." />
+              <EmptyState
+                title="No cover letter yet."
+                hint="Generate one from verified evidence."
+              />
             )}
           </Panel>
         </TabsContent>
@@ -520,7 +538,10 @@ function ApplicationWorkspace() {
         </TabsContent>
 
         <TabsContent value="prep" className="mt-4">
-          <Panel title="Interview prep" description="Prompts built from your verified evidence only.">
+          <Panel
+            title="Interview prep"
+            description="Prompts built from your verified evidence only."
+          >
             <ul className="space-y-2 text-sm">
               {verified.slice(0, 6).map((e) => (
                 <li key={e.id} className="rounded-md border border-border p-3">

@@ -12,9 +12,15 @@ export const Route = createFileRoute("/settings")({
   head: () => ({
     meta: [
       { title: "Settings — CareerOS" },
-      { name: "description", content: "Data sources, optional review step and local storage controls." },
+      {
+        name: "description",
+        content: "Data sources, optional review step and local storage controls.",
+      },
       { property: "og:title", content: "Settings — CareerOS" },
-      { property: "og:description", content: "Control data sources and the optional reviewer step." },
+      {
+        property: "og:description",
+        content: "Control data sources and the optional reviewer step.",
+      },
     ],
   }),
   component: SettingsPage,
@@ -47,10 +53,7 @@ function SettingsPage() {
           </Button>
         </Panel>
 
-        <Panel
-          title="Google Drive source"
-          description="Future integration target — not connected."
-        >
+        <Panel title="Google Drive source" description="Future integration target — not connected.">
           <div className="flex flex-wrap items-center gap-2">
             <StatusPill label="Status: Not connected" tone="warning" />
           </div>
