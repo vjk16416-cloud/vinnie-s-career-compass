@@ -17,10 +17,10 @@ import { Textarea } from "@/components/ui/textarea";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import {
   buildCoverLetter,
-  buildTailoredCv,
   runCvHealthCheck,
   suggestCvCategory,
 } from "@/lib/careeros/generate";
+import { buildTailoredCvForCurrentUser } from "@/lib/careeros/resume/generate-workflow";
 import { runScan } from "@/lib/careeros/scoring";
 import { uid, useCareerOs } from "@/lib/careeros/store";
 
@@ -108,53 +108,76 @@ function ApplicationWorkspace() {
     logActivity(`Re-scanned ${app.title} at ${app.company} — ${result.overall}%.`);
   }
 
-  function generateCv() {
+  async function generateCv() {
     if (!job || !app) return;
-    const built = buildTailoredCv(data, { ...job, description: jdDraft || job.description }, scan);
-    update((d) => {
-      const existing = d.cvs.find((c) => c.applicationId === app.id);
-      if (existing) {
-        existing.versions.push({
-          id: uid("cvv"),
-          version: existing.versions.length + 1,
-          createdAt: new Date().toISOString(),
-          note: "Regenerated draft from verified evidence.",
-          body: built.body,
-          evidenceIds: built.evidenceIds,
-        });
-        existing.status = "Draft";
-        existing.updatedAt = new Date().toISOString();
-      } else {
-        const cvId = uid("cv");
-        d.cvs = [
-          {
-            id: cvId,
-            name: `${app.title} — ${app.company}`,
-            category: suggestCvCategory(job),
-            status: "Draft",
-            applicationId: app.id,
-            jobId: job.id,
-            updatedAt: new Date().toISOString(),
-            versions: [
-              {
-                id: uid("cvv"),
-                version: 1,
-                createdAt: new Date().toISOString(),
-                note: "Initial tailored draft from verified evidence.",
-                body: built.body,
-                evidenceIds: built.evidenceIds,
-              },
-            ],
-          },
-          ...d.cvs,
-        ];
-        const target = d.applications.find((a) => a.id === app.id);
-        if (target) target.linkedCvId = cvId;
+
+    try {
+      const built = await buildTailoredCvForCurrentUser(
+        data,
+        { ...job, description: jdDraft || job.description },
+        scan,
+      );
+
+      if (!built.ready) {
+        const roleSummary = built.roleGaps
+          .map(
+            (gap) =>
+              `${gap.roleTitle} at ${gap.employer} needs ${gap.missing} more supported bullet${gap.missing === 1 ? "" : "s"}`,
+          )
+          .join(". ");
+        toast.warning(
+          `CareerOS needs stronger Knowledge Bank evidence before creating this CV. ${roleSummary}. Add or strengthen evidence instead of inventing missing results.`,
+        );
+        return;
       }
-      return d;
-    });
-    logActivity(`Tailored CV draft created for ${app.title} at ${app.company}.`);
-    toast.success("Draft CV created. It stays a draft until you approve it.");
+
+      update((d) => {
+        const existing = d.cvs.find((c) => c.applicationId === app.id);
+        if (existing) {
+          existing.versions.push({
+            id: uid("cvv"),
+            version: existing.versions.length + 1,
+            createdAt: new Date().toISOString(),
+            note: "Regenerated draft from supported Knowledge Bank evidence.",
+            body: built.body,
+            evidenceIds: built.evidenceIds,
+          });
+          existing.status = "Draft";
+          existing.updatedAt = new Date().toISOString();
+        } else {
+          const cvId = uid("cv");
+          d.cvs = [
+            {
+              id: cvId,
+              name: `${app.title} — ${app.company}`,
+              category: suggestCvCategory(job),
+              status: "Draft",
+              applicationId: app.id,
+              jobId: job.id,
+              updatedAt: new Date().toISOString(),
+              versions: [
+                {
+                  id: uid("cvv"),
+                  version: 1,
+                  createdAt: new Date().toISOString(),
+                  note: "Initial tailored draft from supported Knowledge Bank evidence.",
+                  body: built.body,
+                  evidenceIds: built.evidenceIds,
+                },
+              ],
+            },
+            ...d.cvs,
+          ];
+          const target = d.applications.find((a) => a.id === app.id);
+          if (target) target.linkedCvId = cvId;
+        }
+        return d;
+      });
+      logActivity(`Tailored CV draft created for ${app.title} at ${app.company}.`);
+      toast.success("Draft CV created from supported Knowledge Bank evidence. It stays a draft until you approve it.");
+    } catch (caught) {
+      toast.error(caught instanceof Error ? caught.message : "Could not generate the tailored CV.");
+    }
   }
 
   function approveCv() {
@@ -293,7 +316,7 @@ function ApplicationWorkspace() {
             description="Times New Roman, 10–12 pt, black, left aligned, no graphics."
             actions={
               <>
-                <Button size="sm" onClick={generateCv}>
+                <Button size="sm" onClick={() => void generateCv()}>
                   {cv ? "New draft" : "Create tailored CV"}
                 </Button>
                 {cv ? (
