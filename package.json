@@ -14,7 +14,7 @@
     "test:watch": "vitest",
     "migrate:vinnie:dry-run": "bun scripts/migrate-vinnie-data.ts --dry-run",
     "migrate:vinnie": "bun scripts/migrate-vinnie-data.ts",
-    "deploy": "bunx wrangler deploy"
+    "deploy": "bun run build && bunx wrangler deploy"
   },
   "dependencies": {
     "@hookform/resolvers": "^5.2.2",
