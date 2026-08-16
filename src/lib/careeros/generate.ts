@@ -1,5 +1,6 @@
 import type { CareerOsData, CvCategory, EvidenceRecord, JobRecord, ScanResult } from "./types";
 import { tokenise } from "./scoring";
+export { buildTailoredCvFromKnowledge as buildTailoredCv } from "./resume/tailored-cv";
 
 /** Only Verified evidence may ever reach generated documents. */
 export function usableEvidence(data: CareerOsData): EvidenceRecord[] {
@@ -21,70 +22,6 @@ function relevantEvidence(data: CareerOsData, job: JobRecord, limit = 10) {
     .sort((a, b) => b.score - a.score)
     .slice(0, limit)
     .map((x) => x.e);
-}
-
-export function buildTailoredCv(
-  data: CareerOsData,
-  job: JobRecord,
-  scan: ScanResult | undefined,
-): { body: string; evidenceIds: string[] } {
-  const p = data.profile;
-  const picked = relevantEvidence(data, job);
-  const pickedIds = picked.map((e) => e.id);
-  const claimsByEmployer = new Map<string, EvidenceRecord[]>();
-  picked.forEach((e) => {
-    claimsByEmployer.set(e.employer, [...(claimsByEmployer.get(e.employer) ?? []), e]);
-  });
-
-  const focus = scan
-    ? scan.subScores
-        .slice()
-        .sort((a, b) => b.score - a.score)
-        .slice(0, 3)
-        .map((s) => s.label.replace(" Fit", ""))
-        .join(", ")
-    : "delivery, analytics and stakeholder management";
-
-  const lines: string[] = [];
-  lines.push(`# ${p.name}`);
-  lines.push(`${p.location} | ${p.headline}`);
-  lines.push("");
-  lines.push("## Professional Summary");
-  lines.push(
-    `${p.summary} Applying for ${job.title} at ${job.company}, with emphasis on ${focus.toLowerCase()}.`,
-  );
-  lines.push("");
-  lines.push("## Core Skills");
-  lines.push(p.skills.slice(0, 14).join(" | "));
-  lines.push("");
-  lines.push("## Tools and Platforms");
-  lines.push(p.tools.join(" | "));
-  lines.push("");
-  lines.push("## Professional Experience");
-  p.employment.forEach((role) => {
-    lines.push(`### ${role.title} — ${role.company} (${role.employmentType})`);
-    lines.push(`${role.start} – ${role.end} | ${role.location}`);
-    const evidenceBullets = (claimsByEmployer.get(role.company) ?? []).map((e) =>
-      e.metricValue && e.status === "Verified" && !/not yet confirmed/i.test(e.metricValue)
-        ? `- ${e.claim} (${e.metricValue}).`
-        : `- ${e.claim}.`,
-    );
-    const bullets = evidenceBullets.length
-      ? evidenceBullets
-      : role.highlights.slice(0, 3).map((h) => `- ${h}`);
-    bullets.forEach((b) => lines.push(b));
-    lines.push("");
-  });
-  lines.push("## Education");
-  p.education.forEach((e) => lines.push(`- ${e.qualification}, ${e.institution} — ${e.detail}`));
-  lines.push("");
-  lines.push("## Certifications");
-  p.certifications.forEach((c) => lines.push(`- ${c.name}, ${c.issuer} (${c.completed})`));
-  lines.push("");
-  lines.push("## Selected Projects");
-  p.projects.forEach((pr) => lines.push(`- ${pr.name}: ${pr.summary}`));
-
-  return { body: lines.join("\n"), evidenceIds: pickedIds };
 }
 
 export function suggestCvCategory(job: JobRecord): CvCategory {
