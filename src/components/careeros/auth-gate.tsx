@@ -3,10 +3,10 @@ import { Loader2, Lock } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { useAuth } from "@/lib/careeros/auth";
+import { useAuth } from "@/lib/auth/auth-context";
 
 export function AuthGate({ children }: { children: ReactNode }) {
-  const { session, loading } = useAuth();
+  const { user, loading } = useAuth();
 
   if (loading) {
     return (
@@ -19,13 +19,13 @@ export function AuthGate({ children }: { children: ReactNode }) {
     );
   }
 
-  if (!session) return <LoginScreen />;
+  if (!user) return <LoginScreen />;
 
   return <>{children}</>;
 }
 
 function LoginScreen() {
-  const { signIn, deniedEmail } = useAuth();
+  const { signIn } = useAuth();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [submitting, setSubmitting] = useState(false);
@@ -59,18 +59,9 @@ function LoginScreen() {
           </span>
           <div>
             <h1 className="text-base font-semibold">CareerOS</h1>
-            <p className="text-xs text-muted-foreground">Private workspace — sign in to continue</p>
+            <p className="text-xs text-muted-foreground">Private workspace, sign in to continue</p>
           </div>
         </div>
-
-        {deniedEmail ? (
-          <p
-            role="alert"
-            className="mb-4 rounded-md border border-destructive/40 bg-destructive/10 px-3 py-2 text-xs text-destructive"
-          >
-            {deniedEmail} is not authorised for this workspace. You have been signed out.
-          </p>
-        ) : null}
 
         <form onSubmit={onSubmit} className="space-y-3.5" noValidate>
           <div className="space-y-1.5">
@@ -118,9 +109,9 @@ function LoginScreen() {
           </Button>
         </form>
 
-        <p className="mt-4 flex items-center gap-1.5 text-[11px] text-muted-foreground">
-          <Lock className="h-3 w-3" aria-hidden="true" />
-          Single-user workspace. Sign-up is disabled.
+        <p className="mt-4 flex items-start gap-1.5 text-[11px] text-muted-foreground">
+          <Lock className="mt-0.5 h-3 w-3 shrink-0" aria-hidden="true" />
+          Access is tied to your CareerOS account. User data is isolated with database Row Level Security.
         </p>
       </div>
     </main>
