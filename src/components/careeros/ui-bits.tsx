@@ -74,7 +74,15 @@ export function ScoreRing({ value, size = 96 }: { value: number; size?: number }
   );
 }
 
-export function ScoreBar({ label, value, reason }: { label: string; value: number; reason?: string }) {
+export function ScoreBar({
+  label,
+  value,
+  reason,
+}: {
+  label: string;
+  value: number;
+  reason?: string;
+}) {
   return (
     <div className="space-y-1.5">
       <div className="flex items-baseline justify-between gap-3">

@@ -41,8 +41,7 @@ function ApplicationsPage() {
     let list = data.applications.filter((a) => {
       const q = query.trim().toLowerCase();
       const matchQ =
-        !q ||
-        `${a.company} ${a.title} ${a.location} ${a.notes}`.toLowerCase().includes(q);
+        !q || `${a.company} ${a.title} ${a.location} ${a.notes}`.toLowerCase().includes(q);
       return matchQ && (stage === "All" || a.stage === stage);
     });
     list = [...list].sort((a, b) => {
@@ -198,7 +197,10 @@ function ApplicationsPage() {
         </Panel>
 
         {rows.length === 0 ? (
-          <EmptyState title="No applications match." hint="Try clearing filters or run a job scan." />
+          <EmptyState
+            title="No applications match."
+            hint="Try clearing filters or run a job scan."
+          />
         ) : (
           <>
             {/* Desktop dense rows */}
@@ -206,12 +208,24 @@ function ApplicationsPage() {
               <table className="w-full text-sm">
                 <thead className="bg-surface-2/60 text-left text-xs text-muted-foreground">
                   <tr>
-                    <th scope="col" className="px-3 py-2 font-medium">Role</th>
-                    <th scope="col" className="px-3 py-2 font-medium">Stage</th>
-                    <th scope="col" className="px-3 py-2 font-medium">Priority</th>
-                    <th scope="col" className="px-3 py-2 font-medium">Fit</th>
-                    <th scope="col" className="px-3 py-2 font-medium">Deadline</th>
-                    <th scope="col" className="px-3 py-2 font-medium">Next action</th>
+                    <th scope="col" className="px-3 py-2 font-medium">
+                      Role
+                    </th>
+                    <th scope="col" className="px-3 py-2 font-medium">
+                      Stage
+                    </th>
+                    <th scope="col" className="px-3 py-2 font-medium">
+                      Priority
+                    </th>
+                    <th scope="col" className="px-3 py-2 font-medium">
+                      Fit
+                    </th>
+                    <th scope="col" className="px-3 py-2 font-medium">
+                      Deadline
+                    </th>
+                    <th scope="col" className="px-3 py-2 font-medium">
+                      Next action
+                    </th>
                   </tr>
                 </thead>
                 <tbody>
@@ -234,7 +248,10 @@ function ApplicationsPage() {
                           value={a.stage}
                           onValueChange={(v) => setStageFor(a, v as ApplicationStage)}
                         >
-                          <SelectTrigger className="h-8 w-40 text-xs" aria-label={`Stage for ${a.title}`}>
+                          <SelectTrigger
+                            className="h-8 w-40 text-xs"
+                            aria-label={`Stage for ${a.title}`}
+                          >
                             <SelectValue />
                           </SelectTrigger>
                           <SelectContent>
@@ -248,7 +265,9 @@ function ApplicationsPage() {
                       </td>
                       <td className="px-3 py-2 text-muted-foreground">{a.priority}</td>
                       <td className="px-3 py-2 tabular-nums">
-                        {typeof a.compatibilityScore === "number" ? `${a.compatibilityScore}%` : "—"}
+                        {typeof a.compatibilityScore === "number"
+                          ? `${a.compatibilityScore}%`
+                          : "—"}
                       </td>
                       <td className="px-3 py-2 text-muted-foreground">{a.deadline ?? "—"}</td>
                       <td className="px-3 py-2 text-muted-foreground">{a.nextAction ?? "—"}</td>

@@ -11,17 +11,17 @@ CareerOS must never invent achievements, metrics, qualifications, technologies, 
 USER CAREER DATA TO SEED
 Name: Vinnie Jegathees.
 Location: London, UK.
-Current profile: Performance Marketing Manager and part-time UCL MSc Technology Management candidate, combining multi-market digital acquisition experience with technology evaluation, new product development, analytics, stakeholder management, project delivery, and product/innovation work.
-Current role: Performance Marketing Manager (Contract), Northeastern University London, Jun 2025–Present. Relevant verified-style experience includes paid acquisition across PPC, paid social, display and third-party platforms; £140k+ annual digital media budget ownership; RAG-status analysis; multi-market reporting across UK, India, UAE; agency performance reviews; stakeholder and website collaboration; landing-page and A/B testing delivery.
+Current profile: Digital marketing and technology management professional and part-time UCL MSc Technology Management candidate, combining multi-market digital acquisition experience with technology evaluation, new product development, analytics, stakeholder management, project delivery, and product and innovation work.
+Most recent role: Performance Marketing Manager (Contract), Northeastern University London, Jun 2025–Dec 2025. Relevant verified experience includes paid acquisition across PPC, paid social, display and third-party platforms; £140k+ annual digital media budget ownership; RAG-status analysis; multi-market reporting across UK, India and UAE; agency performance reviews; stakeholder and website collaboration; and landing-page and A/B testing delivery.
 Previous role: Marketing & Operations Executive (Contract), IDEA StatiCa UK, Sep 2023–Jun 2024. Relevant experience includes enterprise software-adoption projects with structural-engineering clients; client engagement, milestones and training; Power BI analytics integrating HubSpot and Salesforce; Agile delivery and Asana workflows; cross-functional prospecting with sales/support/marketing.
 Previous: Senior Digital Marketing Executive (Contract), Buchanan Staffing Group, Feb 2023–May 2023. CRM migration involving Salesforce and Zoho; marketing funnel/collateral work; agency and recruitment-manager coordination.
 Previous: Digital Advertising Officer, National Autistic Society, Apr 2022–Feb 2023. Paid search improvement and cross-functional campaign delivery.
 Previous: Senior Digital Marketing Executive, Infinite Entertainment UK, Jun 2016–Apr 2022. Digital/influencer strategy, live events, ClickUp-based delivery.
 Education: MSc Technology Management, University College London, part-time, in progress. BSc Marketing and Management (2:1), University of Essex.
 Certifications: APM Project Fundamentals Qualification (PFQ); Google Project Management Professional Certificate, Google/Coursera, completed Nov 2024; Google Analytics 3 & 4; Hotjar Levels 1 & 2; Introduction to Power BI.
-Projects: UniDrop — AI-enabled campus logistics service concept; Intentionally — video-first dating app concept; 3D Bioprinting — emerging technology maturity assessment.
-Core capabilities: stakeholder management; Agile and Waterfall delivery; RAG reporting; vendor/agency management; budget ownership; Power BI; Salesforce; HubSpot; GA4; PPC; paid social; programmatic/DV360; SEO; A/B testing; new product development; MVP definition; user journey mapping; technology evaluation; TRL; Gartner Hype Cycle; product roadmapping; value proposition development; risk assessment; Asana; MS Project; ClickUp.
-Treat any numeric achievement as evidence-sensitive: seed them visibly but mark the system so that generated claims must only use records explicitly marked Verified by the user.
+Projects: UniDrop — UCL academic AI-enabled campus logistics concept; Intentionally — founder-led, pre-commercial mobile-first dating MVP; Atlas — internal static founder decision-support prototype; 3D Bioprinting — UCL group emerging-technology assessment using TRL, AD² and S-curve analysis.
+Core capabilities: stakeholder management; Agile and Waterfall delivery; RAG reporting; vendor/agency management; budget ownership; Power BI; Salesforce; HubSpot; GA4; PPC; paid social; programmatic/DV360; SEO; A/B testing; new product development; MVP definition; user journey mapping; technology evaluation; TRL; AD²; S-curve analysis; product roadmapping; value proposition development; risk assessment; Asana; MS Project; ClickUp.
+Treat the supplied audit, master CV and Vinnie's direct confirmation as sufficient evidence. Generated claims must use records explicitly marked Verified and must continue to exclude claims contradicted by the audit.
 
 V0.1 INFORMATION ARCHITECTURE
 Desktop: persistent left sidebar, dark charcoal/navy surfaces, compact workspace feel, subtle borders, restrained purple/indigo accent, small green/amber/red semantic status colours, top search/command area, optional right-side context drawer for evidence/job-fit detail.
@@ -32,6 +32,7 @@ HOME DASHBOARD
 Show: Today’s Focus, Active Applications, Upcoming Deadlines, Recent CVs, Evidence Needing Verification, Recent Activity, and quick actions such as Scan a Job, Add Application, Tailor CV, Create Cover Letter.
 
 JOB SCAN FLOW
+
 1. Add Job screen with Job URL, Company, Role Title, Location, and large Job Description text area.
 2. Button: Analyse Role / Run Scan.
 3. If URL extraction fails, show a non-technical fallback asking the user to paste the description.
@@ -62,6 +63,7 @@ CV LIBRARY
 Allow categories: product management, product marketing, technology consulting, project delivery, programme management, innovation, marketing strategy, general.
 Each CV has status, version history, linked application(s), and evidence traceability.
 Default CV format rules for all generated resumes:
+
 - British English.
 - Times New Roman.
 - 10–12 pt body sizing; sensible hierarchy within that range where possible.
@@ -74,6 +76,7 @@ Default CV format rules for all generated resumes:
 
 CV SCAN / HEALTH CHECK
 Before export, show a CV Scan with:
+
 - Role Compatibility percentage against the current JD.
 - ATS/keyword coverage.
 - Responsibilities coverage.
@@ -83,7 +86,7 @@ Before export, show a CV Scan with:
 - Unsupported or unverified claims.
 - Formatting compliance with Times New Roman, 10–12 pt, black, left-aligned.
 - Suggested refinements with evidence references.
-The user must be able to review and approve suggestions before creating a new CV version.
+  The user must be able to review and approve suggestions before creating a new CV version.
 
 COVER LETTER
 Generate a role-specific cover letter from verified evidence and the JD. Style: natural, direct, plain English, evidence-led, short paragraphs, no generic hype, clearly tied to the employer’s requirements, and honest about gaps where necessary. Also offer a concise application-email version. Every substantive claim should be traceable to verified evidence.
@@ -123,3 +126,33 @@ cd <repository-name>
 npm i
 npm run dev
 ```
+
+## Cloudflare deployment
+
+CareerOS is configured as a full-stack TanStack Start application on Cloudflare
+Workers. Supabase remains the authentication and data backend.
+
+Before building or deploying, provide these build-time variables in `.env.local`
+or in the Cloudflare build environment:
+
+```sh
+VITE_SUPABASE_URL=<your-supabase-project-url>
+VITE_SUPABASE_PUBLISHABLE_KEY=<your-supabase-publishable-key>
+```
+
+The publishable key is intended for browser use. Do not put the Supabase service
+role key in a `VITE_` variable or expose it to this application.
+
+```sh
+# Validate the generated Worker bundle without publishing
+npm run deploy:dry-run
+
+# Publish the isolated staging Worker
+npm run deploy:staging
+
+# Publish production after staging verification
+npm run deploy:production
+```
+
+The staging and production Worker names are `careeros-staging` and `careeros`.
+Wrangler observability is enabled for runtime logs and errors.

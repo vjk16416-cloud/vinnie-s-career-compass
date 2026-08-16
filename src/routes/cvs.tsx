@@ -10,7 +10,10 @@ export const Route = createFileRoute("/cvs")({
       { title: "CV Library — CareerOS" },
       { name: "description", content: "Versioned, evidence-traceable CVs by career category." },
       { property: "og:title", content: "CV Library — CareerOS" },
-      { property: "og:description", content: "Every CV version, linked application and evidence trail." },
+      {
+        property: "og:description",
+        content: "Every CV version, linked application and evidence trail.",
+      },
     ],
   }),
   component: CvsPage,
@@ -53,7 +56,10 @@ function CvsPage() {
                     />
                     <StatusPill label={`${cv.versions.length} version(s)`} />
                     {latest?.evidenceIds.length ? (
-                      <StatusPill label={`${latest.evidenceIds.length} evidence refs`} tone="info" />
+                      <StatusPill
+                        label={`${latest.evidenceIds.length} evidence refs`}
+                        tone="info"
+                      />
                     ) : null}
                   </div>
                   <p className="mt-2 text-xs text-muted-foreground">

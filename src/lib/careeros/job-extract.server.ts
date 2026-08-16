@@ -141,7 +141,10 @@ const SECTION_RULES: { key: keyof SectionBuckets; re: RegExp }[] = [
     re: /(qualificat|education|degree|certificat|accredit)/i,
   },
   { key: "benefits", re: /(benefit|what we offer|package|perks|reward|salary and)/i },
-  { key: "about", re: /(about (us|the (company|organisation|team))|who we are|our story|company overview)/i },
+  {
+    key: "about",
+    re: /(about (us|the (company|organisation|team))|who we are|our story|company overview)/i,
+  },
 ];
 
 interface SectionBuckets {
@@ -251,7 +254,9 @@ function findCompetencies(text: string): string[] {
 
 function findExperience(lines: string[]): string[] {
   return lines
-    .filter((l) => /\b\d+\+?\s*(\+)?\s*(years?|yrs)\b/i.test(l) || /experience (in|of|with)/i.test(l))
+    .filter(
+      (l) => /\b\d+\+?\s*(\+)?\s*(years?|yrs)\b/i.test(l) || /experience (in|of|with)/i.test(l),
+    )
     .slice(0, 6);
 }
 
@@ -406,12 +411,15 @@ function assemble(
   ].join("\n");
 
   // If sectioning found nothing useful, fall back to the cleaned body.
-  const structured =
-    responsibilities.length + requiredSkills.length + qualifications.length >= 3;
+  const structured = responsibilities.length + requiredSkills.length + qualifications.length >= 3;
   const text = structured ? core : body;
 
   const confidence: JobExtract["confidence"] =
-    base.method === "structured" && structured ? "high" : base.method === "structured" ? "high" : "medium";
+    base.method === "structured" && structured
+      ? "high"
+      : base.method === "structured"
+        ? "high"
+        : "medium";
 
   return {
     ok: true,
@@ -440,9 +448,7 @@ function assemble(
 
 function fromJsonLd(html: string, sourceUrl: string): JobExtract | null {
   const blocks = [
-    ...html.matchAll(
-      /<script[^>]+type=["']application\/ld\+json["'][^>]*>([\s\S]*?)<\/script>/gi,
-    ),
+    ...html.matchAll(/<script[^>]+type=["']application\/ld\+json["'][^>]*>([\s\S]*?)<\/script>/gi),
   ];
   for (const block of blocks) {
     const rawJson = decodeEntities(block[1] ?? "").trim();

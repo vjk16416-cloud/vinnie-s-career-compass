@@ -1,5 +1,6 @@
 import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
+import { requireAuthorisedUser } from "../auth/auth.server";
 import { extractJobPosting } from "./job-extract.server";
 
 const Input = z.object({ url: z.string().url() });
@@ -7,6 +8,8 @@ const Input = z.object({ url: z.string().url() });
 export const extractJobFromUrl = createServerFn({ method: "POST" })
   .inputValidator((data: unknown) => Input.parse(data))
   .handler(async ({ data }) => {
+    await requireAuthorisedUser();
+
     try {
       const res = await fetch(data.url, {
         headers: {

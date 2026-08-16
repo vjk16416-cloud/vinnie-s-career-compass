@@ -13,11 +13,14 @@ import { Route as IndexRouteImport } from './routes/index'
 import { Route as CvsRouteImport } from './routes/cvs'
 import { Route as EvidenceRouteImport } from './routes/evidence'
 import { Route as JobScanRouteImport } from './routes/job-scan'
+import { Route as LoginRouteImport } from './routes/login'
+import { Route as LogoutRouteImport } from './routes/logout'
 import { Route as MarketRouteImport } from './routes/market'
 import { Route as ProfileRouteImport } from './routes/profile'
 import { Route as SettingsRouteImport } from './routes/settings'
 import { Route as ApplicationsIndexRouteImport } from './routes/applications.index'
 import { Route as ApplicationsIdRouteImport } from './routes/applications.$id'
+import { Route as AuthCallbackRouteImport } from './routes/auth.callback'
 
 const IndexRoute = IndexRouteImport.update({
   id: '/',
@@ -37,6 +40,16 @@ const EvidenceRoute = EvidenceRouteImport.update({
 const JobScanRoute = JobScanRouteImport.update({
   id: '/job-scan',
   path: '/job-scan',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const LoginRoute = LoginRouteImport.update({
+  id: '/login',
+  path: '/login',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const LogoutRoute = LogoutRouteImport.update({
+  id: '/logout',
+  path: '/logout',
   getParentRoute: () => rootRouteImport,
 } as any)
 const MarketRoute = MarketRouteImport.update({
@@ -64,16 +77,24 @@ const ApplicationsIdRoute = ApplicationsIdRouteImport.update({
   path: '/applications/$id',
   getParentRoute: () => rootRouteImport,
 } as any)
+const AuthCallbackRoute = AuthCallbackRouteImport.update({
+  id: '/auth/callback',
+  path: '/auth/callback',
+  getParentRoute: () => rootRouteImport,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/cvs': typeof CvsRoute
   '/evidence': typeof EvidenceRoute
   '/job-scan': typeof JobScanRoute
+  '/login': typeof LoginRoute
+  '/logout': typeof LogoutRoute
   '/market': typeof MarketRoute
   '/profile': typeof ProfileRoute
   '/settings': typeof SettingsRoute
   '/applications/$id': typeof ApplicationsIdRoute
+  '/auth/callback': typeof AuthCallbackRoute
   '/applications/': typeof ApplicationsIndexRoute
 }
 export interface FileRoutesByTo {
@@ -81,10 +102,13 @@ export interface FileRoutesByTo {
   '/cvs': typeof CvsRoute
   '/evidence': typeof EvidenceRoute
   '/job-scan': typeof JobScanRoute
+  '/login': typeof LoginRoute
+  '/logout': typeof LogoutRoute
   '/market': typeof MarketRoute
   '/profile': typeof ProfileRoute
   '/settings': typeof SettingsRoute
   '/applications/$id': typeof ApplicationsIdRoute
+  '/auth/callback': typeof AuthCallbackRoute
   '/applications': typeof ApplicationsIndexRoute
 }
 export interface FileRoutesById {
@@ -93,10 +117,13 @@ export interface FileRoutesById {
   '/cvs': typeof CvsRoute
   '/evidence': typeof EvidenceRoute
   '/job-scan': typeof JobScanRoute
+  '/login': typeof LoginRoute
+  '/logout': typeof LogoutRoute
   '/market': typeof MarketRoute
   '/profile': typeof ProfileRoute
   '/settings': typeof SettingsRoute
   '/applications/$id': typeof ApplicationsIdRoute
+  '/auth/callback': typeof AuthCallbackRoute
   '/applications/': typeof ApplicationsIndexRoute
 }
 export interface FileRouteTypes {
@@ -106,10 +133,13 @@ export interface FileRouteTypes {
     | '/cvs'
     | '/evidence'
     | '/job-scan'
+    | '/login'
+    | '/logout'
     | '/market'
     | '/profile'
     | '/settings'
     | '/applications/$id'
+    | '/auth/callback'
     | '/applications/'
   fileRoutesByTo: FileRoutesByTo
   to:
@@ -117,10 +147,13 @@ export interface FileRouteTypes {
     | '/cvs'
     | '/evidence'
     | '/job-scan'
+    | '/login'
+    | '/logout'
     | '/market'
     | '/profile'
     | '/settings'
     | '/applications/$id'
+    | '/auth/callback'
     | '/applications'
   id:
     | '__root__'
@@ -128,10 +161,13 @@ export interface FileRouteTypes {
     | '/cvs'
     | '/evidence'
     | '/job-scan'
+    | '/login'
+    | '/logout'
     | '/market'
     | '/profile'
     | '/settings'
     | '/applications/$id'
+    | '/auth/callback'
     | '/applications/'
   fileRoutesById: FileRoutesById
 }
@@ -140,10 +176,13 @@ export interface RootRouteChildren {
   CvsRoute: typeof CvsRoute
   EvidenceRoute: typeof EvidenceRoute
   JobScanRoute: typeof JobScanRoute
+  LoginRoute: typeof LoginRoute
+  LogoutRoute: typeof LogoutRoute
   MarketRoute: typeof MarketRoute
   ProfileRoute: typeof ProfileRoute
   SettingsRoute: typeof SettingsRoute
   ApplicationsIdRoute: typeof ApplicationsIdRoute
+  AuthCallbackRoute: typeof AuthCallbackRoute
   ApplicationsIndexRoute: typeof ApplicationsIndexRoute
 }
 
@@ -175,6 +214,20 @@ declare module '@tanstack/react-router' {
       path: '/job-scan'
       fullPath: '/job-scan'
       preLoaderRoute: typeof JobScanRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/login': {
+      id: '/login'
+      path: '/login'
+      fullPath: '/login'
+      preLoaderRoute: typeof LoginRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/logout': {
+      id: '/logout'
+      path: '/logout'
+      fullPath: '/logout'
+      preLoaderRoute: typeof LogoutRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/market': {
@@ -212,6 +265,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApplicationsIdRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/auth/callback': {
+      id: '/auth/callback'
+      path: '/auth/callback'
+      fullPath: '/auth/callback'
+      preLoaderRoute: typeof AuthCallbackRouteImport
+      parentRoute: typeof rootRouteImport
+    }
   }
 }
 
@@ -220,10 +280,13 @@ const rootRouteChildren: RootRouteChildren = {
   CvsRoute: CvsRoute,
   EvidenceRoute: EvidenceRoute,
   JobScanRoute: JobScanRoute,
+  LoginRoute: LoginRoute,
+  LogoutRoute: LogoutRoute,
   MarketRoute: MarketRoute,
   ProfileRoute: ProfileRoute,
   SettingsRoute: SettingsRoute,
   ApplicationsIdRoute: ApplicationsIdRoute,
+  AuthCallbackRoute: AuthCallbackRoute,
   ApplicationsIndexRoute: ApplicationsIndexRoute,
 }
 export const routeTree = rootRouteImport

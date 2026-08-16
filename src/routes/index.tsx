@@ -33,7 +33,9 @@ function HomePage() {
     .sort((a, b) => (a.deadline ?? "").localeCompare(b.deadline ?? ""))
     .slice(0, 4);
   const needsEvidence = data.evidence.filter((e) => e.status === "Needs Evidence");
-  const recentCvs = [...data.cvs].sort((a, b) => b.updatedAt.localeCompare(a.updatedAt)).slice(0, 4);
+  const recentCvs = [...data.cvs]
+    .sort((a, b) => b.updatedAt.localeCompare(a.updatedAt))
+    .slice(0, 4);
 
   return (
     <AppShell
@@ -126,7 +128,10 @@ function HomePage() {
                     <Link to="/cvs" className="min-w-0 flex-1 truncate hover:underline">
                       {c.name}
                     </Link>
-                    <StatusPill label={c.status} tone={c.status === "Approved" ? "success" : "neutral"} />
+                    <StatusPill
+                      label={c.status}
+                      tone={c.status === "Approved" ? "success" : "neutral"}
+                    />
                     <span className="text-xs text-muted-foreground">v{c.versions.length}</span>
                   </li>
                 ))}

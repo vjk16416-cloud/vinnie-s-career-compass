@@ -81,7 +81,7 @@ import "@testing-library/jest-dom/vitest";
 Run:
 
 ```bash
-bun test --passWithNoTests
+bun run test --passWithNoTests
 bun run lint
 ```
 

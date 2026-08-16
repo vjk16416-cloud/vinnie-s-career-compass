@@ -7,9 +7,15 @@ export const Route = createFileRoute("/market")({
   head: () => ({
     meta: [
       { title: "Job Market Intelligence — CareerOS" },
-      { name: "description", content: "Patterns across the roles you have scanned: demand signals and recurring gaps." },
+      {
+        name: "description",
+        content: "Patterns across the roles you have scanned: demand signals and recurring gaps.",
+      },
       { property: "og:title", content: "Job Market Intelligence — CareerOS" },
-      { property: "og:description", content: "What the roles you scan keep asking for, and where your record is thin." },
+      {
+        property: "og:description",
+        content: "What the roles you scan keep asking for, and where your record is thin.",
+      },
     ],
   }),
   component: MarketPage,
@@ -45,19 +51,29 @@ function MarketPage() {
           <>
             <Panel title="Average fit by dimension" description={`Across ${scans.length} scan(s)`}>
               <div className="grid gap-4 md:grid-cols-2">
-                {["responsibilities", "skills", "experience", "qualifications", "sector", "tools", "evidence", "ats"].map(
-                  (k) => (
-                    <ScoreBar
-                      key={k}
-                      label={scans[0]?.subScores.find((s) => s.key === k)?.label ?? k}
-                      value={avg(k)}
-                    />
-                  ),
-                )}
+                {[
+                  "responsibilities",
+                  "skills",
+                  "experience",
+                  "qualifications",
+                  "sector",
+                  "tools",
+                  "evidence",
+                  "ats",
+                ].map((k) => (
+                  <ScoreBar
+                    key={k}
+                    label={scans[0]?.subScores.find((s) => s.key === k)?.label ?? k}
+                    value={avg(k)}
+                  />
+                ))}
               </div>
             </Panel>
 
-            <Panel title="Recurring missing keywords" description="Where your record is thin across roles">
+            <Panel
+              title="Recurring missing keywords"
+              description="Where your record is thin across roles"
+            >
               <div className="flex flex-wrap gap-1.5">
                 {topGaps.map(([k, n]) => (
                   <StatusPill key={k} label={`${k} · ${n}`} tone="warning" />

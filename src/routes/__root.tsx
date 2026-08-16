@@ -4,6 +4,7 @@ import {
   Link,
   createRootRouteWithContext,
   useRouter,
+  useRouterState,
   HeadContent,
   Scripts,
 } from "@tanstack/react-router";
@@ -11,9 +12,11 @@ import { useEffect, type ReactNode } from "react";
 
 import appCss from "../styles.css?url";
 import { reportLovableError } from "../lib/lovable-error-reporting";
-import { CareerOsProvider } from "../lib/careeros/store";
-import { AuthProvider } from "../lib/careeros/auth";
-import { AuthGate } from "../components/careeros/auth-gate";
+import type { AuthorisedUser } from "../lib/auth/auth.server";
+import { PrivateCareerOsProvider } from "../lib/auth/auth-context";
+import { getCurrentUser } from "../lib/auth/auth.functions";
+import { isPublicAuthPath } from "../lib/auth/public-routes";
+import { guardCareerOsRoute } from "../lib/auth/route-guard";
 import { Toaster } from "../components/ui/sonner";
 
 function NotFoundComponent() {
@@ -76,7 +79,11 @@ function ErrorComponent({ error, reset }: { error: Error; reset: () => void }) {
   );
 }
 
-export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()({
+export const Route = createRootRouteWithContext<{
+  queryClient: QueryClient;
+  authUser: AuthorisedUser | null;
+}>()({
+  beforeLoad: ({ location }) => guardCareerOsRoute({ location, getCurrentUser }),
   head: () => ({
     meta: [
       { charSet: "utf-8" },
@@ -124,19 +131,21 @@ function RootShell({ children }: { children: ReactNode }) {
 }
 
 function RootComponent() {
-  const { queryClient } = Route.useRouteContext();
+  const { queryClient, authUser } = Route.useRouteContext();
+  const pathname = useRouterState({ select: (state) => state.location.pathname });
+  const isPublicAuthRoute = isPublicAuthPath(pathname);
 
   return (
     <QueryClientProvider client={queryClient}>
-      <AuthProvider>
-        <AuthGate>
-          <CareerOsProvider>
-            {/* Required: nested routes render here. Removing <Outlet /> breaks all child routes. */}
-            <Outlet />
-          </CareerOsProvider>
-        </AuthGate>
-        <Toaster />
-      </AuthProvider>
+      {isPublicAuthRoute ? (
+        <Outlet />
+      ) : (
+        <PrivateCareerOsProvider authUser={authUser}>
+          {/* Required: nested routes render here. Removing <Outlet /> breaks all child routes. */}
+          <Outlet />
+        </PrivateCareerOsProvider>
+      )}
+      <Toaster />
     </QueryClientProvider>
   );
 }

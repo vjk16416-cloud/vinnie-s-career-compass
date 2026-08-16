@@ -20,9 +20,15 @@ export const Route = createFileRoute("/evidence")({
   head: () => ({
     meta: [
       { title: "Evidence Bank — CareerOS" },
-      { name: "description", content: "Verified, unverified and excluded career evidence with lifecycle status." },
+      {
+        name: "description",
+        content: "Verified, unverified and excluded career evidence with lifecycle status.",
+      },
       { property: "og:title", content: "Evidence Bank — CareerOS" },
-      { property: "og:description", content: "Only Verified evidence can be used in generated documents." },
+      {
+        property: "og:description",
+        content: "Only Verified evidence can be used in generated documents.",
+      },
     ],
   }),
   component: EvidencePage,
@@ -69,9 +75,10 @@ function EvidencePage() {
       <div className="space-y-3">
         <Panel>
           <p className="text-sm text-muted-foreground">
-            CareerOS never invents achievements, metrics, qualifications, dates or technologies. Records
-            marked <span className="text-foreground">Needs Evidence</span> appear as review items and gaps
-            but are blocked from generated documents. Archived and Excluded records are never used.
+            CareerOS never invents achievements, metrics, qualifications, dates or technologies.
+            Records marked <span className="text-foreground">Needs Evidence</span> appear as review
+            items and gaps but are blocked from generated documents. Archived and Excluded records
+            are never used.
           </p>
         </Panel>
 

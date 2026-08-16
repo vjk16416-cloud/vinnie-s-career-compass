@@ -36,13 +36,21 @@ function pct(v: number) {
 }
 
 const RESPONSIBILITY_SIGNALS: { phrase: string; capability: string; evidence: string[] }[] = [
-  { phrase: "stakeholder", capability: "Stakeholder management", evidence: ["ev-rag", "ev-agency"] },
+  {
+    phrase: "stakeholder",
+    capability: "Stakeholder management",
+    evidence: ["ev-rag", "ev-agency"],
+  },
   { phrase: "report", capability: "Performance reporting", evidence: ["ev-rag", "ev-powerbi"] },
   { phrase: "budget", capability: "Budget ownership", evidence: ["ev-budget"] },
   { phrase: "agency", capability: "Agency and vendor management", evidence: ["ev-agency"] },
   { phrase: "roadmap", capability: "Product roadmapping", evidence: ["ev-npd"] },
   { phrase: "positioning", capability: "Value proposition development", evidence: ["ev-npd"] },
-  { phrase: "go-to-market", capability: "Go-to-market delivery", evidence: ["ev-budget", "ev-adoption"] },
+  {
+    phrase: "go-to-market",
+    capability: "Go-to-market delivery",
+    evidence: ["ev-budget", "ev-adoption"],
+  },
   { phrase: "a/b test", capability: "A/B testing", evidence: ["ev-ab"] },
   { phrase: "experiment", capability: "Experimentation", evidence: ["ev-ab"] },
   { phrase: "campaign", capability: "Campaign delivery", evidence: ["ev-budget"] },
@@ -51,7 +59,11 @@ const RESPONSIBILITY_SIGNALS: { phrase: string; capability: string; evidence: st
   { phrase: "programme", capability: "Programme delivery", evidence: ["ev-adoption"] },
   { phrase: "training", capability: "Client training and enablement", evidence: ["ev-adoption"] },
   { phrase: "customer", capability: "Client engagement", evidence: ["ev-adoption"] },
-  { phrase: "analytics", capability: "Analytics and measurement", evidence: ["ev-powerbi", "ev-ab"] },
+  {
+    phrase: "analytics",
+    capability: "Analytics and measurement",
+    evidence: ["ev-powerbi", "ev-ab"],
+  },
   { phrase: "dashboard", capability: "Dashboarding", evidence: ["ev-powerbi"] },
   { phrase: "crm", capability: "CRM delivery", evidence: ["ev-crm"] },
   { phrase: "technology", capability: "Technology evaluation", evidence: ["ev-trl"] },
@@ -256,9 +268,10 @@ export function runScan(job: JobRecord, input: CareerOsData): ScanResult {
       key: "qualifications",
       label: "Qualifications / Certifications Fit",
       score: qualificationsScore,
-      reason: wantsDegree || wantsPm
-        ? "Stated qualification requirements are met by your degree, MSc in progress and project management certifications."
-        : "No specific qualifications requested; your degree and certifications are treated as a general strength.",
+      reason:
+        wantsDegree || wantsPm
+          ? "Stated qualification requirements are met by your degree, MSc in progress and project management certifications."
+          : "No specific qualifications requested; your degree and certifications are treated as a general strength.",
     },
     {
       key: "sector",
@@ -327,16 +340,22 @@ export function runScan(job: JobRecord, input: CareerOsData): ScanResult {
     );
   }
   if (seniorityWanted === "lead") {
-    partials.push("Role reads as lead/head level; your record is manager-level with delivery ownership.");
+    partials.push(
+      "Role reads as lead/head level; your record is manager-level with delivery ownership.",
+    );
   }
 
   const gaps: string[] = [];
   requiredResponsibilities
     .filter((r) => !coveredResponsibilities.includes(r))
     .slice(0, 6)
-    .forEach((r) => gaps.push(`${r.capability} is requested but has no verified evidence attached.`));
+    .forEach((r) =>
+      gaps.push(`${r.capability} is requested but has no verified evidence attached.`),
+    );
   if (missingKeywords.length > 6) {
-    gaps.push(`${missingKeywords.length} prominent job description terms are absent from your record.`);
+    gaps.push(
+      `${missingKeywords.length} prominent job description terms are absent from your record.`,
+    );
   }
 
   const blockedEvidence = unusable
