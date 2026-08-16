@@ -11,7 +11,9 @@
     "lint": "eslint .",
     "format": "prettier --write .",
     "test": "vitest run",
-    "test:watch": "vitest"
+    "test:watch": "vitest",
+    "migrate:vinnie:dry-run": "bun scripts/migrate-vinnie-data.ts --dry-run",
+    "migrate:vinnie": "bun scripts/migrate-vinnie-data.ts"
   },
   "dependencies": {
     "@hookform/resolvers": "^5.2.2",
