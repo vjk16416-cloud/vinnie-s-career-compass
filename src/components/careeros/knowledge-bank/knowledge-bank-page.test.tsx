@@ -1,4 +1,5 @@
 import { render, screen, waitFor } from "@testing-library/react";
+import type { ReactNode } from "react";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
 const repositoryMocks = vi.hoisted(() => ({
@@ -23,7 +24,17 @@ vi.mock("@/lib/careeros/repositories/employment-repository", () => ({
 }));
 
 vi.mock("@/components/careeros/app-shell", () => ({
-  AppShell: ({ title, subtitle, actions, children }: any) => (
+  AppShell: ({
+    title,
+    subtitle,
+    actions,
+    children,
+  }: {
+    title: string;
+    subtitle?: string;
+    actions?: ReactNode;
+    children: ReactNode;
+  }) => (
     <main>
       <h1>{title}</h1>
       <p>{subtitle}</p>
@@ -88,6 +99,10 @@ const roles = [
   },
 ];
 
+function hasVisibleBadge(label: string) {
+  return screen.getAllByText(label).some((element) => element.tagName === "SPAN");
+}
+
 describe("Career Knowledge Bank page", () => {
   beforeEach(() => {
     repositoryMocks.listKnowledgeItems.mockReset().mockResolvedValue(knowledgeRows);
@@ -107,8 +122,8 @@ describe("Career Knowledge Bank page", () => {
     ).toBeInTheDocument();
 
     await screen.findByText("Increased qualified leads");
-    expect(screen.getByText("User confirmed")).toBeInTheDocument();
-    expect(screen.getByText("Imported from LinkedIn")).toBeInTheDocument();
+    expect(hasVisibleBadge("User confirmed")).toBe(true);
+    expect(hasVisibleBadge("Imported from LinkedIn")).toBe(true);
     expect(repositoryMocks.listKnowledgeItems).toHaveBeenCalledTimes(1);
   });
 
