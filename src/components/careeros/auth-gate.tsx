@@ -25,21 +25,38 @@ export function AuthGate({ children }: { children: ReactNode }) {
 }
 
 function LoginScreen() {
-  const { signIn } = useAuth();
+  const { signIn, signUp } = useAuth();
+  const [mode, setMode] = useState<"signin" | "signup">("signin");
+  const [fullName, setFullName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [notice, setNotice] = useState<string | null>(null);
+
+  function switchMode(next: "signin" | "signup") {
+    setMode(next);
+    setError(null);
+    setNotice(null);
+  }
 
   async function onSubmit(e: FormEvent) {
     e.preventDefault();
     if (submitting) return;
     setError(null);
+    setNotice(null);
     setSubmitting(true);
     try {
-      await signIn(email, password);
+      if (mode === "signup") {
+        const result = await signUp(email, password, fullName);
+        if (result.requiresEmailConfirmation) {
+          setNotice("Check your email to confirm your CareerOS account, then return here to sign in.");
+        }
+      } else {
+        await signIn(email, password);
+      }
     } catch (err) {
-      const message = err instanceof Error ? err.message : "Sign in failed.";
+      const message = err instanceof Error ? err.message : "Authentication failed.";
       setError(
         /invalid login credentials/i.test(message)
           ? "Incorrect email or password."
@@ -59,17 +76,33 @@ function LoginScreen() {
           </span>
           <div>
             <h1 className="text-base font-semibold">CareerOS</h1>
-            <p className="text-xs text-muted-foreground">Private workspace, sign in to continue</p>
+            <p className="text-xs text-muted-foreground">
+              {mode === "signup" ? "Create your private career workspace" : "Private workspace, sign in to continue"}
+            </p>
           </div>
         </div>
 
         <form onSubmit={onSubmit} className="space-y-3.5" noValidate>
+          {mode === "signup" ? (
+            <div className="space-y-1.5">
+              <Label htmlFor="full-name">Full name</Label>
+              <Input
+                id="full-name"
+                autoComplete="name"
+                required
+                value={fullName}
+                onChange={(e) => setFullName(e.target.value)}
+                placeholder="Alex Taylor"
+              />
+            </div>
+          ) : null}
+
           <div className="space-y-1.5">
             <Label htmlFor="email">Email</Label>
             <Input
               id="email"
               type="email"
-              autoComplete="username"
+              autoComplete="email"
               required
               value={email}
               onChange={(e) => setEmail(e.target.value)}
@@ -81,7 +114,8 @@ function LoginScreen() {
             <Input
               id="password"
               type="password"
-              autoComplete="current-password"
+              autoComplete={mode === "signup" ? "new-password" : "current-password"}
+              minLength={8}
               required
               value={password}
               onChange={(e) => setPassword(e.target.value)}
@@ -97,21 +131,44 @@ function LoginScreen() {
             </p>
           ) : null}
 
+          {notice ? (
+            <p
+              role="status"
+              className="rounded-md border border-border bg-muted px-3 py-2 text-xs text-muted-foreground"
+            >
+              {notice}
+            </p>
+          ) : null}
+
           <Button type="submit" className="w-full" disabled={submitting}>
             {submitting ? (
               <>
                 <Loader2 className="mr-2 h-4 w-4 animate-spin" aria-hidden="true" />
-                Signing in…
+                {mode === "signup" ? "Creating account…" : "Signing in…"}
               </>
+            ) : mode === "signup" ? (
+              "Create CareerOS account"
             ) : (
               "Sign in"
             )}
           </Button>
         </form>
 
+        <div className="mt-3 text-center">
+          {mode === "signin" ? (
+            <Button type="button" variant="ghost" size="sm" onClick={() => switchMode("signup")}>
+              Create account
+            </Button>
+          ) : (
+            <Button type="button" variant="ghost" size="sm" onClick={() => switchMode("signin")}>
+              Back to sign in
+            </Button>
+          )}
+        </div>
+
         <p className="mt-4 flex items-start gap-1.5 text-[11px] text-muted-foreground">
           <Lock className="mt-0.5 h-3 w-3 shrink-0" aria-hidden="true" />
-          Access is tied to your CareerOS account. User data is isolated with database Row Level Security.
+          Each CareerOS account has a private Knowledge Bank protected by database Row Level Security.
         </p>
       </div>
     </main>
