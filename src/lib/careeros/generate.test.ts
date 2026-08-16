@@ -107,7 +107,7 @@ describe("Knowledge Bank backed CV generation", () => {
     expect(result.evidenceIds).toEqual(expect.arrayContaining(["k1", "k2", "k3"]));
     expect(result.body).toContain("### Digital Marketing Manager — Example Ltd (Permanent)");
     expect(result.body).toContain("Jan 2024 – Present | London, UK");
-    expect(result.body.match(/^\- /gm)).toHaveLength(3);
+    expect(result.body.match(/^- /gm)).toHaveLength(3);
     expect(result.body).not.toContain("Old unverified fallback highlight should not be used");
   });
 
