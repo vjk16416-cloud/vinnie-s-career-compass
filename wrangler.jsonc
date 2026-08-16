@@ -2,10 +2,6 @@
   "name": "careeros-web",
   "compatibility_date": "2026-08-16",
   "compatibility_flags": ["nodejs_compat"],
-  "main": ".output/server/index.mjs",
-  "assets": {
-    "directory": ".output/public"
-  },
   "observability": {
     "enabled": true
   }
