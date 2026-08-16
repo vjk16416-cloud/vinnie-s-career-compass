@@ -1,5 +1,6 @@
 name: CareerOS Task 1 Bootstrap
 
+# One-shot migration bootstrap. Remove after Task 1 is verified.
 on:
   push:
     branches:
