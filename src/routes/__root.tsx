@@ -12,7 +12,7 @@ import { useEffect, type ReactNode } from "react";
 import appCss from "../styles.css?url";
 import { reportLovableError } from "../lib/lovable-error-reporting";
 import { CareerOsProvider } from "../lib/careeros/store";
-import { AuthProvider } from "../lib/careeros/auth";
+import { AuthProvider } from "../lib/auth/auth-context";
 import { AuthGate } from "../components/careeros/auth-gate";
 import { Toaster } from "../components/ui/sonner";
 
