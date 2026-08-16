@@ -45,7 +45,7 @@ describe("CareerOS Cloudflare deployment contract", () => {
     expect(docs).toContain("careeros-web");
     expect(docs).toContain("gieehxdyzcrrmgxnfsxs");
     expect(docs).toContain("Lovable remains available");
-    expect(docs).toContain("No Cloudflare production hostname has been allocated yet");
+    expect(docs).toMatch(/no Cloudflare production hostname has been allocated yet/i);
     expect(docs).toContain("Do not merge to `main`");
   });
 });
