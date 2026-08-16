@@ -6,6 +6,7 @@ const authMock = vi.hoisted(() => ({
   getSession: vi.fn(),
   onAuthStateChange: vi.fn(),
   signInWithPassword: vi.fn(),
+  signUp: vi.fn(),
   signOut: vi.fn(),
 }));
 
@@ -16,7 +17,7 @@ vi.mock("@/integrations/supabase/client", () => ({
 import { AuthProvider, useAuth } from "./auth-context";
 
 function Probe({ children }: { children?: ReactNode }) {
-  const { user, loading, signIn, signOut } = useAuth();
+  const { user, loading, signIn, signUp, signOut } = useAuth();
   return (
     <div>
       <span data-testid="loading">{String(loading)}</span>
@@ -26,6 +27,12 @@ function Probe({ children }: { children?: ReactNode }) {
       </button>
       <button type="button" onClick={() => void signIn(" other.user@example.com ", "other-pass")}>
         Sign in another user
+      </button>
+      <button
+        type="button"
+        onClick={() => void signUp(" new.user@example.com ", "new-secret-pass", "Alex Taylor")}
+      >
+        Create another account
       </button>
       <button type="button" onClick={() => void signOut()}>
         Sign out
@@ -61,11 +68,13 @@ describe("CareerOS auth context", () => {
     authMock.getSession.mockReset();
     authMock.onAuthStateChange.mockReset();
     authMock.signInWithPassword.mockReset();
+    authMock.signUp.mockReset();
     authMock.signOut.mockReset();
     authMock.onAuthStateChange.mockReturnValue({
       data: { subscription: { unsubscribe } },
     });
     authMock.signInWithPassword.mockResolvedValue({ data: {}, error: null });
+    authMock.signUp.mockResolvedValue({ data: { user: {}, session: null }, error: null });
     authMock.signOut.mockResolvedValue({ error: null });
   });
 
@@ -162,6 +171,25 @@ describe("CareerOS auth context", () => {
     expect(authMock.signInWithPassword).toHaveBeenNthCalledWith(2, {
       email: "other.user@example.com",
       password: "other-pass",
+    });
+  });
+
+  it("creates a new Supabase account without a permanent email allowlist", async () => {
+    authMock.getSession.mockResolvedValue({ data: { session: null }, error: null });
+
+    render(
+      <AuthProvider>
+        <Probe />
+      </AuthProvider>,
+    );
+
+    await waitFor(() => expect(screen.getByTestId("loading")).toHaveTextContent("false"));
+    await act(async () => screen.getByRole("button", { name: "Create another account" }).click());
+
+    expect(authMock.signUp).toHaveBeenCalledWith({
+      email: "new.user@example.com",
+      password: "new-secret-pass",
+      options: { data: { full_name: "Alex Taylor" } },
     });
   });
 });
