@@ -9,9 +9,11 @@ import {
   ShieldCheck,
   UserRound,
   Plus,
+  LogOut,
 } from "lucide-react";
 import type { ReactNode } from "react";
 import { cn } from "@/lib/utils";
+import { useAuth } from "@/lib/careeros/auth";
 
 export const NAV_ITEMS = [
   { to: "/", label: "Home", icon: Home },
@@ -40,6 +42,7 @@ export function AppShell({
   children: ReactNode;
 }) {
   const pathname = useRouterState({ select: (s) => s.location.pathname });
+  const { email, signOut } = useAuth();
 
   return (
     <div className="min-h-screen bg-background text-foreground">
