@@ -30,12 +30,12 @@ describe("CareerOS Cloudflare deployment contract", () => {
     expect(workflow).not.toMatch(/sb_secret_|service_role|SUPABASE_SERVICE_ROLE_KEY/);
   });
 
-  it("exposes an explicit deploy command through package.json", () => {
+  it("exposes a self-contained deploy command through package.json", () => {
     const packageJson = JSON.parse(read("package.json")) as {
       scripts?: Record<string, string>;
     };
 
-    expect(packageJson.scripts?.deploy).toBe("wrangler deploy");
+    expect(packageJson.scripts?.deploy).toBe("bunx wrangler deploy");
   });
 
   it("documents the current deployment state and rollback boundary without claiming a live hostname", () => {
