@@ -10,12 +10,17 @@ import {
 import type { Session, User } from "@supabase/supabase-js";
 import { supabase } from "@/integrations/supabase/client";
 
+export interface SignUpResult {
+  requiresEmailConfirmation: boolean;
+}
+
 export interface AuthValue {
   session: Session | null;
   user: User | null;
   email: string | null;
   loading: boolean;
   signIn: (email: string, password: string) => Promise<void>;
+  signUp: (email: string, password: string, fullName?: string) => Promise<SignUpResult>;
   signOut: () => Promise<void>;
 }
 
@@ -65,6 +70,20 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     if (error) throw error;
   }, []);
 
+  const signUp = useCallback(
+    async (email: string, password: string, fullName?: string): Promise<SignUpResult> => {
+      const name = fullName?.trim();
+      const { data, error } = await supabase.auth.signUp({
+        email: normaliseEmail(email),
+        password,
+        options: name ? { data: { full_name: name } } : undefined,
+      });
+      if (error) throw error;
+      return { requiresEmailConfirmation: Boolean(data.user && !data.session) };
+    },
+    [],
+  );
+
   const signOut = useCallback(async () => {
     const { error } = await supabase.auth.signOut();
     if (error) throw error;
@@ -78,9 +97,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       email: session?.user.email ?? null,
       loading,
       signIn,
+      signUp,
       signOut,
     }),
-    [session, loading, signIn, signOut],
+    [session, loading, signIn, signUp, signOut],
   );
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
