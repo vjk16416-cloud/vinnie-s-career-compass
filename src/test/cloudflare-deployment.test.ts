@@ -1,4 +1,4 @@
-import { readFileSync } from "node:fs";
+import { existsSync, readFileSync } from "node:fs";
 import { describe, expect, it } from "vitest";
 
 function read(path: string) {
@@ -47,5 +47,11 @@ describe("CareerOS Cloudflare deployment contract", () => {
     expect(docs).toContain("Lovable remains available");
     expect(docs).toMatch(/no Cloudflare production hostname has been allocated yet/i);
     expect(docs).toContain("Do not merge to `main`");
+  });
+
+  it("does not track a local .env file", () => {
+    expect(existsSync(".env")).toBe(false);
+    expect(existsSync(".env.example")).toBe(true);
+    expect(read(".gitignore")).toContain(".env");
   });
 });
