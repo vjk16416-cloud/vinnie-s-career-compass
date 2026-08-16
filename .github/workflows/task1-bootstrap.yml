@@ -1,0 +1,99 @@
+name: CareerOS Task 1 Bootstrap
+
+on:
+  push:
+    branches:
+      - migration/independent-careeros-web
+    paths:
+      - .github/workflows/task1-bootstrap.yml
+
+permissions:
+  contents: write
+
+jobs:
+  task1:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out migration branch
+        uses: actions/checkout@v4
+        with:
+          ref: migration/independent-careeros-web
+          fetch-depth: 0
+
+      - name: Set up Bun
+        uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: latest
+
+      - name: Install Task 1 test dependencies
+        run: bun add --dev --exact vitest @testing-library/react @testing-library/jest-dom jsdom
+
+      - name: Remove Lovable build wrapper
+        run: bun remove @lovable.dev/vite-tanstack-config
+
+      - name: Add test scripts
+        run: |
+          bun -e 'const p = await Bun.file("package.json").json(); p.scripts.test = "vitest run"; p.scripts["test:watch"] = "vitest"; await Bun.write("package.json", JSON.stringify(p, null, 2) + "\n")'
+
+      - name: Write explicit Vite configuration
+        run: |
+          cat > vite.config.ts <<'EOF'
+          import { tanstackStart } from "@tanstack/react-start/plugin/vite";
+          import tailwindcss from "@tailwindcss/vite";
+          import viteReact from "@vitejs/plugin-react";
+          import { nitro } from "nitro/vite";
+          import { defineConfig } from "vite";
+          import tsConfigPaths from "vite-tsconfig-paths";
+
+          export default defineConfig({
+            plugins: [
+              tsConfigPaths(),
+              tanstackStart(),
+              nitro({ preset: "cloudflare_module" }),
+              viteReact(),
+              tailwindcss(),
+            ],
+          });
+          EOF
+
+      - name: Write Vitest configuration
+        run: |
+          cat > vitest.config.ts <<'EOF'
+          import { defineConfig } from "vitest/config";
+          import tsconfigPaths from "vite-tsconfig-paths";
+
+          export default defineConfig({
+            plugins: [tsconfigPaths()],
+            test: {
+              environment: "jsdom",
+              setupFiles: ["./src/test/setup.ts"],
+              clearMocks: true,
+            },
+          });
+          EOF
+          mkdir -p src/test
+          cat > src/test/setup.ts <<'EOF'
+          import "@testing-library/jest-dom/vitest";
+          EOF
+
+      - name: Write environment example and ignore rules
+        run: |
+          cat > .env.example <<'EOF'
+          VITE_SUPABASE_URL=
+          VITE_SUPABASE_PUBLISHABLE_KEY=
+          EOF
+          printf '\n# Local environment files\n.env\n.env.local\n.env.*.local\n!.env.example\n' >> .gitignore
+
+      - name: Verify Task 1
+        run: |
+          bun run test -- --passWithNoTests
+          bun run lint
+          bun run build
+
+      - name: Commit Task 1
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add package.json bun.lock vite.config.ts vitest.config.ts src/test/setup.ts .env.example .gitignore
+          git commit -m "build: remove production Lovable build dependency"
+          git push origin HEAD:migration/independent-careeros-web
