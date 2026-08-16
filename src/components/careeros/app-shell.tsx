@@ -1,5 +1,6 @@
 import { Link, useRouterState } from "@tanstack/react-router";
 import {
+  BookOpenCheck,
   BriefcaseBusiness,
   FileText,
   Gauge,
@@ -21,13 +22,14 @@ export const NAV_ITEMS = [
   { to: "/job-scan", label: "Job Scan", icon: Radar },
   { to: "/cvs", label: "CVs", icon: FileText },
   { to: "/profile", label: "Career Profile", icon: UserRound },
+  { to: "/knowledge-bank", label: "Knowledge Bank", icon: BookOpenCheck },
   { to: "/evidence", label: "Evidence", icon: ShieldCheck },
   { to: "/market", label: "Job Market Intelligence", icon: Gauge },
   { to: "/settings", label: "Settings", icon: SettingsIcon },
 ] as const;
 
 const MOBILE_NAV = NAV_ITEMS.filter((n) =>
-  ["/", "/applications", "/job-scan", "/evidence", "/cvs"].includes(n.to),
+  ["/", "/applications", "/job-scan", "/knowledge-bank", "/cvs"].includes(n.to),
 );
 
 export function AppShell({
