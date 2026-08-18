@@ -4,6 +4,20 @@ const updatedAt = "2026-08-18T11:10:00.000Z";
 
 export const PROFILE_RECONCILED_ITEMS: CareerProfileItem[] = [
   {
+    id: "pi-professional-summary",
+    kind: "Identity",
+    label: "Professional summary",
+    value:
+      "Experienced digital and performance marketing and operations professional transitioning towards product, project delivery, technology consulting, digital transformation, innovation and product marketing roles.",
+    safeWording:
+      "Experienced digital and performance marketing professional with operations and technology-management experience, combining multi-market acquisition, analytics, stakeholder coordination, project delivery, product concept development and technology evaluation.",
+    sourceIds: ["source-master-profile-register", "source-m01", "source-evidence-bank"],
+    evidenceIds: [],
+    status: "Approved",
+    confidence: "High",
+    updatedAt,
+  },
+  {
     id: "pi-idea-chronology",
     kind: "Employment",
     label: "IDEA StatiCa UK chronology",
@@ -59,7 +73,7 @@ export const PROFILE_RECONCILED_ITEMS: CareerProfileItem[] = [
     kind: "Education",
     label: "MSc Technology Management",
     value: "MSc Technology Management, University College London, part-time, in progress",
-    safeWording: "MSc Technology Management (Part-time), University College London — In progress.",
+    safeWording: "MSc Technology Management (Part-time), University College London | In progress.",
     sourceIds: ["source-m01", "source-education-register", "source-evidence-bank"],
     evidenceIds: [],
     status: "Approved",
@@ -83,7 +97,8 @@ export const PROFILE_RECONCILED_ITEMS: CareerProfileItem[] = [
     id: "pi-apm-pfq",
     kind: "Certification",
     label: "APM Project Fundamentals Qualification (PFQ)",
-    value: "APM Project Fundamentals Qualification (PFQ), Association for Project Management, issued 13 January 2025",
+    value:
+      "APM Project Fundamentals Qualification (PFQ), Association for Project Management, issued 13 January 2025",
     safeWording:
       "APM Project Fundamentals Qualification (PFQ), Association for Project Management, 2025.",
     sourceIds: ["source-apm-pfq-primary", "source-education-register", "source-evidence-bank"],
@@ -103,7 +118,8 @@ export const PROFILE_RECONCILED_ITEMS: CareerProfileItem[] = [
     evidenceIds: [],
     status: "Approved",
     confidence: "Medium",
-    notes: "Current CV-level training evidence supports the title. Do not add a provider or date until verified.",
+    notes:
+      "Current CV-level training evidence supports the title. Do not add a provider or date until verified.",
     updatedAt,
   },
   {
