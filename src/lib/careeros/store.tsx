@@ -21,12 +21,7 @@ import { createCareerOsData } from "./profile-data";
 import { resolveClaimVariant, setProfileItemDecision } from "./profile-review";
 import type { ActivityEntry, CareerOsData, CareerProfileItemStatus } from "./types";
 
-export type CareerSyncStatus =
-  | "loading"
-  | "synced"
-  | "saving"
-  | "offline-cache"
-  | "save-error";
+export type CareerSyncStatus = "loading" | "synced" | "saving" | "offline-cache" | "save-error";
 
 interface StoreValue {
   data: CareerOsData;

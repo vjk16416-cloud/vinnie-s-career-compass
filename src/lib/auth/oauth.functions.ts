@@ -48,7 +48,9 @@ export const startGoogleSignIn = createClientOnlyFn(async function startGoogleSi
     });
 
     if (!error) return { error: null };
-    return { error: isGoogleProviderSetupError(error) ? GOOGLE_PROVIDER_SETUP_ERROR : GOOGLE_SIGN_IN_ERROR };
+    return {
+      error: isGoogleProviderSetupError(error) ? GOOGLE_PROVIDER_SETUP_ERROR : GOOGLE_SIGN_IN_ERROR,
+    };
   } catch {
     return { error: GOOGLE_SIGN_IN_ERROR };
   }

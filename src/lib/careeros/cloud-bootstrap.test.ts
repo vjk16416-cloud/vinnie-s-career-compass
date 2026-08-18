@@ -1,5 +1,9 @@
 import { describe, expect, it, vi } from "vitest";
-import { CAREER_STATE_SCHEMA_VERSION, type CareerStateRepository, type CareerStateRow } from "./cloud-state.repository";
+import {
+  CAREER_STATE_SCHEMA_VERSION,
+  type CareerStateRepository,
+  type CareerStateRow,
+} from "./cloud-state.repository";
 import { bootstrapCareerState, CareerStateBootstrapError } from "./cloud-bootstrap";
 import { CAREER_OS_CACHE_KEY } from "./local-cache";
 import { createCareerOsData } from "./profile-data";

@@ -32,9 +32,7 @@ describe("CvHealthCheckPanel", () => {
     const onRegenerate = vi.fn();
     render(<CvHealthCheckPanel health={healthFixture()} onRegenerate={onRegenerate} />);
 
-    expect(
-      screen.queryByRole("button", { name: /approve suggestions/i }),
-    ).not.toBeInTheDocument();
+    expect(screen.queryByRole("button", { name: /approve suggestions/i })).not.toBeInTheDocument();
     expect(screen.queryByText(/review notes accepted/i)).not.toBeInTheDocument();
     expect(screen.getByText("Suggested refinements")).toBeInTheDocument();
     expect(

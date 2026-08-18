@@ -254,10 +254,7 @@ function ApplicationWorkspace() {
           >
             <ul className="space-y-2">
               {data.evidence.map((record) => (
-                <li
-                  key={record.id}
-                  className="rounded-md border border-border bg-surface-2/40 p-3"
-                >
+                <li key={record.id} className="rounded-md border border-border bg-surface-2/40 p-3">
                   <p className="text-sm">{record.claim}</p>
                   <div className="mt-1.5 flex flex-wrap items-center gap-2">
                     <StatusPill
@@ -284,7 +281,11 @@ function ApplicationWorkspace() {
                   {cv ? "New draft" : "Create tailored CV"}
                 </Button>
                 {cv ? (
-                  <Button size="sm" variant="secondary" onClick={() => setHealthOpen((value) => !value)}>
+                  <Button
+                    size="sm"
+                    variant="secondary"
+                    onClick={() => setHealthOpen((value) => !value)}
+                  >
                     CV health check
                   </Button>
                 ) : null}
@@ -315,7 +316,8 @@ function ApplicationWorkspace() {
                       .reverse()
                       .map((version) => (
                         <li key={version.id}>
-                          v{version.version} · {new Date(version.createdAt).toLocaleString("en-GB")} · {version.note}
+                          v{version.version} · {new Date(version.createdAt).toLocaleString("en-GB")}{" "}
+                          · {version.note}
                         </li>
                       ))}
                   </ul>
@@ -449,7 +451,8 @@ function ApplicationWorkspace() {
               {verified.slice(0, 6).map((record) => (
                 <li key={record.id} className="rounded-md border border-border p-3">
                   <p className="font-medium">
-                    Tell me about a time you worked on {record.skills[0]?.toLowerCase() ?? "this area"}.
+                    Tell me about a time you worked on{" "}
+                    {record.skills[0]?.toLowerCase() ?? "this area"}.
                   </p>
                   <p className="mt-1 text-muted-foreground">
                     Anchor: {record.claim} ({record.employer}). Source: {record.source}.

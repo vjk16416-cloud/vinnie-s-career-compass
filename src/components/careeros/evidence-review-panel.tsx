@@ -133,7 +133,10 @@ export function EvidenceReviewPanel() {
         </Panel>
       </div>
 
-      <Panel title="Decision history" description="Every manual profile decision is kept for audit.">
+      <Panel
+        title="Decision history"
+        description="Every manual profile decision is kept for audit."
+      >
         {decisions.length > 0 ? (
           <ol className="space-y-2 text-sm text-muted-foreground">
             {decisions.slice(0, 20).map((decision) => (
