@@ -1,26 +1,13 @@
 import type {
   CareerClaimVariant,
   CareerOsData,
+  CareerProfileDecision,
   CareerProfileItem,
   CareerProfileItemStatus,
+  ProfileDecisionAction,
 } from "./types";
 
-export type ProfileDecisionAction = "Approve" | "Needs Evidence" | "Exclude" | "Resolve Conflict";
-export type ProfileDecisionTarget = "Profile Item" | "Claim Variant";
-
-export interface CareerProfileDecision {
-  id: string;
-  at: string;
-  action: ProfileDecisionAction;
-  targetType: ProfileDecisionTarget;
-  profileItemId?: string;
-  canonicalKey?: string;
-  selectedVariantId?: string;
-  previousStatus?: CareerProfileItemStatus;
-  newStatus: CareerProfileItemStatus;
-  sourceIds: string[];
-  note?: string;
-}
+export type { CareerProfileDecision, ProfileDecisionAction, ProfileDecisionTarget } from "./types";
 
 export type CareerOsDataWithDecisions = CareerOsData & {
   profileDecisions?: CareerProfileDecision[];
@@ -90,7 +77,7 @@ function addAuditTrail(
 }
 
 export function profileDecisions(data: CareerOsData): CareerProfileDecision[] {
-  return (data as CareerOsDataWithDecisions).profileDecisions ?? [];
+  return data.profileDecisions ?? [];
 }
 
 export function setProfileItemDecision(
