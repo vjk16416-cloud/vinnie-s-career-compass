@@ -132,7 +132,8 @@ export const PROFILE_RECONCILED_ITEMS: CareerProfileItem[] = [
     evidenceIds: [],
     status: "Approved",
     confidence: "Medium",
-    notes: "Current CV-level training evidence supports the title. Do not add a date until verified.",
+    notes:
+      "Current CV-level training evidence supports the title. Do not add a date until verified.",
     updatedAt,
   },
   {

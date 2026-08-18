@@ -14,10 +14,12 @@ describe("master-profile data migration", () => {
 
     const migrated = withMasterProfileFoundation(oldData);
 
-    expect(migrated.profileSources.find((source) => source.auditId === "M01")?.extractionStatus).toBe(
-      "Reconciled",
+    expect(
+      migrated.profileSources.find((source) => source.auditId === "M01")?.extractionStatus,
+    ).toBe("Reconciled");
+    expect(migrated.profileSources.some((source) => source.id === "source-metrics-register")).toBe(
+      true,
     );
-    expect(migrated.profileSources.some((source) => source.id === "source-metrics-register")).toBe(true);
     expect(migrated.profileItems.some((item) => item.id === "pi-apm-pfq")).toBe(true);
     expect(migrated.profileItems.find((item) => item.id === "pi-budget")?.safeWording).toBe(
       "User-edited budget wording",
