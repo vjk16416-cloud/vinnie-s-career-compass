@@ -24,6 +24,16 @@ export const Route = createFileRoute("/profile")({
 function ProfilePage() {
   const { data } = useCareerOs();
   const p = data.profile;
+  const sources = data.profileSources ?? [];
+  const profileItems = data.profileItems ?? [];
+  const importedSources = sources.filter((source) => source.ingestionStatus === "Imported").length;
+  const indexedSources = sources.filter((source) => source.ingestionStatus === "Indexed").length;
+  const excludedSources = sources.filter((source) => source.ingestionStatus === "Excluded").length;
+  const approvedItems = profileItems.filter((item) => item.status === "Approved").length;
+  const attentionItems = profileItems.filter(
+    (item) => item.status === "Conflict" || item.status === "Needs Evidence" || item.status === "Excluded",
+  );
+
   return (
     <AppShell title="Career Profile" subtitle={`${p.name} · ${p.location}`}>
       <div className="space-y-4">
@@ -33,6 +43,54 @@ function ProfilePage() {
             CareerOS never updates this record silently. Changes require your explicit approval.
           </p>
         </Panel>
+
+        <div className="grid gap-4 lg:grid-cols-2">
+          <Panel title="Master profile coverage">
+            <div className="grid grid-cols-2 gap-3 text-sm">
+              <div className="rounded-md border border-border p-3">
+                <p className="text-xs text-muted-foreground">Sources registered</p>
+                <p className="mt-1 text-xl font-semibold">{sources.length}</p>
+              </div>
+              <div className="rounded-md border border-border p-3">
+                <p className="text-xs text-muted-foreground">Imported</p>
+                <p className="mt-1 text-xl font-semibold">{importedSources}</p>
+              </div>
+              <div className="rounded-md border border-border p-3">
+                <p className="text-xs text-muted-foreground">Indexed for import</p>
+                <p className="mt-1 text-xl font-semibold">{indexedSources}</p>
+              </div>
+              <div className="rounded-md border border-border p-3">
+                <p className="text-xs text-muted-foreground">Excluded sources</p>
+                <p className="mt-1 text-xl font-semibold">{excludedSources}</p>
+              </div>
+            </div>
+            <p className="mt-3 text-xs leading-relaxed text-muted-foreground">
+              Indexed means the document is catalogued from the evidence audit, not that every line has already been imported. Full resume extraction is the next phase.
+            </p>
+          </Panel>
+
+          <Panel title="Approval layer">
+            <div className="flex flex-wrap gap-1.5">
+              <StatusPill label={`${approvedItems} approved items`} />
+              <StatusPill label={`${attentionItems.length} need attention`} />
+            </div>
+            {attentionItems.length > 0 ? (
+              <ul className="mt-3 space-y-2 text-sm text-muted-foreground">
+                {attentionItems.map((item) => (
+                  <li key={item.id} className="rounded-md border border-border p-2.5">
+                    <div className="flex flex-wrap items-center gap-2">
+                      <span className="font-medium text-foreground">{item.label}</span>
+                      <StatusPill label={item.status} />
+                    </div>
+                    <p className="mt-1 text-xs leading-relaxed">{item.notes ?? item.value}</p>
+                  </li>
+                ))}
+              </ul>
+            ) : (
+              <p className="mt-3 text-sm text-muted-foreground">No unresolved profile items.</p>
+            )}
+          </Panel>
+        </div>
 
         <Panel title="Employment">
           <ol className="space-y-4">
