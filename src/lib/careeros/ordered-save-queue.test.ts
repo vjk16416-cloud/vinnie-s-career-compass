@@ -58,4 +58,31 @@ describe("createOrderedSaveQueue", () => {
     await expect(queue.enqueue(2)).resolves.toBeUndefined();
     expect(save).toHaveBeenCalledTimes(2);
   });
+
+  it("never writes an old queued snapshot after reset handles an earlier failure", async () => {
+    const first = deferred<void>();
+    const save = vi.fn(async (value: number) => {
+      if (value === 1) {
+        await first.promise;
+        throw new Error("network");
+      }
+    });
+    const queue = createOrderedSaveQueue(save);
+
+    const one = queue.enqueue(1);
+    const two = queue.enqueue(2);
+    const resetAfterFailure = one.catch(() => {
+      queue.reset();
+    });
+
+    await Promise.resolve();
+    first.resolve();
+    await resetAfterFailure;
+    await Promise.allSettled([two]);
+
+    expect(save.mock.calls.map(([value]) => value)).toEqual([1]);
+
+    await expect(queue.enqueue(3)).resolves.toBeUndefined();
+    expect(save.mock.calls.map(([value]) => value)).toEqual([1, 3]);
+  });
 });
