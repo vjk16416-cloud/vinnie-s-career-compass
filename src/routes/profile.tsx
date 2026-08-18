@@ -31,7 +31,8 @@ function ProfilePage() {
   const excludedSources = sources.filter((source) => source.ingestionStatus === "Excluded").length;
   const approvedItems = profileItems.filter((item) => item.status === "Approved").length;
   const attentionItems = profileItems.filter(
-    (item) => item.status === "Conflict" || item.status === "Needs Evidence" || item.status === "Excluded",
+    (item) =>
+      item.status === "Conflict" || item.status === "Needs Evidence" || item.status === "Excluded",
   );
 
   return (
@@ -65,7 +66,8 @@ function ProfilePage() {
               </div>
             </div>
             <p className="mt-3 text-xs leading-relaxed text-muted-foreground">
-              Indexed means the document is catalogued from the evidence audit, not that every line has already been imported. Full resume extraction is the next phase.
+              Indexed means the document is catalogued from the evidence audit, not that every line
+              has already been imported. Full resume extraction is the next phase.
             </p>
           </Panel>
 

@@ -7,9 +7,7 @@ export type CareerOsDataWithMasterProfile = CareerOsData & {
   profileItems: CareerProfileItem[];
 };
 
-export function withMasterProfileFoundation(
-  data: CareerOsData,
-): CareerOsDataWithMasterProfile {
+export function withMasterProfileFoundation(data: CareerOsData): CareerOsDataWithMasterProfile {
   return {
     ...data,
     profileSources: data.profileSources ?? PROFILE_SOURCES,
