@@ -34,8 +34,13 @@ jobs:
         run: |
           bunx prettier --write \
             src/lib/careeros/profile-data.ts \
+            src/lib/careeros/profile-extraction.test.ts \
+            src/lib/careeros/profile-extraction.ts \
             src/lib/careeros/profile-foundation.test.ts \
             src/lib/careeros/profile-foundation.ts \
+            src/lib/careeros/generate.profile.test.ts \
+            src/lib/careeros/generate.ts \
+            src/lib/careeros/types.ts \
             src/routes/profile.tsx \
             src/lib/cloudflare/wrangler-config.test.ts
           if ! git diff --quiet; then
@@ -43,8 +48,13 @@ jobs:
             git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
             git add \
               src/lib/careeros/profile-data.ts \
+              src/lib/careeros/profile-extraction.test.ts \
+              src/lib/careeros/profile-extraction.ts \
               src/lib/careeros/profile-foundation.test.ts \
               src/lib/careeros/profile-foundation.ts \
+              src/lib/careeros/generate.profile.test.ts \
+              src/lib/careeros/generate.ts \
+              src/lib/careeros/types.ts \
               src/routes/profile.tsx \
               src/lib/cloudflare/wrangler-config.test.ts
             git commit -m "Format verification files"
