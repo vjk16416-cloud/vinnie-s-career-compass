@@ -1,7 +1,20 @@
 import { createFileRoute, redirect } from "@tanstack/react-router";
 import { useState } from "react";
 
-import { getBrowserSupabase } from "@/lib/auth/supabase.client";
+import { createBrowserClient } from "@supabase/ssr";
+import type { SupabaseClient } from "@supabase/supabase-js";
+
+import { getSupabaseConfig } from "@/lib/auth/config";
+
+let client: SupabaseClient | undefined;
+
+function getBrowserSupabase(): SupabaseClient {
+  if (!client) {
+    const { url, publishableKey } = getSupabaseConfig();
+    client = createBrowserClient(url, publishableKey);
+  }
+  return client;
+}
 
 type OAuthAuthorizationDetails = {
   client?: { name?: string } | null;
