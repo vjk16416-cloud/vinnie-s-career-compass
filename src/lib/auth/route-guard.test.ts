@@ -72,6 +72,23 @@ describe("CareerOS route guard", () => {
     });
   });
 
+  it("fails closed to login when the session lookup itself errors", async () => {
+    try {
+      await guardCareerOsRoute({
+        location: location("/profile"),
+        getCurrentUser: () => Promise.reject(new Error("session lookup failed")),
+      });
+      throw new Error("Expected a failed session lookup to redirect to login");
+    } catch (error) {
+      expect(isRedirect(error)).toBe(true);
+      if (!isRedirect(error)) throw error;
+      expect(error.options).toMatchObject({
+        to: "/login",
+        search: { returnTo: "/profile" },
+      });
+    }
+  });
+
   it("returns only the server-authorised identity for a protected route", async () => {
     await expect(
       guardCareerOsRoute({
