@@ -26,7 +26,8 @@ export const POST_AUDIT_PROFILE_SOURCES: CareerProfileSource[] = [
     extractionStatus: "Raw extracted",
     trust: "Alternative",
     externalFileId: "file_00000000604081f4a3605b8909d885f0",
-    notes: "Raw File Library application CV. Derivative wording is provenance, not independent verification.",
+    notes:
+      "Raw File Library application CV. Derivative wording is provenance, not independent verification.",
   },
   {
     id: "source-post-logitech-word-fixed",
@@ -179,19 +180,22 @@ export const POST_AUDIT_CLAIM_VARIANTS: CareerClaimVariant[] = [
     basis: "Raw source",
     status: "Needs Evidence",
     confidence: "Medium",
-    notes: "Safer than the full-certificate claim, but exact course title/provider still needs certificate evidence.",
+    notes:
+      "Safer than the full-certificate claim, but exact course title/provider still needs certificate evidence.",
   }),
   variant({
     id: "post-nul-ai-chatbot-qa",
     canonicalKey: "nul-ai-chatbot-qa",
     kind: "Achievement",
     label: "Northeastern AI chatbot QA rollout",
-    value: "Defined QA criteria and supported structured testing of an AI-powered chatbot before go-live",
+    value:
+      "Defined QA criteria and supported structured testing of an AI-powered chatbot before go-live",
     sourceIds: ["source-post-blackrock-product", "source-post-graduate-project-manager"],
     basis: "Raw source",
     status: "Needs Evidence",
     confidence: "Medium",
-    notes: "Potentially useful new experience, but it is absent from the July audit and current canonical evidence bank.",
+    notes:
+      "Potentially useful new experience, but it is absent from the July audit and current canonical evidence bank.",
   }),
   variant({
     id: "post-nul-platform-count",
@@ -207,7 +211,8 @@ export const POST_AUDIT_CLAIM_VARIANTS: CareerClaimVariant[] = [
     basis: "Raw source",
     status: "Needs Evidence",
     confidence: "Medium",
-    notes: "Repeated across derivative application CVs, but repetition is not independent verification.",
+    notes:
+      "Repeated across derivative application CVs, but repetition is not independent verification.",
   }),
   variant({
     id: "post-idea-pmo-dashboard",
@@ -232,7 +237,8 @@ export const POST_AUDIT_CLAIM_VARIANTS: CareerClaimVariant[] = [
     canonicalKey: "idea-data-validation",
     kind: "Achievement",
     label: "IDEA StatiCa reporting validation",
-    value: "Added validation checks across HubSpot/Salesforce reporting before stakeholder reporting",
+    value:
+      "Added validation checks across HubSpot/Salesforce reporting before stakeholder reporting",
     sourceIds: [
       "source-post-blackrock-product",
       "source-post-graduate-project-manager",
@@ -242,14 +248,16 @@ export const POST_AUDIT_CLAIM_VARIANTS: CareerClaimVariant[] = [
     basis: "Raw source",
     status: "Needs Evidence",
     confidence: "Medium",
-    notes: "Useful delivery/QA detail, but new to the post-audit CV family and not yet independently corroborated.",
+    notes:
+      "Useful delivery/QA detail, but new to the post-audit CV family and not yet independently corroborated.",
   }),
   variant({
     id: "post-buchanan-ats-automation",
     canonicalKey: "buchanan-ats-automation",
     kind: "Achievement",
     label: "Buchanan ATS automation",
-    value: "Automated recruitment workflows and reconfigured the ATS to reduce duplicate work and improve candidate-status visibility",
+    value:
+      "Automated recruitment workflows and reconfigured the ATS to reduce duplicate work and improve candidate-status visibility",
     sourceIds: [
       "source-post-blackrock-product",
       "source-post-graduate-project-manager",
@@ -259,7 +267,8 @@ export const POST_AUDIT_CLAIM_VARIANTS: CareerClaimVariant[] = [
     basis: "Raw source",
     status: "Needs Evidence",
     confidence: "Medium",
-    notes: "Preserved as potentially useful experience pending primary or historical-source corroboration.",
+    notes:
+      "Preserved as potentially useful experience pending primary or historical-source corroboration.",
   }),
   variant({
     id: "post-buchanan-omnichannel-qa",
@@ -271,7 +280,8 @@ export const POST_AUDIT_CLAIM_VARIANTS: CareerClaimVariant[] = [
     basis: "Raw source",
     status: "Needs Evidence",
     confidence: "Low",
-    notes: "Leadership wording is not approved until corroborated beyond derivative application CVs.",
+    notes:
+      "Leadership wording is not approved until corroborated beyond derivative application CVs.",
   }),
   variant({
     id: "post-nas-journey-qa",
@@ -294,7 +304,8 @@ export const POST_AUDIT_CLAIM_VARIANTS: CareerClaimVariant[] = [
     canonicalKey: "unidrop-user-research",
     kind: "Project",
     label: "UniDrop user testing and validation",
-    value: "Used user testing, questionnaires, heatmap analysis and participant feedback to validate the problem statement",
+    value:
+      "Used user testing, questionnaires, heatmap analysis and participant feedback to validate the problem statement",
     sourceIds: ["source-post-blackrock-product", "source-post-graduate-project-manager"],
     basis: "Raw source",
     status: "Excluded",
