@@ -58,6 +58,8 @@ describe("master-profile extraction and reconciliation", () => {
     expect(coverage.auditOnly).toBeGreaterThan(0);
     expect(coverage.excluded).toBe(1);
     expect(coverage.rawExtracted).toBeLessThan(coverage.totalAuditSources);
+    expect(coverage.postAuditRaw).toBe(9);
+    expect(coverage.totalRawCvSources).toBe(10);
   });
 
   it("registers fully read post-audit CVs as raw extracted sources", () => {
