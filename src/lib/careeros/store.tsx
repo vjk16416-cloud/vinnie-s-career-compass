@@ -1,7 +1,7 @@
 import { createContext, useCallback, useContext, useEffect, useMemo, useState } from "react";
 import type { ReactNode } from "react";
 import { normaliseData } from "./normalise";
-import { createSeedData } from "./seed";
+import { createCareerOsData, withMasterProfileFoundation } from "./profile-data";
 import type { ActivityEntry, CareerOsData } from "./types";
 
 const STORAGE_KEY = "careeros:v1";
@@ -21,13 +21,13 @@ export function uid(prefix: string) {
 }
 
 export function CareerOsProvider({ children }: { children: ReactNode }) {
-  const [data, setData] = useState<CareerOsData>(() => createSeedData());
+  const [data, setData] = useState<CareerOsData>(() => createCareerOsData());
   const [hydrated, setHydrated] = useState(false);
 
   useEffect(() => {
     try {
       const raw = window.localStorage.getItem(STORAGE_KEY);
-      if (raw) setData(normaliseData(JSON.parse(raw)));
+      if (raw) setData(withMasterProfileFoundation(normaliseData(JSON.parse(raw))));
     } catch {
       /* fall back to seed */
     }
@@ -59,7 +59,7 @@ export function CareerOsProvider({ children }: { children: ReactNode }) {
   );
 
   const resetToSeed = useCallback(() => {
-    setData(createSeedData());
+    setData(createCareerOsData());
   }, []);
 
   const value = useMemo(
