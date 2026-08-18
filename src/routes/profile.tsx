@@ -2,10 +2,7 @@ import { createFileRoute } from "@tanstack/react-router";
 import { AppShell } from "@/components/careeros/app-shell";
 import { Panel, StatusPill } from "@/components/careeros/ui-bits";
 import { extractionCoverage } from "@/lib/careeros/profile-coverage";
-import {
-  unresolvedVariantKeys,
-  variantsByCanonicalKey,
-} from "@/lib/careeros/profile-extraction";
+import { unresolvedVariantKeys, variantsByCanonicalKey } from "@/lib/careeros/profile-extraction";
 import { useCareerOs } from "@/lib/careeros/store";
 
 export const Route = createFileRoute("/profile")({
@@ -206,7 +203,7 @@ function ProfilePage() {
             <ul className="space-y-1.5 text-sm text-muted-foreground">
               {approvedProjects.map((item) => (
                 <li key={item.id}>
-                  <span className="text-foreground">{item.label}</span>: {" "}
+                  <span className="text-foreground">{item.label}</span>:{" "}
                   {item.safeWording ?? item.value}
                 </li>
               ))}
