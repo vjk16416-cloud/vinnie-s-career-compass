@@ -1,5 +1,6 @@
 import { PROFILE_CLAIM_VARIANTS } from "./profile-extraction";
 import { PROFILE_ITEMS, PROFILE_SOURCES } from "./profile-foundation";
+import { PROFILE_RECONCILED_ITEMS } from "./profile-reconciled-items";
 import { createSeedData } from "./seed";
 import type {
   CareerClaimVariant,
@@ -102,6 +103,19 @@ function seededProfileSources(): CareerProfileSource[] {
   ];
 }
 
+function mergeById<T extends { id: string }>(defaults: T[], stored: T[] | undefined): T[] {
+  if (!stored) return defaults;
+
+  const storedById = new Map(stored.map((item) => [item.id, item]));
+  const defaultIds = new Set(defaults.map((item) => item.id));
+  const mergedDefaults = defaults.map((item) => ({ ...item, ...storedById.get(item.id) }));
+  const storedOnly = stored.filter((item) => !defaultIds.has(item.id));
+
+  return [...mergedDefaults, ...storedOnly];
+}
+
+const SEEDED_PROFILE_ITEMS = [...PROFILE_ITEMS, ...PROFILE_RECONCILED_ITEMS];
+
 export type CareerOsDataWithMasterProfile = CareerOsData & {
   profileSources: CareerProfileSource[];
   profileItems: CareerProfileItem[];
@@ -111,9 +125,9 @@ export type CareerOsDataWithMasterProfile = CareerOsData & {
 export function withMasterProfileFoundation(data: CareerOsData): CareerOsDataWithMasterProfile {
   return {
     ...data,
-    profileSources: data.profileSources ?? seededProfileSources(),
-    profileItems: data.profileItems ?? PROFILE_ITEMS,
-    profileClaimVariants: data.profileClaimVariants ?? PROFILE_CLAIM_VARIANTS,
+    profileSources: mergeById(seededProfileSources(), data.profileSources),
+    profileItems: mergeById(SEEDED_PROFILE_ITEMS, data.profileItems),
+    profileClaimVariants: mergeById(PROFILE_CLAIM_VARIANTS, data.profileClaimVariants),
   };
 }
 
