@@ -5,6 +5,10 @@
   "compatibility_date": "2026-08-16",
   "compatibility_flags": ["nodejs_compat"],
   "send_metrics": false,
+  "vars": {
+    "VITE_SUPABASE_URL": "https://gieehxdyzcrrmgxnfsxs.supabase.co",
+    "VITE_SUPABASE_PUBLISHABLE_KEY": "sb_publishable_7NVzhglqzn08aWpSonqhfA_hzlc5A7i",
+  },
   "assets": {
     "binding": "ASSETS",
     "directory": ".output/public",
