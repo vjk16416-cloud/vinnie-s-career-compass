@@ -2,7 +2,8 @@ import { createContext, useCallback, useContext, useEffect, useMemo, useState } 
 import type { ReactNode } from "react";
 import { normaliseData } from "./normalise";
 import { createCareerOsData, withMasterProfileFoundation } from "./profile-data";
-import type { ActivityEntry, CareerOsData } from "./types";
+import { resolveClaimVariant, setProfileItemDecision } from "./profile-review";
+import type { ActivityEntry, CareerOsData, CareerProfileItemStatus } from "./types";
 
 const STORAGE_KEY = "careeros:v1";
 
@@ -11,6 +12,17 @@ interface StoreValue {
   hydrated: boolean;
   update: (fn: (draft: CareerOsData) => CareerOsData) => void;
   logActivity: (text: string) => void;
+  setProfileItemStatus: (
+    profileItemId: string,
+    status: Extract<CareerProfileItemStatus, "Approved" | "Needs Evidence" | "Excluded">,
+    note?: string,
+  ) => void;
+  resolveProfileVariant: (
+    canonicalKey: string,
+    selectedVariantId: string,
+    safeWording?: string,
+    note?: string,
+  ) => void;
   resetToSeed: () => void;
 }
 
@@ -58,13 +70,59 @@ export function CareerOsProvider({ children }: { children: ReactNode }) {
     [update],
   );
 
+  const setProfileItemStatus = useCallback(
+    (
+      profileItemId: string,
+      status: Extract<CareerProfileItemStatus, "Approved" | "Needs Evidence" | "Excluded">,
+      note?: string,
+    ) => {
+      update((draft) => setProfileItemDecision(draft, { profileItemId, status, note }));
+    },
+    [update],
+  );
+
+  const resolveProfileVariant = useCallback(
+    (
+      canonicalKey: string,
+      selectedVariantId: string,
+      safeWording?: string,
+      note?: string,
+    ) => {
+      update((draft) =>
+        resolveClaimVariant(draft, {
+          canonicalKey,
+          selectedVariantId,
+          safeWording,
+          note,
+        }),
+      );
+    },
+    [update],
+  );
+
   const resetToSeed = useCallback(() => {
     setData(createCareerOsData());
   }, []);
 
   const value = useMemo(
-    () => ({ data, hydrated, update, logActivity, resetToSeed }),
-    [data, hydrated, update, logActivity, resetToSeed],
+    () => ({
+      data,
+      hydrated,
+      update,
+      logActivity,
+      setProfileItemStatus,
+      resolveProfileVariant,
+      resetToSeed,
+    }),
+    [
+      data,
+      hydrated,
+      update,
+      logActivity,
+      setProfileItemStatus,
+      resolveProfileVariant,
+      resetToSeed,
+    ],
   );
 
   return <StoreContext.Provider value={value}>{children}</StoreContext.Provider>;
