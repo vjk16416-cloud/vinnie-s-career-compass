@@ -12,8 +12,8 @@ export function withMasterProfileFoundation(
 ): CareerOsDataWithMasterProfile {
   return {
     ...data,
-    profileSources: PROFILE_SOURCES,
-    profileItems: PROFILE_ITEMS,
+    profileSources: data.profileSources ?? PROFILE_SOURCES,
+    profileItems: data.profileItems ?? PROFILE_ITEMS,
   };
 }
 
