@@ -1,5 +1,6 @@
-import { PROFILE_CLAIM_VARIANTS } from "./profile-extraction";
+import { PROFILE_CLAIM_VARIANTS } from "./profile-claim-variants";
 import { PROFILE_ITEMS, PROFILE_SOURCES } from "./profile-foundation";
+import { POST_AUDIT_PROFILE_SOURCES } from "./profile-post-audit";
 import { PROFILE_RECONCILED_ITEMS } from "./profile-reconciled-items";
 import { createSeedData } from "./seed";
 import type {
@@ -99,6 +100,7 @@ function seededProfileSources(): CareerProfileSource[] {
       ...source,
       extractionStatus: extractionStatusFor(source),
     })),
+    ...POST_AUDIT_PROFILE_SOURCES,
     ...REGISTER_SOURCES,
   ];
 }
