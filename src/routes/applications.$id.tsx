@@ -2,14 +2,8 @@ import { createFileRoute, Link } from "@tanstack/react-router";
 import { useMemo, useState } from "react";
 import { toast } from "sonner";
 import { AppShell } from "@/components/careeros/app-shell";
-import { ScanResultView } from "./job-scan";
-import {
-  EmptyState,
-  Panel,
-  ScoreBar,
-  StatusPill,
-  evidenceTone,
-} from "@/components/careeros/ui-bits";
+import { CvHealthCheckPanel } from "@/components/careeros/cv-health-check-panel";
+import { EmptyState, Panel, StatusPill, evidenceTone } from "@/components/careeros/ui-bits";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -23,17 +17,18 @@ import {
 } from "@/lib/careeros/generate";
 import { runScan } from "@/lib/careeros/scoring";
 import { uid, useCareerOs } from "@/lib/careeros/store";
+import { ScanResultView } from "./job-scan";
 
 export const Route = createFileRoute("/applications/$id")({
   head: () => ({
     meta: [
-      { title: "Application workspace — CareerOS" },
+      { title: "Application workspace | CareerOS" },
       {
         name: "description",
         content:
           "Job description, match analysis, evidence map, CV and cover letter in one workspace.",
       },
-      { property: "og:title", content: "Application workspace — CareerOS" },
+      { property: "og:title", content: "Application workspace | CareerOS" },
       {
         property: "og:description",
         content: "Draft, review and version every document for a single application.",
@@ -46,16 +41,16 @@ export const Route = createFileRoute("/applications/$id")({
 function ApplicationWorkspace() {
   const { id } = Route.useParams();
   const { data, update, logActivity } = useCareerOs();
-  const app = data.applications.find((a) => a.id === id);
-  const job = data.jobs.find((j) => j.id === app?.jobId);
-  const scan = data.scans.find((s) => s.jobId === app?.jobId);
-  const cv = data.cvs.find((c) => c.applicationId === id);
-  const letter = data.coverLetters.find((c) => c.applicationId === id);
+  const app = data.applications.find((candidate) => candidate.id === id);
+  const job = data.jobs.find((candidate) => candidate.id === app?.jobId);
+  const scan = data.scans.find((candidate) => candidate.jobId === app?.jobId);
+  const cv = data.cvs.find((candidate) => candidate.applicationId === id);
+  const letter = data.coverLetters.find((candidate) => candidate.applicationId === id);
   const [jdDraft, setJdDraft] = useState(job?.description ?? "");
   const [healthOpen, setHealthOpen] = useState(false);
 
   const verified = useMemo(
-    () => data.evidence.filter((e) => e.status === "Verified"),
+    () => data.evidence.filter((record) => record.status === "Verified"),
     [data.evidence],
   );
   const latestCvBody = cv?.versions[cv.versions.length - 1]?.body ?? "";
@@ -78,45 +73,49 @@ function ApplicationWorkspace() {
   }
 
   function saveJd() {
-    if (!app) return;
-    update((d) => {
-      const j = d.jobs.find((x) => x.id === app.jobId);
-      if (j) j.description = jdDraft;
-      return d;
+    update((draft) => {
+      const target = draft.jobs.find((candidate) => candidate.id === app.jobId);
+      if (target) target.description = jdDraft;
+      return draft;
     });
     toast.success("Job description saved.");
   }
 
   function rerunScan() {
-    if (!job || !app) return;
+    if (!job) return;
     if (jdDraft.trim().split(/\s+/).length < 40) {
       toast.error("Add the job description first.");
       return;
     }
+
     const jobRecord = { ...job, description: jdDraft };
     const result = runScan(jobRecord, data);
-    update((d) => {
-      const j = d.jobs.find((x) => x.id === job.id);
-      if (j) j.description = jdDraft;
-      d.scans = [result, ...d.scans.filter((s) => s.jobId !== job.id)];
-      const target = d.applications.find((a) => a.id === app.id);
-      if (target) {
-        target.compatibilityScore = result.overall;
-        target.history = [
-          { at: new Date().toISOString(), entry: `Role scan run — ${result.overall}% fit.` },
-          ...target.history,
+    update((draft) => {
+      const targetJob = draft.jobs.find((candidate) => candidate.id === job.id);
+      if (targetJob) targetJob.description = jdDraft;
+      draft.scans = [result, ...draft.scans.filter((candidate) => candidate.jobId !== job.id)];
+      const targetApplication = draft.applications.find((candidate) => candidate.id === app.id);
+      if (targetApplication) {
+        targetApplication.compatibilityScore = result.overall;
+        targetApplication.history = [
+          {
+            at: new Date().toISOString(),
+            entry: `Role scan run: ${result.overall}% fit.`,
+          },
+          ...targetApplication.history,
         ];
       }
-      return d;
+      return draft;
     });
-    logActivity(`Re-scanned ${app.title} at ${app.company} — ${result.overall}%.`);
+    logActivity(`Re-scanned ${app.title} at ${app.company}: ${result.overall}% fit.`);
   }
 
   function generateCv() {
-    if (!job || !app) return;
+    if (!job) return;
     const built = buildTailoredCv(data, { ...job, description: jdDraft || job.description }, scan);
-    update((d) => {
-      const existing = d.cvs.find((c) => c.applicationId === app.id);
+
+    update((draft) => {
+      const existing = draft.cvs.find((candidate) => candidate.applicationId === app.id);
       if (existing) {
         existing.versions.push({
           id: uid("cvv"),
@@ -130,10 +129,10 @@ function ApplicationWorkspace() {
         existing.updatedAt = new Date().toISOString();
       } else {
         const cvId = uid("cv");
-        d.cvs = [
+        draft.cvs = [
           {
             id: cvId,
-            name: `${app.title} — ${app.company}`,
+            name: `${app.title} | ${app.company}`,
             category: suggestCvCategory(job),
             status: "Draft",
             applicationId: app.id,
@@ -150,32 +149,33 @@ function ApplicationWorkspace() {
               },
             ],
           },
-          ...d.cvs,
+          ...draft.cvs,
         ];
-        const target = d.applications.find((a) => a.id === app.id);
-        if (target) target.linkedCvId = cvId;
+        const targetApplication = draft.applications.find((candidate) => candidate.id === app.id);
+        if (targetApplication) targetApplication.linkedCvId = cvId;
       }
-      return d;
+      return draft;
     });
+
     logActivity(`Tailored CV draft created for ${app.title} at ${app.company}.`);
     toast.success("Draft CV created. It stays a draft until you approve it.");
   }
 
   function approveCv() {
     if (!cv) return;
-    update((d) => {
-      const target = d.cvs.find((c) => c.id === cv.id);
+    update((draft) => {
+      const target = draft.cvs.find((candidate) => candidate.id === cv.id);
       if (target) target.status = "Approved";
-      return d;
+      return draft;
     });
     toast.success("CV version approved.");
   }
 
   function generateLetter() {
-    if (!job || !app) return;
+    if (!job) return;
     const built = buildCoverLetter(data, { ...job, description: jdDraft || job.description }, scan);
-    update((d) => {
-      d.coverLetters = [
+    update((draft) => {
+      draft.coverLetters = [
         {
           id: uid("cl"),
           applicationId: app.id,
@@ -186,35 +186,12 @@ function ApplicationWorkspace() {
           evidenceIds: built.evidenceIds,
           createdAt: new Date().toISOString(),
         },
-        ...d.coverLetters.filter((c) => c.applicationId !== app.id),
+        ...draft.coverLetters.filter((candidate) => candidate.applicationId !== app.id),
       ];
-      return d;
+      return draft;
     });
     logActivity(`Cover letter draft created for ${app.title}.`);
     toast.success("Cover letter draft created from verified evidence.");
-  }
-
-  function applySuggestions() {
-    if (!cv || !health) return;
-    const notes = health.suggestions.map((s) => `- ${s.text}`).join("\n");
-    const body = `${latestCvBody}\n\n<!-- Review notes accepted ${new Date().toLocaleDateString("en-GB")} -->\n${notes}`;
-    update((d) => {
-      const target = d.cvs.find((c) => c.id === cv.id);
-      if (target) {
-        target.versions.push({
-          id: uid("cvv"),
-          version: target.versions.length + 1,
-          createdAt: new Date().toISOString(),
-          note: "New version created after approving health-check suggestions.",
-          body,
-          evidenceIds: target.versions[target.versions.length - 1]?.evidenceIds ?? [],
-        });
-        target.status = "Draft";
-        target.updatedAt = new Date().toISOString();
-      }
-      return d;
-    });
-    toast.success("New CV version saved. Previous versions are kept.");
   }
 
   return (
@@ -245,7 +222,7 @@ function ApplicationWorkspace() {
             <Textarea
               className="min-h-64 font-mono text-xs"
               value={jdDraft}
-              onChange={(e) => setJdDraft(e.target.value)}
+              onChange={(event) => setJdDraft(event.target.value)}
               aria-label="Job description"
             />
             <div className="mt-3 flex flex-wrap gap-2">
@@ -276,13 +253,19 @@ function ApplicationWorkspace() {
             description="Only Verified records may be asserted in generated documents."
           >
             <ul className="space-y-2">
-              {data.evidence.map((e) => (
-                <li key={e.id} className="rounded-md border border-border bg-surface-2/40 p-3">
-                  <p className="text-sm">{e.claim}</p>
+              {data.evidence.map((record) => (
+                <li
+                  key={record.id}
+                  className="rounded-md border border-border bg-surface-2/40 p-3"
+                >
+                  <p className="text-sm">{record.claim}</p>
                   <div className="mt-1.5 flex flex-wrap items-center gap-2">
-                    <StatusPill label={`Status: ${e.status}`} tone={evidenceTone(e.status)} />
+                    <StatusPill
+                      label={`Status: ${record.status}`}
+                      tone={evidenceTone(record.status)}
+                    />
                     <span className="text-xs text-muted-foreground">
-                      {e.employer} · confidence {e.confidence} · ref {e.id}
+                      {record.employer} · confidence {record.confidence} · ref {record.id}
                     </span>
                   </div>
                 </li>
@@ -294,14 +277,14 @@ function ApplicationWorkspace() {
         <TabsContent value="cv" className="mt-4 space-y-4">
           <Panel
             title="Tailored CV"
-            description="Times New Roman, 10–12 pt, black, left aligned, no graphics."
+            description="Times New Roman, 10-12 pt, black, left aligned, no graphics."
             actions={
               <>
                 <Button size="sm" onClick={generateCv}>
                   {cv ? "New draft" : "Create tailored CV"}
                 </Button>
                 {cv ? (
-                  <Button size="sm" variant="secondary" onClick={() => setHealthOpen((v) => !v)}>
+                  <Button size="sm" variant="secondary" onClick={() => setHealthOpen((value) => !value)}>
                     CV health check
                   </Button>
                 ) : null}
@@ -330,9 +313,9 @@ function ApplicationWorkspace() {
                     {cv.versions
                       .slice()
                       .reverse()
-                      .map((v) => (
-                        <li key={v.id}>
-                          v{v.version} — {new Date(v.createdAt).toLocaleString("en-GB")} — {v.note}
+                      .map((version) => (
+                        <li key={version.id}>
+                          v{version.version} · {new Date(version.createdAt).toLocaleString("en-GB")} · {version.note}
                         </li>
                       ))}
                   </ul>
@@ -347,93 +330,7 @@ function ApplicationWorkspace() {
           </Panel>
 
           {cv && healthOpen && health ? (
-            <Panel title="CV scan / health check" description="Review before export.">
-              <div className="grid gap-4 md:grid-cols-2">
-                <ScoreBar label="Role compatibility" value={health.compatibility} />
-                <ScoreBar label="ATS / keyword coverage" value={health.atsCoverage} />
-                <ScoreBar
-                  label="Responsibilities coverage"
-                  value={health.responsibilitiesCoverage}
-                />
-                <ScoreBar label="Evidence coverage" value={health.evidenceCoverage} />
-              </div>
-
-              <div className="mt-4 grid gap-4 lg:grid-cols-2">
-                <div>
-                  <h3 className="text-xs font-semibold text-muted-foreground">Missing keywords</h3>
-                  <div className="mt-1.5 flex flex-wrap gap-1.5">
-                    {health.missingKeywords.length ? (
-                      health.missingKeywords.map((k) => (
-                        <StatusPill key={k} label={k} tone="warning" />
-                      ))
-                    ) : (
-                      <p className="text-sm text-muted-foreground">None.</p>
-                    )}
-                  </div>
-                </div>
-                <div>
-                  <h3 className="text-xs font-semibold text-muted-foreground">
-                    Weak or vague bullets
-                  </h3>
-                  <ul className="mt-1.5 space-y-1 text-sm text-muted-foreground">
-                    {health.weakBullets.length ? (
-                      health.weakBullets.map((b) => <li key={b}>{b.trim()}</li>)
-                    ) : (
-                      <li>None flagged.</li>
-                    )}
-                  </ul>
-                </div>
-                <div>
-                  <h3 className="text-xs font-semibold text-muted-foreground">
-                    Unsupported or unverified claims
-                  </h3>
-                  <ul className="mt-1.5 space-y-1 text-sm text-muted-foreground">
-                    {health.unsupportedClaims.length ? (
-                      health.unsupportedClaims.map((c) => <li key={c}>{c}</li>)
-                    ) : (
-                      <li>None — every claim traces to Verified evidence.</li>
-                    )}
-                  </ul>
-                </div>
-                <div>
-                  <h3 className="text-xs font-semibold text-muted-foreground">
-                    Formatting compliance
-                  </h3>
-                  <ul className="mt-1.5 space-y-1 text-sm">
-                    {health.formatting.map((f) => (
-                      <li key={f.rule} className="flex flex-wrap items-center gap-2">
-                        <span className="min-w-0 flex-1 text-muted-foreground">{f.rule}</span>
-                        <StatusPill
-                          label={f.pass ? "Pass" : "Check"}
-                          tone={f.pass ? "success" : "warning"}
-                        />
-                      </li>
-                    ))}
-                  </ul>
-                </div>
-              </div>
-
-              <div className="mt-4">
-                <h3 className="text-xs font-semibold text-muted-foreground">
-                  Suggested refinements
-                </h3>
-                <ul className="mt-1.5 space-y-1.5 text-sm">
-                  {health.suggestions.map((s) => (
-                    <li key={s.text} className="rounded-md border border-border p-2.5">
-                      {s.text}
-                      {s.evidenceId ? (
-                        <span className="ml-2 text-xs text-muted-foreground">
-                          Evidence ref: {s.evidenceId}
-                        </span>
-                      ) : null}
-                    </li>
-                  ))}
-                </ul>
-                <Button className="mt-3" size="sm" onClick={applySuggestions}>
-                  Approve suggestions and save new version
-                </Button>
-              </div>
-            </Panel>
+            <CvHealthCheckPanel health={health} onRegenerate={generateCv} />
           ) : null}
         </TabsContent>
 
@@ -483,11 +380,13 @@ function ApplicationWorkspace() {
                   id="next-action"
                   className="mt-1.5"
                   defaultValue={app.nextAction ?? ""}
-                  onBlur={(e) =>
-                    update((d) => {
-                      const t = d.applications.find((a) => a.id === app.id);
-                      if (t) t.nextAction = e.target.value;
-                      return d;
+                  onBlur={(event) =>
+                    update((draft) => {
+                      const target = draft.applications.find(
+                        (candidate) => candidate.id === app.id,
+                      );
+                      if (target) target.nextAction = event.target.value;
+                      return draft;
                     })
                   }
                 />
@@ -499,11 +398,13 @@ function ApplicationWorkspace() {
                   type="date"
                   className="mt-1.5"
                   defaultValue={app.deadline ?? ""}
-                  onBlur={(e) =>
-                    update((d) => {
-                      const t = d.applications.find((a) => a.id === app.id);
-                      if (t) t.deadline = e.target.value;
-                      return d;
+                  onBlur={(event) =>
+                    update((draft) => {
+                      const target = draft.applications.find(
+                        (candidate) => candidate.id === app.id,
+                      );
+                      if (target) target.deadline = event.target.value;
+                      return draft;
                     })
                   }
                 />
@@ -514,11 +415,13 @@ function ApplicationWorkspace() {
                   id="notes"
                   className="mt-1.5 min-h-32"
                   defaultValue={app.notes}
-                  onBlur={(e) =>
-                    update((d) => {
-                      const t = d.applications.find((a) => a.id === app.id);
-                      if (t) t.notes = e.target.value;
-                      return d;
+                  onBlur={(event) =>
+                    update((draft) => {
+                      const target = draft.applications.find(
+                        (candidate) => candidate.id === app.id,
+                      );
+                      if (target) target.notes = event.target.value;
+                      return draft;
                     })
                   }
                 />
@@ -527,9 +430,9 @@ function ApplicationWorkspace() {
             <div className="mt-4">
               <h3 className="text-xs font-semibold text-muted-foreground">History</h3>
               <ol className="mt-1.5 space-y-1 text-xs text-muted-foreground">
-                {app.history.map((h) => (
-                  <li key={`${h.at}-${h.entry}`}>
-                    {new Date(h.at).toLocaleString("en-GB")} — {h.entry}
+                {app.history.map((entry) => (
+                  <li key={`${entry.at}-${entry.entry}`}>
+                    {new Date(entry.at).toLocaleString("en-GB")} · {entry.entry}
                   </li>
                 ))}
               </ol>
@@ -543,13 +446,13 @@ function ApplicationWorkspace() {
             description="Prompts built from your verified evidence only."
           >
             <ul className="space-y-2 text-sm">
-              {verified.slice(0, 6).map((e) => (
-                <li key={e.id} className="rounded-md border border-border p-3">
+              {verified.slice(0, 6).map((record) => (
+                <li key={record.id} className="rounded-md border border-border p-3">
                   <p className="font-medium">
-                    Tell me about a time you worked on {e.skills[0]?.toLowerCase() ?? "this area"}.
+                    Tell me about a time you worked on {record.skills[0]?.toLowerCase() ?? "this area"}.
                   </p>
                   <p className="mt-1 text-muted-foreground">
-                    Anchor: {e.claim} ({e.employer}). Source: {e.source}.
+                    Anchor: {record.claim} ({record.employer}). Source: {record.source}.
                   </p>
                 </li>
               ))}
