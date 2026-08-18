@@ -42,8 +42,8 @@ function safeWording(item: CareerProfileItem): string {
 
 function approvedProfessionalSummary(data: CareerOsData): string {
   return (
-    approvedItems(data, "Identity").find((item) => item.id === "pi-professional-summary")?.safeWording ??
-    "Evidence-led digital, technology and project-delivery professional."
+    approvedItems(data, "Identity").find((item) => item.id === "pi-professional-summary")
+      ?.safeWording ?? "Evidence-led digital, technology and project-delivery professional."
   );
 }
 
@@ -55,7 +55,9 @@ function approvedToolNames(data: CareerOsData): string[] {
   const evidenceSkills = verifiedSkills(data).map((skill) => skill.toLowerCase());
   const explicitTools = approvedItems(data, "Tool").map((item) => safeWording(item));
   const legacyToolsWithVerifiedSupport = data.profile.tools.filter((tool) =>
-    evidenceSkills.some((skill) => skill.includes(tool.toLowerCase()) || tool.toLowerCase().includes(skill)),
+    evidenceSkills.some(
+      (skill) => skill.includes(tool.toLowerCase()) || tool.toLowerCase().includes(skill),
+    ),
   );
   return [...new Set([...explicitTools, ...legacyToolsWithVerifiedSupport])];
 }
@@ -66,7 +68,9 @@ function employerForItem(data: CareerOsData, item: CareerProfileItem): string | 
 }
 
 function approvedRecentRole(data: CareerOsData): string | undefined {
-  return approvedItems(data, "Employment")[0] ? safeWording(approvedItems(data, "Employment")[0]) : undefined;
+  return approvedItems(data, "Employment")[0]
+    ? safeWording(approvedItems(data, "Employment")[0])
+    : undefined;
 }
 
 export function buildTailoredCv(
@@ -179,7 +183,10 @@ export function buildCoverLetter(
   const gapNote = scan && scan.gaps.length ? scan.gaps[0] : undefined;
   const recentRole = approvedRecentRole(data);
   const ucl = approvedItems(data, "Education").find((item) => item.id === "pi-ucl-msc");
-  const background = [recentRole ? `My recent experience includes ${recentRole}` : undefined, ucl ? safeWording(ucl) : undefined]
+  const background = [
+    recentRole ? `My recent experience includes ${recentRole}` : undefined,
+    ucl ? safeWording(ucl) : undefined,
+  ]
     .filter(Boolean)
     .join(". ");
 
@@ -300,7 +307,9 @@ export function runCvHealthCheck(
   const unsupportedEvidence = unverified
     .filter((e) => lower.includes(e.claim.toLowerCase().slice(0, 28)))
     .map((e) => `${e.claim} — status: ${e.status}. Remove or verify before export.`);
-  const unsupportedClaims = [...new Set([...unsupportedEvidence, ...blockedProfileClaims(cvBody, data)])];
+  const unsupportedClaims = [
+    ...new Set([...unsupportedEvidence, ...blockedProfileClaims(cvBody, data)]),
+  ];
 
   const responsibilitiesCoverage = scan
     ? (scan.subScores.find((s) => s.key === "responsibilities")?.score ?? 0)
