@@ -4,6 +4,13 @@ on:
   push:
     branches:
       - agent/google-auth-hotfix
+  pull_request:
+    branches:
+      - main
+    paths:
+      - src/lib/auth/**
+      - src/components/auth/**
+      - .github/workflows/auth-hotfix-verify.yml
 
 permissions:
   contents: read
