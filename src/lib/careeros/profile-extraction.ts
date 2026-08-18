@@ -7,9 +7,7 @@ import type {
 
 const updatedAt = "2026-08-18T11:05:00.000Z";
 
-function variant(
-  input: Omit<CareerClaimVariant, "updatedAt">,
-): CareerClaimVariant {
+function variant(input: Omit<CareerClaimVariant, "updatedAt">): CareerClaimVariant {
   return { ...input, updatedAt };
 }
 
@@ -501,7 +499,8 @@ export const PROFILE_CLAIM_VARIANTS: CareerClaimVariant[] = [
     basis: "Evidence audit",
     status: "Excluded",
     confidence: "Low",
-    notes: "No reviewed source establishes direct reports or formal line-management responsibility.",
+    notes:
+      "No reviewed source establishes direct reports or formal line-management responsibility.",
   }),
   variant({
     id: "intentionally-distributed-team",
@@ -523,12 +522,16 @@ export function approvedProfileItems(data: CareerOsData): CareerProfileItem[] {
 
 export function unresolvedVariantKeys(variants: CareerClaimVariant[]): string[] {
   const groups = new Map<string, CareerClaimVariant[]>();
-  variants.forEach((item) => groups.set(item.canonicalKey, [...(groups.get(item.canonicalKey) ?? []), item]));
+  variants.forEach((item) =>
+    groups.set(item.canonicalKey, [...(groups.get(item.canonicalKey) ?? []), item]),
+  );
 
   return [...groups.entries()]
     .filter(([, items]) => {
       const hasApproved = items.some((item) => item.status === "Approved");
-      const hasBlocked = items.some((item) => item.status === "Conflict" || item.status === "Excluded");
+      const hasBlocked = items.some(
+        (item) => item.status === "Conflict" || item.status === "Excluded",
+      );
       return !hasApproved && hasBlocked;
     })
     .map(([key]) => key)
@@ -566,6 +569,8 @@ export function variantsByCanonicalKey(
   variants: CareerClaimVariant[],
 ): Map<string, CareerClaimVariant[]> {
   const groups = new Map<string, CareerClaimVariant[]>();
-  variants.forEach((item) => groups.set(item.canonicalKey, [...(groups.get(item.canonicalKey) ?? []), item]));
+  variants.forEach((item) =>
+    groups.set(item.canonicalKey, [...(groups.get(item.canonicalKey) ?? []), item]),
+  );
   return groups;
 }
