@@ -72,10 +72,7 @@ export function createSupabaseCareerStateRepository(
     async save(userId, data, schemaVersion) {
       const result = await client
         .from("career_state")
-        .upsert(
-          { user_id: userId, schema_version: schemaVersion, data },
-          { onConflict: "user_id" },
-        )
+        .upsert({ user_id: userId, schema_version: schemaVersion, data }, { onConflict: "user_id" })
         .select("user_id,schema_version,data,created_at,updated_at")
         .single();
 
