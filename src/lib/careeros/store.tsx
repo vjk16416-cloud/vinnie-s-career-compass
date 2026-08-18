@@ -18,7 +18,8 @@ import {
 import { writeCareerOsCache } from "./local-cache";
 import { createOrderedSaveQueue } from "./ordered-save-queue";
 import { createCareerOsData } from "./profile-data";
-import type { ActivityEntry, CareerOsData } from "./types";
+import { resolveClaimVariant, setProfileItemDecision } from "./profile-review";
+import type { ActivityEntry, CareerOsData, CareerProfileItemStatus } from "./types";
 
 export type CareerSyncStatus =
   | "loading"
@@ -35,6 +36,17 @@ interface StoreValue {
   canEdit: boolean;
   update: (fn: (draft: CareerOsData) => CareerOsData) => void;
   logActivity: (text: string) => void;
+  setProfileItemStatus: (
+    profileItemId: string,
+    status: Extract<CareerProfileItemStatus, "Approved" | "Needs Evidence" | "Excluded">,
+    note?: string,
+  ) => void;
+  resolveProfileVariant: (
+    canonicalKey: string,
+    selectedVariantId: string,
+    safeWording?: string,
+    note?: string,
+  ) => void;
   resetToSeed: () => void;
 }
 
@@ -171,6 +183,31 @@ export function CareerOsProvider({
     [update],
   );
 
+  const setProfileItemStatus = useCallback(
+    (
+      profileItemId: string,
+      status: Extract<CareerProfileItemStatus, "Approved" | "Needs Evidence" | "Excluded">,
+      note?: string,
+    ) => {
+      update((draft) => setProfileItemDecision(draft, { profileItemId, status, note }));
+    },
+    [update],
+  );
+
+  const resolveProfileVariant = useCallback(
+    (canonicalKey: string, selectedVariantId: string, safeWording?: string, note?: string) => {
+      update((draft) =>
+        resolveClaimVariant(draft, {
+          canonicalKey,
+          selectedVariantId,
+          safeWording,
+          note,
+        }),
+      );
+    },
+    [update],
+  );
+
   const resetToSeed = useCallback(() => {
     update(() => createCareerOsData());
   }, [update]);
@@ -184,9 +221,21 @@ export function CareerOsProvider({
       canEdit: canEditRef.current,
       update,
       logActivity,
+      setProfileItemStatus,
+      resolveProfileVariant,
       resetToSeed,
     }),
-    [data, hydrated, syncStatus, syncMessage, update, logActivity, resetToSeed],
+    [
+      data,
+      hydrated,
+      syncStatus,
+      syncMessage,
+      update,
+      logActivity,
+      setProfileItemStatus,
+      resolveProfileVariant,
+      resetToSeed,
+    ],
   );
 
   if (bootstrapError) {
