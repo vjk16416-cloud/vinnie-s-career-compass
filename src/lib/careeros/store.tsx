@@ -17,12 +17,7 @@ interface StoreValue {
     status: Extract<CareerProfileItemStatus, "Approved" | "Needs Evidence" | "Excluded">,
     note?: string,
   ) => void;
-  resolveProfileVariant: (
-    canonicalKey: string,
-    selectedVariantId: string,
-    safeWording?: string,
-    note?: string,
-  ) => void;
+  resolveProfileVariant: (canonicalKey: string, selectedVariantId: string, safeWording?: string, note?: string) => void;
   resetToSeed: () => void;
 }
 
@@ -82,12 +77,7 @@ export function CareerOsProvider({ children }: { children: ReactNode }) {
   );
 
   const resolveProfileVariant = useCallback(
-    (
-      canonicalKey: string,
-      selectedVariantId: string,
-      safeWording?: string,
-      note?: string,
-    ) => {
+    (canonicalKey: string, selectedVariantId: string, safeWording?: string, note?: string) => {
       update((draft) =>
         resolveClaimVariant(draft, {
           canonicalKey,
@@ -105,15 +95,7 @@ export function CareerOsProvider({ children }: { children: ReactNode }) {
   }, []);
 
   const value = useMemo(
-    () => ({
-      data,
-      hydrated,
-      update,
-      logActivity,
-      setProfileItemStatus,
-      resolveProfileVariant,
-      resetToSeed,
-    }),
+    () => ({ data, hydrated, update, logActivity, setProfileItemStatus, resolveProfileVariant, resetToSeed }),
     [
       data,
       hydrated,
