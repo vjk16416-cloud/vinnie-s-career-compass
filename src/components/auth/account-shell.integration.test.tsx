@@ -9,6 +9,7 @@ import { afterEach, describe, expect, it, vi, type Mock } from "vitest";
 import { AppShell } from "@/components/careeros/app-shell";
 import { logout } from "@/lib/auth/auth.functions";
 import { AuthUserProvider, PrivateCareerOsProvider } from "@/lib/auth/auth-context";
+import { writeCareerOsCache } from "@/lib/careeros/local-cache";
 import { createCareerOsData } from "@/lib/careeros/profile-data";
 import { getRouter } from "@/router";
 import { Route as LogoutRoute } from "@/routes/logout";
@@ -77,7 +78,7 @@ afterEach(() => {
 });
 
 describe("authorised account shell", () => {
-  it("includes the approved identity and logout control after cloud bootstrap", async () => {
+  it("includes the approved identity and truthful cloud status after bootstrap", async () => {
     createRepository.mockReturnValue(resolvedRepository());
     renderPrivateContent(
       <AppShell title="CareerOS home">
@@ -89,6 +90,28 @@ describe("authorised account shell", () => {
     expect(await screen.findByText("Private workspace")).toBeInTheDocument();
     expect(screen.getByText("vjk16416@gmail.com")).toBeInTheDocument();
     expect(screen.getByRole("button", { name: "Log out" })).toBeEnabled();
+    expect(screen.getByText("Cloud synced")).toBeInTheDocument();
+    expect(screen.queryByText("Local seeded data")).not.toBeInTheDocument();
+  });
+
+  it("shows cached-copy degradation when cloud data cannot be read", async () => {
+    writeCareerOsCache(window.localStorage, createCareerOsData());
+    createRepository.mockReturnValue({
+      ...resolvedRepository(),
+      load: vi.fn().mockRejectedValue(new Error("network")),
+    });
+
+    renderPrivateContent(
+      <AppShell title="CareerOS home">
+        <p>Private workspace</p>
+      </AppShell>,
+    );
+
+    expect(await screen.findByText("Private workspace")).toBeInTheDocument();
+    expect(screen.getByText("Cloud unavailable: cached copy")).toBeInTheDocument();
+    expect(
+      screen.getByText("Cloud data is temporarily unavailable. Viewing the last saved copy."),
+    ).toBeInTheDocument();
   });
 
   it("renders the GET logout confirmation without invoking the POST logout action", () => {
