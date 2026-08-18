@@ -4,6 +4,7 @@ import "@/test/setup";
 import { cleanup, fireEvent, render, screen, waitFor } from "@testing-library/react";
 import { afterEach, describe, expect, it, vi } from "vitest";
 
+import { GOOGLE_PROVIDER_SETUP_ERROR } from "@/lib/auth/oauth.functions";
 import { LoginCard } from "./login-card";
 
 afterEach(() => {
@@ -20,7 +21,7 @@ describe("LoginCard", () => {
     expect(screen.getByRole("button", { name: "Sign in with Google" })).toBeEnabled();
     expect(screen.getByText("No CareerOS password required.")).toBeInTheDocument();
     expect(screen.getByText("Access is limited to vjk16416@gmail.com")).toBeInTheDocument();
-    expect(screen.queryByText(/magic link|sign up/i)).not.toBeInTheDocument();
+    expect(screen.queryByText(/password|magic link|sign up/i)).not.toBeInTheDocument();
   });
 
   it("shows the unauthorised message and gives keyboard focus to the retry action", () => {
@@ -78,5 +79,17 @@ describe("LoginCard", () => {
       "CareerOS could not start Google Sign-In. Please try again.",
     );
     expect(retry).toHaveFocus();
+  });
+
+  it("shows the friendly Google setup message and keeps the page Google-only", async () => {
+    const startSignIn = vi.fn().mockResolvedValue({ error: GOOGLE_PROVIDER_SETUP_ERROR });
+    render(<LoginCard startSignIn={startSignIn} />);
+
+    fireEvent.click(screen.getByRole("button", { name: "Sign in with Google" }));
+
+    expect(await screen.findByRole("status")).toHaveTextContent(GOOGLE_PROVIDER_SETUP_ERROR);
+    expect(screen.getAllByRole("button")).toHaveLength(1);
+    expect(screen.getByRole("button", { name: "Try Google Sign-In again" })).toBeEnabled();
+    expect(screen.queryByText(/password|magic link|sign up/i)).not.toBeInTheDocument();
   });
 });
