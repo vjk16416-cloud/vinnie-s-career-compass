@@ -16,9 +16,7 @@ describe("evidence review and approval workflow", () => {
       at: "2026-08-18T12:45:00.000Z",
     });
 
-    const approved = reviewed.profileItems?.find(
-      (item) => item.id === "pi-google-pm-certificate",
-    );
+    const approved = reviewed.profileItems?.find((item) => item.id === "pi-google-pm-certificate");
     expect(approved?.status).toBe("Approved");
     expect(approvedProfileItems(reviewed).map((item) => item.id)).toContain(
       "pi-google-pm-certificate",
@@ -57,7 +55,9 @@ describe("evidence review and approval workflow", () => {
     expect(variants?.find((variant) => variant.id === "nas-donor-23")?.status).toBe("Approved");
     expect(variants?.find((variant) => variant.id === "nas-donor-42")?.status).not.toBe("Approved");
 
-    const resolvedItem = reviewed.profileItems?.find((item) => item.id === "resolved-nas-donor-base");
+    const resolvedItem = reviewed.profileItems?.find(
+      (item) => item.id === "resolved-nas-donor-base",
+    );
     expect(resolvedItem).toMatchObject({
       status: "Approved",
       value: selected?.value,

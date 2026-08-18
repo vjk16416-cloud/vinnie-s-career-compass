@@ -18,7 +18,9 @@ export function EvidenceReviewPanel() {
       <div className="grid gap-4 lg:grid-cols-2">
         <Panel title="Review profile items">
           <div className="flex flex-wrap gap-1.5">
-            <StatusPill label={`${profileItems.filter((item) => item.status === "Approved").length} approved`} />
+            <StatusPill
+              label={`${profileItems.filter((item) => item.status === "Approved").length} approved`}
+            />
             <StatusPill label={`${attentionItems.length} need review`} />
           </div>
 
@@ -42,10 +44,7 @@ export function EvidenceReviewPanel() {
                   </p>
                   <div className="mt-3 flex flex-wrap gap-2">
                     {item.status !== "Approved" ? (
-                      <Button
-                        size="sm"
-                        onClick={() => setProfileItemStatus(item.id, "Approved")}
-                      >
+                      <Button size="sm" onClick={() => setProfileItemStatus(item.id, "Approved")}>
                         Approve
                       </Button>
                     ) : null}
@@ -128,9 +127,7 @@ export function EvidenceReviewPanel() {
                 <div className="flex flex-wrap items-center gap-2">
                   <span className="font-medium text-foreground">{decision.action}</span>
                   <StatusPill label={decision.newStatus} />
-                  <span className="text-xs">
-                    {new Date(decision.at).toLocaleString("en-GB")}
-                  </span>
+                  <span className="text-xs">{new Date(decision.at).toLocaleString("en-GB")}</span>
                 </div>
                 <p className="mt-1 text-xs">
                   {decision.canonicalKey ?? decision.profileItemId ?? "Profile decision"}

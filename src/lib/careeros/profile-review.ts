@@ -46,7 +46,10 @@ function timestamp(input?: string): string {
 }
 
 function slug(value: string): string {
-  return value.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "");
+  return value
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, "-")
+    .replace(/^-|-$/g, "");
 }
 
 function decisionId(action: ProfileDecisionAction, target: string, at: string): string {
@@ -152,9 +155,7 @@ export function resolveClaimVariant(
   );
   const selected = variants.find((variant) => variant.id === input.selectedVariantId);
   if (!selected) {
-    throw new Error(
-      `Unknown claim variant ${input.selectedVariantId} for ${input.canonicalKey}`,
-    );
+    throw new Error(`Unknown claim variant ${input.selectedVariantId} for ${input.canonicalKey}`);
   }
 
   const at = timestamp(input.at);
