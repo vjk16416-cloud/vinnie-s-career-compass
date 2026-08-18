@@ -34,6 +34,8 @@ jobs:
         run: |
           bunx prettier --write \
             src/components/careeros/evidence-review-panel.tsx \
+            src/lib/auth/config.test.ts \
+            src/lib/auth/config.ts \
             src/lib/careeros/profile-claim-variants.ts \
             src/lib/careeros/profile-coverage.ts \
             src/lib/careeros/profile-data.master.test.ts \
@@ -57,6 +59,8 @@ jobs:
             git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
             git add \
               src/components/careeros/evidence-review-panel.tsx \
+              src/lib/auth/config.test.ts \
+              src/lib/auth/config.ts \
               src/lib/careeros/profile-claim-variants.ts \
               src/lib/careeros/profile-coverage.ts \
               src/lib/careeros/profile-data.master.test.ts \
