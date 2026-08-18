@@ -153,7 +153,8 @@ function ProfilePage() {
             <ul className="space-y-1.5 text-sm text-muted-foreground">
               {approvedProjects.map((item) => (
                 <li key={item.id}>
-                  <span className="text-foreground">{item.label}</span>: {item.safeWording ?? item.value}
+                  <span className="text-foreground">{item.label}</span>:{" "}
+                  {item.safeWording ?? item.value}
                 </li>
               ))}
             </ul>
