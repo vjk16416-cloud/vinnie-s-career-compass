@@ -48,6 +48,7 @@ jobs:
             src/lib/careeros/profile-review.ts \
             src/lib/careeros/generate.profile.test.ts \
             src/lib/careeros/generate.ts \
+            src/lib/careeros/store.tsx \
             src/lib/careeros/types.ts \
             src/routes/profile.tsx \
             src/lib/cloudflare/wrangler-config.test.ts
@@ -70,6 +71,7 @@ jobs:
               src/lib/careeros/profile-review.ts \
               src/lib/careeros/generate.profile.test.ts \
               src/lib/careeros/generate.ts \
+              src/lib/careeros/store.tsx \
               src/lib/careeros/types.ts \
               src/routes/profile.tsx \
               src/lib/cloudflare/wrangler-config.test.ts
