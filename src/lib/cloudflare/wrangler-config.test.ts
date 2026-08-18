@@ -13,6 +13,14 @@ describe("Cloudflare Builds configuration", () => {
     expect(rootName).toBe("careeros-staging");
   });
 
+  it("includes the public CareerOS Supabase configuration for staging previews", () => {
+    const config = readFileSync(resolve(process.cwd(), "wrangler.jsonc"), "utf8");
+
+    expect(config).toContain('"VITE_SUPABASE_URL"');
+    expect(config).toContain('"VITE_SUPABASE_PUBLISHABLE_KEY"');
+    expect(config).toContain("gieehxdyzcrrmgxnfsxs.supabase.co");
+  });
+
   it("generates a redirected Wrangler configuration without named environments", () => {
     execFileSync("npm", ["run", "build"], {
       cwd: process.cwd(),
