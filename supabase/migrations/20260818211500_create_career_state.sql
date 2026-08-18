@@ -11,6 +11,10 @@ alter table public.career_state enable row level security;
 revoke all on table public.career_state from anon;
 grant select, insert, update on table public.career_state to authenticated;
 
+drop policy if exists "career_state_select_own" on public.career_state;
+drop policy if exists "career_state_insert_own" on public.career_state;
+drop policy if exists "career_state_update_own" on public.career_state;
+
 create policy "career_state_select_own"
 on public.career_state
 for select
