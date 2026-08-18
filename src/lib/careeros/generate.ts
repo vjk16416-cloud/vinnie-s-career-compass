@@ -68,9 +68,8 @@ function employerForItem(data: CareerOsData, item: CareerProfileItem): string | 
 }
 
 function approvedRecentRole(data: CareerOsData): string | undefined {
-  return approvedItems(data, "Employment")[0]
-    ? safeWording(approvedItems(data, "Employment")[0])
-    : undefined;
+  const first = approvedItems(data, "Employment")[0];
+  return first ? safeWording(first) : undefined;
 }
 
 export function buildTailoredCv(
