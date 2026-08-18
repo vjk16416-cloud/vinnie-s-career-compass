@@ -74,9 +74,13 @@ describe("master-profile extraction and reconciliation", () => {
       "source-post-southeastern-assistant-copy",
     ];
 
-    const postAuditSources = expectedIds.map((id) => data.profileSources?.find((source) => source.id === id));
+    const postAuditSources = expectedIds.map((id) =>
+      data.profileSources?.find((source) => source.id === id),
+    );
     expect(postAuditSources.every(Boolean)).toBe(true);
-    expect(postAuditSources.every((source) => source?.extractionStatus === "Raw extracted")).toBe(true);
+    expect(postAuditSources.every((source) => source?.extractionStatus === "Raw extracted")).toBe(
+      true,
+    );
     expect(postAuditSources.every((source) => source?.trust === "Alternative")).toBe(true);
   });
 
