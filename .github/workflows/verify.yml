@@ -62,7 +62,7 @@ jobs:
             src/lib/careeros/store.cloud.test.tsx \
             src/lib/careeros/store.tsx \
             src/lib/careeros/types.ts \
-            src/routes/applications.$id.tsx \
+            src/routes/applications.\$id.tsx \
             src/routes/profile.tsx \
             src/lib/cloudflare/wrangler-config.test.ts
           if ! git diff --quiet; then
@@ -98,7 +98,7 @@ jobs:
               src/lib/careeros/store.cloud.test.tsx \
               src/lib/careeros/store.tsx \
               src/lib/careeros/types.ts \
-              src/routes/applications.$id.tsx \
+              src/routes/applications.\$id.tsx \
               src/routes/profile.tsx \
               src/lib/cloudflare/wrangler-config.test.ts
             git commit -m "Format verification files"
