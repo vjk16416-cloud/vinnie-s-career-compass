@@ -33,7 +33,7 @@ export function PrivateCareerOsProvider({
 
   return (
     <AuthUserProvider user={authUser}>
-      <CareerOsProvider>{children}</CareerOsProvider>
+      <CareerOsProvider userId={authUser.id}>{children}</CareerOsProvider>
     </AuthUserProvider>
   );
 }
