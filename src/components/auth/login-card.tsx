@@ -51,7 +51,7 @@ export function LoginCard({ error, returnTo, startSignIn = startGoogleSignIn }: 
     ? "Opening Google Sign-In…"
     : hasError
       ? "Try Google Sign-In again"
-      : "Continue with Google";
+      : "Sign in with Google";
 
   return (
     <main className="flex min-h-screen items-center justify-center bg-background px-4 py-12">
@@ -69,7 +69,7 @@ export function LoginCard({ error, returnTo, startSignIn = startGoogleSignIn }: 
               <h1>CareerOS</h1>
             </CardTitle>
             <CardDescription className="text-sm leading-6">
-              Sign in with the approved Google account to open your private workspace.
+              Sign in with your approved Google account to open your private workspace.
             </CardDescription>
           </CardHeader>
 
@@ -113,12 +113,13 @@ export function LoginCard({ error, returnTo, startSignIn = startGoogleSignIn }: 
               {buttonLabel}
             </Button>
 
-            <p
+            <div
               id="login-access-note"
-              className="text-center text-xs leading-5 text-muted-foreground"
+              className="space-y-1 text-center text-xs leading-5 text-muted-foreground"
             >
-              Access is limited to vjk16416@gmail.com
-            </p>
+              <p>No CareerOS password required.</p>
+              <p>Access is limited to vjk16416@gmail.com</p>
+            </div>
           </CardContent>
         </Card>
       </div>
