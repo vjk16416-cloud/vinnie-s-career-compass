@@ -1,8 +1,8 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { AppShell } from "@/components/careeros/app-shell";
 import { Panel, StatusPill } from "@/components/careeros/ui-bits";
+import { extractionCoverage } from "@/lib/careeros/profile-coverage";
 import {
-  extractionCoverage,
   unresolvedVariantKeys,
   variantsByCanonicalKey,
 } from "@/lib/careeros/profile-extraction";
@@ -88,16 +88,24 @@ function ProfilePage() {
           <Panel title="Extraction coverage">
             <div className="grid grid-cols-2 gap-3 text-sm">
               <div className="rounded-md border border-border p-3">
-                <p className="text-xs text-muted-foreground">Audited source files</p>
+                <p className="text-xs text-muted-foreground">July audit source files</p>
                 <p className="mt-1 text-xl font-semibold">{coverage.totalAuditSources}</p>
               </div>
               <div className="rounded-md border border-border p-3">
-                <p className="text-xs text-muted-foreground">Raw/reconciled</p>
-                <p className="mt-1 text-xl font-semibold">{coverage.rawExtracted}</p>
+                <p className="text-xs text-muted-foreground">Raw CV files read</p>
+                <p className="mt-1 text-xl font-semibold">{coverage.totalRawCvSources}</p>
               </div>
               <div className="rounded-md border border-border p-3">
-                <p className="text-xs text-muted-foreground">Audit only</p>
+                <p className="text-xs text-muted-foreground">Post-audit raw CVs</p>
+                <p className="mt-1 text-xl font-semibold">{coverage.postAuditRaw}</p>
+              </div>
+              <div className="rounded-md border border-border p-3">
+                <p className="text-xs text-muted-foreground">July audit only</p>
                 <p className="mt-1 text-xl font-semibold">{coverage.auditOnly}</p>
+              </div>
+              <div className="rounded-md border border-border p-3">
+                <p className="text-xs text-muted-foreground">July raw/reconciled</p>
+                <p className="mt-1 text-xl font-semibold">{coverage.rawExtracted}</p>
               </div>
               <div className="rounded-md border border-border p-3">
                 <p className="text-xs text-muted-foreground">Excluded / raw missing</p>
@@ -107,8 +115,9 @@ function ProfilePage() {
               </div>
             </div>
             <p className="mt-3 text-xs leading-relaxed text-muted-foreground">
-              Audit-only sources can contribute conflict context and provenance, but CareerOS does
-              not label them as full-text extraction until the underlying file is available.
+              CareerOS has read the canonical July CV plus newer post-audit CVs available in the
+              File Library. Historical audit-only sources remain provenance and conflict context,
+              not claimed full-text extraction, until their raw files are available.
             </p>
           </Panel>
         </div>
@@ -197,7 +206,7 @@ function ProfilePage() {
             <ul className="space-y-1.5 text-sm text-muted-foreground">
               {approvedProjects.map((item) => (
                 <li key={item.id}>
-                  <span className="text-foreground">{item.label}</span>:{" "}
+                  <span className="text-foreground">{item.label}</span>: {" "}
                   {item.safeWording ?? item.value}
                 </li>
               ))}
