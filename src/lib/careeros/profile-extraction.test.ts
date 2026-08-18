@@ -1,9 +1,9 @@
 import { describe, expect, it } from "vitest";
+import { PROFILE_CLAIM_VARIANTS } from "./profile-claim-variants";
 import { createCareerOsData } from "./profile-data";
 import {
   approvedProfileItems,
   extractionCoverage,
-  PROFILE_CLAIM_VARIANTS,
   unresolvedVariantKeys,
 } from "./profile-extraction";
 
