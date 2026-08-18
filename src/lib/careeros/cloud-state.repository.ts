@@ -1,4 +1,5 @@
 import type { SupabaseClient } from "@supabase/supabase-js";
+import { createClientOnlyFn } from "@tanstack/react-start";
 import { getBrowserSupabase } from "@/lib/auth/supabase.client";
 import type { CareerOsData } from "./types";
 
@@ -43,41 +44,46 @@ function mapRow(raw: RawCareerStateRow): CareerStateRow {
   };
 }
 
-export function createSupabaseCareerStateRepository(
-  client: SupabaseClient = getBrowserSupabase(),
-): CareerStateRepository {
-  return {
-    async load(userId) {
-      const { data, error } = await client
-        .from("career_state")
-        .select("user_id,schema_version,data,created_at,updated_at")
-        .eq("user_id", userId)
-        .maybeSingle();
+export const createSupabaseCareerStateRepository = createClientOnlyFn(
+  function createSupabaseCareerStateRepository(
+    client: SupabaseClient = getBrowserSupabase(),
+  ): CareerStateRepository {
+    return {
+      async load(userId) {
+        const { data, error } = await client
+          .from("career_state")
+          .select("user_id,schema_version,data,created_at,updated_at")
+          .eq("user_id", userId)
+          .maybeSingle();
 
-      if (error) throw new CareerStatePersistenceError("read");
-      return data ? mapRow(data as RawCareerStateRow) : null;
-    },
+        if (error) throw new CareerStatePersistenceError("read");
+        return data ? mapRow(data as RawCareerStateRow) : null;
+      },
 
-    async create(userId, data, schemaVersion) {
-      const result = await client
-        .from("career_state")
-        .insert({ user_id: userId, schema_version: schemaVersion, data })
-        .select("user_id,schema_version,data,created_at,updated_at")
-        .single();
+      async create(userId, data, schemaVersion) {
+        const result = await client
+          .from("career_state")
+          .insert({ user_id: userId, schema_version: schemaVersion, data })
+          .select("user_id,schema_version,data,created_at,updated_at")
+          .single();
 
-      if (result.error || !result.data) throw new CareerStatePersistenceError("create");
-      return mapRow(result.data as RawCareerStateRow);
-    },
+        if (result.error || !result.data) throw new CareerStatePersistenceError("create");
+        return mapRow(result.data as RawCareerStateRow);
+      },
 
-    async save(userId, data, schemaVersion) {
-      const result = await client
-        .from("career_state")
-        .upsert({ user_id: userId, schema_version: schemaVersion, data }, { onConflict: "user_id" })
-        .select("user_id,schema_version,data,created_at,updated_at")
-        .single();
+      async save(userId, data, schemaVersion) {
+        const result = await client
+          .from("career_state")
+          .upsert(
+            { user_id: userId, schema_version: schemaVersion, data },
+            { onConflict: "user_id" },
+          )
+          .select("user_id,schema_version,data,created_at,updated_at")
+          .single();
 
-      if (result.error || !result.data) throw new CareerStatePersistenceError("save");
-      return mapRow(result.data as RawCareerStateRow);
-    },
-  };
-}
+        if (result.error || !result.data) throw new CareerStatePersistenceError("save");
+        return mapRow(result.data as RawCareerStateRow);
+      },
+    };
+  },
+);
