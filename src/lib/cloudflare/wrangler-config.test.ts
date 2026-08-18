@@ -13,23 +13,16 @@ describe("Cloudflare Builds configuration", () => {
     expect(rootName).toBe("careeros-staging");
   });
 
-  it(
-    "generates a redirected Wrangler configuration without named environments",
-    () => {
-      execFileSync("npm", ["run", "build"], {
-        cwd: process.cwd(),
-        stdio: "pipe",
-      });
+  it("generates a redirected Wrangler configuration without named environments", () => {
+    execFileSync("npm", ["run", "build"], {
+      cwd: process.cwd(),
+      stdio: "pipe",
+    });
 
-      const generatedConfig = JSON.parse(
-        readFileSync(
-          resolve(process.cwd(), ".output/server/wrangler.json"),
-          "utf8",
-        ),
-      );
+    const generatedConfig = JSON.parse(
+      readFileSync(resolve(process.cwd(), ".output/server/wrangler.json"), "utf8"),
+    );
 
-      expect(generatedConfig).not.toHaveProperty("env");
-    },
-    30_000,
-  );
+    expect(generatedConfig).not.toHaveProperty("env");
+  }, 30_000);
 });

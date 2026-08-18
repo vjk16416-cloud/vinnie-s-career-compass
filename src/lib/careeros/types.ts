@@ -81,6 +81,58 @@ export interface ProfileVersion {
   note: string;
 }
 
+export type ProfileSourceType =
+  | "CV"
+  | "Resume"
+  | "Cover Letter"
+  | "Personal Statement"
+  | "Evidence Audit"
+  | "User Confirmation"
+  | "Project Evidence"
+  | "Other";
+
+export type ProfileSourceIngestionStatus = "Imported" | "Indexed" | "Excluded";
+export type ProfileSourceTrust = "Canonical" | "Alternative" | "Historical" | "Unsafe" | "Evidence";
+
+export interface CareerProfileSource {
+  id: string;
+  auditId?: string | undefined;
+  label: string;
+  sourceType: ProfileSourceType;
+  modifiedAt?: string | undefined;
+  ownership: "Confirmed mine" | "Likely mine" | "User confirmed";
+  ingestionStatus: ProfileSourceIngestionStatus;
+  trust: ProfileSourceTrust;
+  notes?: string | undefined;
+}
+
+export type CareerProfileItemKind =
+  | "Identity"
+  | "Employment"
+  | "Achievement"
+  | "Skill"
+  | "Tool"
+  | "Project"
+  | "Education"
+  | "Certification"
+  | "Domain";
+
+export type CareerProfileItemStatus = "Approved" | "Needs Evidence" | "Conflict" | "Excluded";
+
+export interface CareerProfileItem {
+  id: string;
+  kind: CareerProfileItemKind;
+  label: string;
+  value: string;
+  safeWording?: string | undefined;
+  sourceIds: string[];
+  evidenceIds: string[];
+  status: CareerProfileItemStatus;
+  confidence: "High" | "Medium" | "Low";
+  notes?: string | undefined;
+  updatedAt: string;
+}
+
 export type ApplicationStage =
   | "Interested"
   | "Preparing"
@@ -231,6 +283,8 @@ export interface Settings {
 export interface CareerOsData {
   profile: CareerProfile;
   profileVersions: ProfileVersion[];
+  profileSources?: CareerProfileSource[];
+  profileItems?: CareerProfileItem[];
   evidence: EvidenceRecord[];
   jobs: JobRecord[];
   applications: Application[];
