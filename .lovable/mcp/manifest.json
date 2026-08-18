@@ -1,0 +1,139 @@
+{
+  "version": 1,
+  "sdk_version": "0.26.2",
+  "path": "/mcp",
+  "auth": {
+    "type": "oauth",
+    "issuer": "https://vrqutnhejgamxnspnenm.supabase.co/auth/v1",
+    "accepted_audiences": [
+      "authenticated"
+    ]
+  },
+  "mcp": {
+    "server": {
+      "name": "vinnie-s-career-compass",
+      "version": "0.1.0",
+      "title": "Vinnie's Career Compass"
+    },
+    "tools": [
+      {
+        "name": "get_career_profile",
+        "title": "Get career profile",
+        "description": "Return the CareerOS career record: headline profile, employment history, education, certifications and projects.",
+        "annotations": {
+          "readOnlyHint": true,
+          "idempotentHint": true,
+          "openWorldHint": false
+        },
+        "inputSchema": {
+          "$schema": "http://json-schema.org/draft-07/schema#",
+          "type": "object",
+          "properties": {}
+        },
+        "outputSchema": null
+      },
+      {
+        "name": "list_evidence",
+        "title": "List evidence bank",
+        "description": "List CareerOS evidence records with their lifecycle status. Only Verified evidence may be used in CVs or cover letters.",
+        "annotations": {
+          "readOnlyHint": true,
+          "idempotentHint": true,
+          "openWorldHint": false
+        },
+        "inputSchema": {
+          "$schema": "http://json-schema.org/draft-07/schema#",
+          "type": "object",
+          "properties": {
+            "status": {
+              "type": "string",
+              "enum": [
+                "Verified",
+                "Needs Evidence",
+                "Archived",
+                "Excluded",
+                "All"
+              ],
+              "description": "Filter by evidence status. Use 'All' for every record."
+            },
+            "search": {
+              "type": "string",
+              "description": "Free-text filter over the claim, employer and skills. Use '' for none."
+            }
+          },
+          "required": [
+            "status",
+            "search"
+          ]
+        },
+        "outputSchema": null
+      },
+      {
+        "name": "extract_job_posting",
+        "title": "Extract a job posting",
+        "description": "Fetch a public job advert URL and return structured fields (title, company, location, responsibilities, skills, qualifications). Some job boards block server-side fetching; paste the text into score_job instead when that happens.",
+        "annotations": {
+          "readOnlyHint": true,
+          "idempotentHint": true,
+          "openWorldHint": true
+        },
+        "inputSchema": {
+          "$schema": "http://json-schema.org/draft-07/schema#",
+          "type": "object",
+          "properties": {
+            "url": {
+              "type": "string",
+              "format": "uri",
+              "description": "Public URL of the job advert."
+            }
+          },
+          "required": [
+            "url"
+          ]
+        },
+        "outputSchema": null
+      },
+      {
+        "name": "score_job",
+        "title": "Score a job description",
+        "description": "Run the CareerOS Role Compatibility Score against a job description: overall score, verdict, sub-scores, strengths, gaps and keyword coverage.",
+        "annotations": {
+          "readOnlyHint": true,
+          "idempotentHint": true,
+          "openWorldHint": false
+        },
+        "inputSchema": {
+          "$schema": "http://json-schema.org/draft-07/schema#",
+          "type": "object",
+          "properties": {
+            "title": {
+              "type": "string",
+              "minLength": 1,
+              "description": "Job title."
+            },
+            "company": {
+              "type": "string",
+              "description": "Hiring company. Use '' if unknown."
+            },
+            "location": {
+              "type": "string",
+              "description": "Job location. Use '' if unknown."
+            },
+            "description": {
+              "type": "string",
+              "minLength": 50,
+              "description": "Full job description text."
+            }
+          },
+          "required": [
+            "title",
+            "company",
+            "location",
+            "description"
+          ]
+        },
+        "outputSchema": null
+      }
+    ]
+  }
+}
