@@ -20,8 +20,10 @@ const REGISTER_SOURCES: CareerProfileSource[] = [
     extractionStatus: "Reconciled",
     trust: "Evidence",
     externalFileId: "154AAI-KiLDpoZPDRmzX6UUn9n6niXHyeg1r09lWqs7c",
-    externalUrl: "https://docs.google.com/document/d/154AAI-KiLDpoZPDRmzX6UUn9n6niXHyeg1r09lWqs7c/edit",
-    notes: "CareerOS high-level register. Later direct user confirmation overrides older chronology where they differ.",
+    externalUrl:
+      "https://docs.google.com/document/d/154AAI-KiLDpoZPDRmzX6UUn9n6niXHyeg1r09lWqs7c/edit",
+    notes:
+      "CareerOS high-level register. Later direct user confirmation overrides older chronology where they differ.",
   },
   {
     id: "source-evidence-bank",
@@ -33,7 +35,8 @@ const REGISTER_SOURCES: CareerProfileSource[] = [
     extractionStatus: "Reconciled",
     trust: "Evidence",
     externalFileId: "1RQC10S4I3LulysK6mkyTQmtc8EZ4BK8ENjVyKByelo4",
-    externalUrl: "https://docs.google.com/document/d/1RQC10S4I3LulysK6mkyTQmtc8EZ4BK8ENjVyKByelo4/edit",
+    externalUrl:
+      "https://docs.google.com/document/d/1RQC10S4I3LulysK6mkyTQmtc8EZ4BK8ENjVyKByelo4/edit",
     notes: "Canonical CareerOS evidence map and evidence-boundary rules.",
   },
   {
@@ -46,7 +49,8 @@ const REGISTER_SOURCES: CareerProfileSource[] = [
     extractionStatus: "Reconciled",
     trust: "Evidence",
     externalFileId: "1-nTmLGW90RB6SU-Vwn16-pXz7-I8Gc9ACNrmXpIV9Vc",
-    externalUrl: "https://docs.google.com/document/d/1-nTmLGW90RB6SU-Vwn16-pXz7-I8Gc9ACNrmXpIV9Vc/edit",
+    externalUrl:
+      "https://docs.google.com/document/d/1-nTmLGW90RB6SU-Vwn16-pXz7-I8Gc9ACNrmXpIV9Vc/edit",
     notes: "Separates usable-with-caution metrics from softened, conflicting and removed metrics.",
   },
   {
@@ -59,7 +63,8 @@ const REGISTER_SOURCES: CareerProfileSource[] = [
     extractionStatus: "Reconciled",
     trust: "Evidence",
     externalFileId: "1Is4d-4q-lESLIMF1_C0avEBdmuVeOuhIofDU8SEM0Lw",
-    externalUrl: "https://docs.google.com/document/d/1Is4d-4q-lESLIMF1_C0avEBdmuVeOuhIofDU8SEM0Lw/edit",
+    externalUrl:
+      "https://docs.google.com/document/d/1Is4d-4q-lESLIMF1_C0avEBdmuVeOuhIofDU8SEM0Lw/edit",
     notes: "CareerOS source of truth for education, qualification and training status.",
   },
   {
@@ -72,8 +77,10 @@ const REGISTER_SOURCES: CareerProfileSource[] = [
     extractionStatus: "Reconciled",
     trust: "Evidence",
     externalFileId: "1PeV3LUMkjaXx6l9b1buJt5KMrS7ChR05YwZXbrzLLsQ",
-    externalUrl: "https://docs.google.com/document/d/1PeV3LUMkjaXx6l9b1buJt5KMrS7ChR05YwZXbrzLLsQ/edit",
-    notes: "Primary CareerOS evidence derived from the user-provided Credly badge; verifies qualification, issuer and 13 January 2025 issue date.",
+    externalUrl:
+      "https://docs.google.com/document/d/1PeV3LUMkjaXx6l9b1buJt5KMrS7ChR05YwZXbrzLLsQ/edit",
+    notes:
+      "Primary CareerOS evidence derived from the user-provided Credly badge; verifies qualification, issuer and 13 January 2025 issue date.",
   },
 ];
 
