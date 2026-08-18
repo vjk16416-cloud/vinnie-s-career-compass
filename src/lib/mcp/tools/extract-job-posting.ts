@@ -11,6 +11,7 @@ export default defineTool({
   inputSchema: {
     url: z.string().url().describe("Public URL of the job advert."),
   },
+  outputSchema: { result: z.unknown() },
   annotations: { readOnlyHint: true, idempotentHint: true, openWorldHint: true },
   handler: async ({ url }, ctx) => {
     const denied = denyUnlessOwner(ctx);

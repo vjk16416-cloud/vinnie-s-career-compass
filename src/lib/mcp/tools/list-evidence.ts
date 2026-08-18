@@ -14,6 +14,7 @@ export default defineTool({
       .describe("Filter by evidence status. Use 'All' for every record."),
     search: z.string().describe("Free-text filter over the claim, employer and skills. Use '' for none."),
   },
+  outputSchema: { count: z.number(), items: z.array(z.unknown()) },
   annotations: { readOnlyHint: true, idempotentHint: true, openWorldHint: false },
   handler: ({ status, search }, ctx) => {
     const denied = denyUnlessOwner(ctx);

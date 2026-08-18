@@ -16,6 +16,7 @@ export default defineTool({
     location: z.string().describe("Job location. Use '' if unknown."),
     description: z.string().min(50).describe("Full job description text."),
   },
+  outputSchema: { scan: z.unknown() },
   annotations: { readOnlyHint: true, idempotentHint: true, openWorldHint: false },
   handler: ({ title, company, location, description }, ctx) => {
     const denied = denyUnlessOwner(ctx);

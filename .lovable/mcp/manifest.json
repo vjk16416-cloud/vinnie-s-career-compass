@@ -30,7 +30,16 @@
           "type": "object",
           "properties": {}
         },
-        "outputSchema": null
+        "outputSchema": {
+          "$schema": "http://json-schema.org/draft-07/schema#",
+          "type": "object",
+          "properties": {
+            "profile": {}
+          },
+          "required": [
+            "profile"
+          ]
+        }
       },
       {
         "name": "list_evidence",
@@ -66,7 +75,23 @@
             "search"
           ]
         },
-        "outputSchema": null
+        "outputSchema": {
+          "$schema": "http://json-schema.org/draft-07/schema#",
+          "type": "object",
+          "properties": {
+            "count": {
+              "type": "number"
+            },
+            "items": {
+              "type": "array",
+              "items": {}
+            }
+          },
+          "required": [
+            "count",
+            "items"
+          ]
+        }
       },
       {
         "name": "extract_job_posting",
@@ -91,7 +116,16 @@
             "url"
           ]
         },
-        "outputSchema": null
+        "outputSchema": {
+          "$schema": "http://json-schema.org/draft-07/schema#",
+          "type": "object",
+          "properties": {
+            "result": {}
+          },
+          "required": [
+            "result"
+          ]
+        }
       },
       {
         "name": "score_job",
@@ -132,7 +166,16 @@
             "description"
           ]
         },
-        "outputSchema": null
+        "outputSchema": {
+          "$schema": "http://json-schema.org/draft-07/schema#",
+          "type": "object",
+          "properties": {
+            "scan": {}
+          },
+          "required": [
+            "scan"
+          ]
+        }
       }
     ]
   }
