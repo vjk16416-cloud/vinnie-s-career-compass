@@ -81,24 +81,27 @@ Policies must allow an authenticated user to select, insert and update only the 
 
 No anonymous access is permitted.
 
-A migration should also provide an `updated_at` mechanism, either explicitly in application writes or through a database trigger. The design does not require database-side JSON validation beyond `NOT NULL`; application schema validation remains in the CareerOS normalisation layer.
+The migration will add a database trigger that sets `updated_at = now()` on every update. Application code does not need to manage that timestamp manually.
+
+The design does not require database-side JSON validation beyond `NOT NULL`; application schema validation remains in the CareerOS normalisation layer.
 
 ## 5. Persistence boundary
 
 Introduce a focused persistence module rather than calling Supabase throughout components.
 
-Suggested responsibilities:
+Required responsibilities:
 
 - `loadCareerState(userId)`
 - `createCareerState(userId, data, schemaVersion)`
 - `saveCareerState(userId, data, schemaVersion)`
-- `hasCareerState(userId)` or equivalent load-result semantics
 - serialisation and normalisation at the boundary
 - mapping Supabase failures into small application-level error types
 
+A missing row is represented as a successful load with no state, not as an exceptional failure.
+
 The React store remains the UI-facing state API. Components should not know whether state came from local cache, migration, or Supabase.
 
-The provider will expose sync metadata in addition to `data`, for example:
+The provider will expose sync metadata in addition to `data`, with equivalent semantics to:
 
 - `hydrating`
 - `synced`
@@ -106,7 +109,7 @@ The provider will expose sync metadata in addition to `data`, for example:
 - `saving`
 - `saveError`
 
-Exact naming may change during implementation, but the state machine must remain explicit.
+Exact property names may change during implementation, but the state machine must remain explicit and testable.
 
 ## 6. Source-of-truth rules
 
@@ -125,7 +128,7 @@ After authentication, Supabase is authoritative.
 1. Read localStorage key `careeros:v1`.
 2. Parse, normalise and apply the master-profile foundation.
 3. Insert the result into `career_state` for the authenticated user.
-4. Read back or otherwise confirm the successful cloud write.
+4. Read back the created row and confirm the successful cloud write.
 5. Mark cloud as authoritative.
 6. Retain localStorage only as a cache.
 
@@ -136,7 +139,8 @@ This import occurs once because subsequent sessions find the cloud row and follo
 1. Create the current seeded CareerOS data.
 2. Normalise it.
 3. Insert it into `career_state`.
-4. Use that row as the authoritative initial state.
+4. Read back the created row.
+5. Use that row as the authoritative initial state.
 
 ### Case D: cloud read fails
 
@@ -146,31 +150,43 @@ For the P0 release, editing while in offline-cache mode is disabled. This is del
 
 The user should see plain-English messaging such as: `Cloud data is temporarily unavailable. You can view the last saved copy, but changes are disabled until sync returns.`
 
+If no valid cache exists, show a blocking cloud-unavailable state rather than silently creating seed data locally.
+
 ### Case E: cloud save fails after an edit
 
-Do not present the edit as safely saved.
+Every edit is optimistic only until the cloud confirms it.
 
-The store may retain the in-memory edit temporarily, but the UI must expose a clear unsaved/error state and offer retry. It must not update the durable local cache as though the cloud save succeeded.
+The provider keeps the previous confirmed cloud snapshot. If a save fails:
 
-Implementation may choose to roll back to the previous confirmed state if that produces a simpler and safer interaction. The final behaviour must be covered by tests.
+1. Roll the React store back to the previous confirmed snapshot.
+2. Do not update localStorage with the failed version.
+3. Show a concise error such as `That change was not saved. Please try again.`
+4. Return the sync state to the last confirmed state, with an error indicator until the user dismisses it or a later successful save clears it.
+
+This deterministic rollback rule avoids ambiguous unsaved data and divergent browser state.
 
 ## 7. Write strategy
 
-P0 should favour correctness over aggressive optimisation.
+P0 favours correctness over aggressive optimisation.
 
-Each user-approved store mutation should result in a cloud save through one serialised write path. Writes must not race and allow an older snapshot to finish after a newer one.
+All user mutations go through one ordered promise queue owned by the persistence/store layer.
 
-Acceptable implementation options include a promise queue or a monotonic write controller. The essential requirement is last-intended-state wins without concurrent stale overwrites.
+For each queued mutation:
 
-Debouncing may be used for text-entry fields, but approval/status actions should save immediately.
+1. Apply the mutation optimistically to the current confirmed or pending snapshot.
+2. Save the resulting complete `CareerOsData` document to Supabase.
+3. On success, make that snapshot the new confirmed state and refresh localStorage.
+4. On failure, roll back to the previously confirmed snapshot as defined in Case E.
 
-The cloud row is the durable authority. localStorage is updated only after a confirmed cloud save, or after a confirmed cloud load.
+The next queued mutation must not start its cloud write until the previous write has resolved. This prevents an older snapshot from finishing after a newer one and becoming authoritative.
+
+Approval/status actions save immediately. Existing text-entry interactions that commit on blur continue to produce one queued save per committed field change. No additional debounce layer is required for P0.
 
 ## 8. Google-only authentication readiness
 
 The current UI correctly offers only Google sign-in. The remaining external blocker is that Supabase reports `Unsupported provider: provider is not enabled` until the Google provider has been enabled with a valid OAuth Client ID and Client Secret.
 
-Application changes should:
+Application changes will:
 
 - continue offering one `Sign in with Google` action only;
 - map provider-disabled and equivalent OAuth-initiation failures to a friendly CareerOS message rather than exposing raw provider JSON;
@@ -208,7 +224,7 @@ Required behaviour:
 - unresolved and excluded wording remains blocked;
 - no decision occurs silently.
 
-The UI should make the review queue actionable on the Career Profile page and should favour human-readable labels over raw canonical keys where possible. Provenance IDs remain available as supporting detail.
+The UI will make the review queue actionable on the Career Profile page and favour human-readable labels over raw canonical keys where possible. Provenance IDs remain available as supporting detail.
 
 All review decisions persist inside the cloud-backed `CareerOsData` document.
 
@@ -216,20 +232,24 @@ All review decisions persist inside the cloud-backed `CareerOsData` document.
 
 Current behaviour is incorrect: `Approve suggestions and save new version` appends suggestion text and an HTML-style review marker into the CV body. That is not the same as applying the suggestions.
 
-P0 behaviour:
+P0 behaviour is deliberately conservative:
 
-- remove or replace the misleading apply action;
-- health-check suggestions remain review guidance unless a genuine revised CV body is generated;
-- accepting a suggestion must never append internal review notes to the CV document body;
-- if no deterministic rewrite mechanism is implemented in this P0, the UI should say `Review suggestions` and allow the user to regenerate a new draft through the normal verified-evidence generator;
-- approval of a CV remains a separate explicit action;
-- previous CV versions remain immutable and visible in history.
+- remove the current `applySuggestions` mutation path;
+- remove the `Approve suggestions and save new version` action;
+- keep health-check suggestions as review guidance only;
+- do not create a new CV version merely because the user viewed or acknowledged guidance;
+- never append internal review notes to the CV document body;
+- keep the existing explicit `New draft` generator action as the only automated way to produce another CV body in P0;
+- keep CV approval as a separate explicit action;
+- keep previous CV versions immutable and visible in history.
 
-A regression test must prove that reviewing or accepting health-check guidance cannot contaminate the CV body with internal notes.
+No P0 control may claim that a health-check suggestion was applied. A later feature can implement evidence-aware per-suggestion rewriting with its own design and tests.
+
+A regression test must prove that opening, reviewing or closing health-check guidance cannot contaminate the CV body or create a false revised version.
 
 ## 11. UI trust indicators
 
-The shell should stop claiming `Local seeded data` after cloud persistence is active.
+The shell must stop claiming `Local seeded data` after cloud persistence is active.
 
 Replace the existing static data-source footer with a truthful state indicator, for example:
 
@@ -239,6 +259,8 @@ Replace the existing static data-source footer with a truthful state indicator, 
 - `Setup required` where authentication configuration prevents sign-in
 
 Status must be communicated in text, not colour alone.
+
+In `offlineCache` mode, mutation controls are disabled at the store or shared UI boundary so individual feature screens cannot accidentally accept edits.
 
 No large redesign is required for P0.
 
@@ -256,11 +278,11 @@ Authentication completed, but the Google account is not the approved CareerOS id
 
 ### Cloud read failure
 
-Show cached state read-only when available. Do not accept edits.
+Show cached state read-only when available. Do not accept edits. If no cache exists, block the workspace with a retryable cloud-unavailable state.
 
 ### Cloud write failure
 
-Show that the latest change is not durably saved. Provide retry or restore the previous confirmed state. Never silently report success.
+Roll back to the last confirmed state, explain that the attempted change was not saved, and leave localStorage unchanged. Never silently report success.
 
 Technical details may be logged for diagnostics, but user-facing messages remain concise.
 
@@ -298,6 +320,7 @@ Required automated coverage:
 ### Cloud repository
 
 - load existing state;
+- load missing row as a non-error result;
 - create first state;
 - update state;
 - map read/write failures;
@@ -310,14 +333,17 @@ Required automated coverage:
 - cloud absent + local absent -> seed uploads once;
 - cloud absent + local invalid -> seed uploads safely;
 - cloud unavailable + cache valid -> read-only cached mode;
+- cloud unavailable + no cache -> blocking retry state;
 - repeated bootstrap is idempotent.
 
 ### Store persistence
 
 - confirmed mutations persist to cloud;
-- failed saves do not report synced state;
-- local cache updates only after confirmed cloud state;
-- write ordering prevents stale overwrites.
+- successful cloud saves refresh local cache;
+- failed saves roll back to the previous confirmed snapshot;
+- failed saves do not update local cache;
+- ordered write queue prevents stale overwrites;
+- offline-cache mode rejects mutation attempts.
 
 ### Profile governance
 
@@ -325,7 +351,8 @@ Port the decision-layer and generator-boundary regression coverage from PR #11 o
 
 ### CV health check
 
-- reviewing suggestions does not append notes into the CV body;
+- opening and reviewing suggestions does not mutate the CV body;
+- no false new version is created from health-check guidance;
 - document versions remain intact;
 - approval remains explicit.
 
@@ -354,18 +381,18 @@ Repository-wide lint failures caused solely by pre-existing Lovable-generated fo
 
 ## 17. Rollout sequence
 
-Implementation should be decomposed into independently verifiable stages on the same P0 branch:
+Implementation is decomposed into independently verifiable stages on the same P0 branch:
 
 1. Add Supabase migration and cloud-state repository with tests.
 2. Replace localStorage authority with authenticated cloud bootstrap and safe cache semantics.
 3. Add sync-state UI and friendly auth setup errors.
 4. Port PR #11 profile review/governance logic onto current `main`.
-5. Fix CV health-check action semantics and regression tests.
+5. Remove misleading CV health-check mutation semantics and add regression tests.
 6. Run full verification.
 7. Publish a preview or production build only after verification.
 8. Complete manual Google OAuth and cross-session tests.
 
-No stage should silently merge PR #11 or overwrite existing production data.
+No stage may silently merge PR #11 or overwrite existing production data.
 
 ## 18. Acceptance criteria
 
@@ -375,10 +402,11 @@ The P0 programme is complete when all of the following are true:
 - Existing browser-local state is migrated automatically exactly once when no cloud state exists.
 - A later browser or session loads the same cloud state without depending on the original localStorage.
 - Cloud failure is visibly degraded and cannot silently create divergent local edits.
+- Failed cloud saves roll back instead of appearing durable.
 - Google provider setup failures are shown as friendly CareerOS errors, not raw platform JSON.
 - Profile conflicts and attention items are actionable and every decision is explicit and persistent.
 - Unapproved claims remain blocked from generated documents.
-- CV health-check suggestions never contaminate a CV body or claim to have been applied when they were not.
+- CV health-check suggestions never contaminate a CV body, create a false version, or claim to have been applied.
 - The shell truthfully reports sync/source status.
 - Automated verification and the required manual trust checks pass.
 
