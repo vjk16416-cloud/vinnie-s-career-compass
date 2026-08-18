@@ -22,7 +22,13 @@ export async function guardCareerOsRoute({
 }: GuardCareerOsRouteInput): Promise<{ authUser: AuthorisedUser | null }> {
   if (isPublicAuthPath(location.pathname)) return { authUser: null };
 
-  const authUser = await getCurrentUser();
+  let authUser: AuthorisedUser | null = null;
+  try {
+    authUser = await getCurrentUser();
+  } catch {
+    authUser = null;
+  }
+
   if (!authUser) {
     throw redirect({
       to: "/login",
