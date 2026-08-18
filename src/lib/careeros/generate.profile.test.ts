@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { buildCoverLetter, buildTailoredCv } from "./generate";
 import { createCareerOsData } from "./profile-data";
+import { resolveClaimVariant } from "./profile-review";
 import type { JobRecord } from "./types";
 
 const job: JobRecord = {
@@ -33,5 +34,22 @@ describe("master-profile generation gate", () => {
 
     expect(result.body).not.toContain("Google Project Management Professional Certificate");
     expect(result.body).not.toContain("Managed a team");
+  });
+
+  it("makes explicitly resolved qualification wording eligible for the next tailored CV", () => {
+    const data = createCareerOsData();
+    const before = buildTailoredCv(data, job, undefined);
+    expect(before.body).not.toContain("Google Project Management Professional Certificate");
+
+    const reviewed = resolveClaimVariant(data, {
+      canonicalKey: "google-project-management-certificate",
+      selectedVariantId: "google-pm-full",
+      safeWording: "Google Project Management Professional Certificate",
+      at: "2026-08-18T12:55:00.000Z",
+    });
+    const after = buildTailoredCv(reviewed, job, undefined);
+
+    expect(after.body).toContain("Google Project Management Professional Certificate");
+    expect(after.body).not.toContain("Foundations of Project Management course completion claim");
   });
 });
