@@ -67,8 +67,7 @@ jobs:
             src/lib/careeros/store.tsx \
             src/lib/careeros/types.ts \
             'src/routes/applications.$id.tsx' \
-            src/routes/profile.tsx \
-            supabase/migrations/20260818211500_create_career_state.sql
+            src/routes/profile.tsx
 
       - name: Lint P0 files
         run: |
