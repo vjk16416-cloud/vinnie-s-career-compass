@@ -7,6 +7,11 @@ import { afterEach, describe, expect, it, vi } from "vitest";
 import { GOOGLE_PROVIDER_SETUP_ERROR } from "@/lib/auth/oauth.functions";
 import { LoginCard } from "./login-card";
 
+function expectGoogleOnlyControls() {
+  expect(document.querySelector('input[type="password"]')).not.toBeInTheDocument();
+  expect(screen.queryByText(/magic link|sign up/i)).not.toBeInTheDocument();
+}
+
 afterEach(() => {
   cleanup();
   vi.clearAllMocks();
@@ -21,7 +26,7 @@ describe("LoginCard", () => {
     expect(screen.getByRole("button", { name: "Sign in with Google" })).toBeEnabled();
     expect(screen.getByText("No CareerOS password required.")).toBeInTheDocument();
     expect(screen.getByText("Access is limited to vjk16416@gmail.com")).toBeInTheDocument();
-    expect(screen.queryByText(/password|magic link|sign up/i)).not.toBeInTheDocument();
+    expectGoogleOnlyControls();
   });
 
   it("shows the unauthorised message and gives keyboard focus to the retry action", () => {
@@ -90,6 +95,6 @@ describe("LoginCard", () => {
     expect(await screen.findByRole("status")).toHaveTextContent(GOOGLE_PROVIDER_SETUP_ERROR);
     expect(screen.getAllByRole("button")).toHaveLength(1);
     expect(screen.getByRole("button", { name: "Try Google Sign-In again" })).toBeEnabled();
-    expect(screen.queryByText(/password|magic link|sign up/i)).not.toBeInTheDocument();
+    expectGoogleOnlyControls();
   });
 });
