@@ -1,11 +1,8 @@
 import { describe, expect, it } from "vitest";
 import { PROFILE_CLAIM_VARIANTS } from "./profile-claim-variants";
+import { extractionCoverage } from "./profile-coverage";
 import { createCareerOsData } from "./profile-data";
-import {
-  approvedProfileItems,
-  extractionCoverage,
-  unresolvedVariantKeys,
-} from "./profile-extraction";
+import { approvedProfileItems, unresolvedVariantKeys } from "./profile-extraction";
 
 describe("master-profile extraction and reconciliation", () => {
   it("keeps unresolved and excluded claims out of approved output", () => {
