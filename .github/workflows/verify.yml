@@ -33,12 +33,14 @@ jobs:
         if: github.event_name == 'push'
         run: |
           bunx prettier --write \
+            src/lib/careeros/profile-claim-variants.ts \
             src/lib/careeros/profile-data.master.test.ts \
             src/lib/careeros/profile-data.ts \
             src/lib/careeros/profile-extraction.test.ts \
             src/lib/careeros/profile-extraction.ts \
             src/lib/careeros/profile-foundation.test.ts \
             src/lib/careeros/profile-foundation.ts \
+            src/lib/careeros/profile-post-audit.ts \
             src/lib/careeros/profile-reconciled-items.ts \
             src/lib/careeros/generate.profile.test.ts \
             src/lib/careeros/generate.ts \
@@ -49,12 +51,14 @@ jobs:
             git config user.name "github-actions[bot]"
             git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
             git add \
+              src/lib/careeros/profile-claim-variants.ts \
               src/lib/careeros/profile-data.master.test.ts \
               src/lib/careeros/profile-data.ts \
               src/lib/careeros/profile-extraction.test.ts \
               src/lib/careeros/profile-extraction.ts \
               src/lib/careeros/profile-foundation.test.ts \
               src/lib/careeros/profile-foundation.ts \
+              src/lib/careeros/profile-post-audit.ts \
               src/lib/careeros/profile-reconciled-items.ts \
               src/lib/careeros/generate.profile.test.ts \
               src/lib/careeros/generate.ts \
