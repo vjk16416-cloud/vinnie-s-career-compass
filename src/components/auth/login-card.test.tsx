@@ -17,9 +17,10 @@ describe("LoginCard", () => {
 
     expect(screen.getByRole("heading", { name: "CareerOS" })).toBeInTheDocument();
     expect(screen.getByText("Private career workspace")).toBeInTheDocument();
-    expect(screen.getByRole("button", { name: "Continue with Google" })).toBeEnabled();
+    expect(screen.getByRole("button", { name: "Sign in with Google" })).toBeEnabled();
+    expect(screen.getByText("No CareerOS password required.")).toBeInTheDocument();
     expect(screen.getByText("Access is limited to vjk16416@gmail.com")).toBeInTheDocument();
-    expect(screen.queryByText(/password|magic link|sign up/i)).not.toBeInTheDocument();
+    expect(screen.queryByText(/magic link|sign up/i)).not.toBeInTheDocument();
   });
 
   it("shows the unauthorised message and gives keyboard focus to the retry action", () => {
@@ -52,7 +53,7 @@ describe("LoginCard", () => {
     );
     render(<LoginCard returnTo="/applications/123" startSignIn={startSignIn} />);
 
-    fireEvent.click(screen.getByRole("button", { name: "Continue with Google" }));
+    fireEvent.click(screen.getByRole("button", { name: "Sign in with Google" }));
 
     expect(startSignIn).toHaveBeenCalledWith("/applications/123");
     expect(screen.getByRole("button", { name: "Opening Google Sign-In…" })).toBeDisabled();
@@ -60,7 +61,7 @@ describe("LoginCard", () => {
 
     resolveSignIn({ error: null });
     await waitFor(() =>
-      expect(screen.getByRole("button", { name: "Continue with Google" })).toBeEnabled(),
+      expect(screen.getByRole("button", { name: "Sign in with Google" })).toBeEnabled(),
     );
   });
 
@@ -70,7 +71,7 @@ describe("LoginCard", () => {
     });
     render(<LoginCard startSignIn={startSignIn} />);
 
-    fireEvent.click(screen.getByRole("button", { name: "Continue with Google" }));
+    fireEvent.click(screen.getByRole("button", { name: "Sign in with Google" }));
 
     const retry = await screen.findByRole("button", { name: "Try Google Sign-In again" });
     expect(screen.getByRole("status")).toHaveTextContent(
