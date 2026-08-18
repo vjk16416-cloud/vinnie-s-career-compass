@@ -24,6 +24,7 @@ import { Route as Char91DotwellKnownChar93OauthProtectedResourceRouteImport } fr
 import { Route as ApplicationsIndexRouteImport } from './routes/applications.index'
 import { Route as ApplicationsIdRouteImport } from './routes/applications.$id'
 import { Route as AuthCallbackRouteImport } from './routes/auth.callback'
+import { Route as DotlovableOauthConsentRouteImport } from './routes/[.]lovable.oauth.consent'
 import { Route as Char91DotmcpChar93InvokeToolToolRouteImport } from './routes/[.mcp]/invoke-tool/$tool'
 
 const IndexRoute = IndexRouteImport.update({
@@ -103,6 +104,11 @@ const AuthCallbackRoute = AuthCallbackRouteImport.update({
   path: '/auth/callback',
   getParentRoute: () => rootRouteImport,
 } as any)
+const DotlovableOauthConsentRoute = DotlovableOauthConsentRouteImport.update({
+  id: '/.lovable/oauth/consent',
+  path: '/.lovable/oauth/consent',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const Char91DotmcpChar93InvokeToolToolRoute =
   Char91DotmcpChar93InvokeToolToolRouteImport.update({
     id: '/.mcp/invoke-tool/$tool',
@@ -126,6 +132,7 @@ export interface FileRoutesByFullPath {
   '/applications/$id': typeof ApplicationsIdRoute
   '/auth/callback': typeof AuthCallbackRoute
   '/applications/': typeof ApplicationsIndexRoute
+  '/.lovable/oauth/consent': typeof DotlovableOauthConsentRoute
   '/.mcp/invoke-tool/$tool': typeof Char91DotmcpChar93InvokeToolToolRoute
 }
 export interface FileRoutesByTo {
@@ -144,6 +151,7 @@ export interface FileRoutesByTo {
   '/applications/$id': typeof ApplicationsIdRoute
   '/auth/callback': typeof AuthCallbackRoute
   '/applications': typeof ApplicationsIndexRoute
+  '/.lovable/oauth/consent': typeof DotlovableOauthConsentRoute
   '/.mcp/invoke-tool/$tool': typeof Char91DotmcpChar93InvokeToolToolRoute
 }
 export interface FileRoutesById {
@@ -163,6 +171,7 @@ export interface FileRoutesById {
   '/applications/$id': typeof ApplicationsIdRoute
   '/auth/callback': typeof AuthCallbackRoute
   '/applications/': typeof ApplicationsIndexRoute
+  '/.lovable/oauth/consent': typeof DotlovableOauthConsentRoute
   '/.mcp/invoke-tool/$tool': typeof Char91DotmcpChar93InvokeToolToolRoute
 }
 export interface FileRouteTypes {
@@ -183,6 +192,7 @@ export interface FileRouteTypes {
     | '/applications/$id'
     | '/auth/callback'
     | '/applications/'
+    | '/.lovable/oauth/consent'
     | '/.mcp/invoke-tool/$tool'
   fileRoutesByTo: FileRoutesByTo
   to:
@@ -201,6 +211,7 @@ export interface FileRouteTypes {
     | '/applications/$id'
     | '/auth/callback'
     | '/applications'
+    | '/.lovable/oauth/consent'
     | '/.mcp/invoke-tool/$tool'
   id:
     | '__root__'
@@ -219,6 +230,7 @@ export interface FileRouteTypes {
     | '/applications/$id'
     | '/auth/callback'
     | '/applications/'
+    | '/.lovable/oauth/consent'
     | '/.mcp/invoke-tool/$tool'
   fileRoutesById: FileRoutesById
 }
@@ -238,6 +250,7 @@ export interface RootRouteChildren {
   ApplicationsIdRoute: typeof ApplicationsIdRoute
   AuthCallbackRoute: typeof AuthCallbackRoute
   ApplicationsIndexRoute: typeof ApplicationsIndexRoute
+  DotlovableOauthConsentRoute: typeof DotlovableOauthConsentRoute
   Char91DotmcpChar93InvokeToolToolRoute: typeof Char91DotmcpChar93InvokeToolToolRoute
 }
 
@@ -348,6 +361,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthCallbackRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/.lovable/oauth/consent': {
+      id: '/.lovable/oauth/consent'
+      path: '/.lovable/oauth/consent'
+      fullPath: '/.lovable/oauth/consent'
+      preLoaderRoute: typeof DotlovableOauthConsentRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/.mcp/invoke-tool/$tool': {
       id: '/.mcp/invoke-tool/$tool'
       path: '/.mcp/invoke-tool/$tool'
@@ -375,6 +395,7 @@ const rootRouteChildren: RootRouteChildren = {
   ApplicationsIdRoute: ApplicationsIdRoute,
   AuthCallbackRoute: AuthCallbackRoute,
   ApplicationsIndexRoute: ApplicationsIndexRoute,
+  DotlovableOauthConsentRoute: DotlovableOauthConsentRoute,
   Char91DotmcpChar93InvokeToolToolRoute: Char91DotmcpChar93InvokeToolToolRoute,
 }
 export const routeTree = rootRouteImport
