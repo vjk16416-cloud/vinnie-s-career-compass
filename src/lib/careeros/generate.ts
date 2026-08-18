@@ -1,5 +1,14 @@
-import type { CareerOsData, CvCategory, EvidenceRecord, JobRecord, ScanResult } from "./types";
+import { approvedProfileItems } from "./profile-extraction";
 import { tokenise } from "./scoring";
+import type {
+  CareerOsData,
+  CareerProfileItem,
+  CareerProfileItemKind,
+  CvCategory,
+  EvidenceRecord,
+  JobRecord,
+  ScanResult,
+} from "./types";
 
 /** Only Verified evidence may ever reach generated documents. */
 export function usableEvidence(data: CareerOsData): EvidenceRecord[] {
@@ -21,6 +30,47 @@ function relevantEvidence(data: CareerOsData, job: JobRecord, limit = 10) {
     .sort((a, b) => b.score - a.score)
     .slice(0, limit)
     .map((x) => x.e);
+}
+
+function approvedItems(data: CareerOsData, kind: CareerProfileItemKind): CareerProfileItem[] {
+  return approvedProfileItems(data).filter((item) => item.kind === kind);
+}
+
+function safeWording(item: CareerProfileItem): string {
+  return item.safeWording?.trim() || item.value.trim();
+}
+
+function approvedProfessionalSummary(data: CareerOsData): string {
+  return (
+    approvedItems(data, "Identity").find((item) => item.id === "pi-professional-summary")
+      ?.safeWording ?? "Evidence-led digital, technology and project-delivery professional."
+  );
+}
+
+function verifiedSkills(data: CareerOsData): string[] {
+  return [...new Set(usableEvidence(data).flatMap((record) => record.skills))];
+}
+
+function approvedToolNames(data: CareerOsData): string[] {
+  const evidenceSkills = verifiedSkills(data).map((skill) => skill.toLowerCase());
+  const explicitTools = approvedItems(data, "Tool").map((item) => safeWording(item));
+  const legacyToolsWithVerifiedSupport = data.profile.tools.filter((tool) =>
+    evidenceSkills.some(
+      (skill) => skill.includes(tool.toLowerCase()) || tool.toLowerCase().includes(skill),
+    ),
+  );
+  return [...new Set([...explicitTools, ...legacyToolsWithVerifiedSupport])];
+}
+
+function employerForItem(data: CareerOsData, item: CareerProfileItem): string | undefined {
+  const text = `${item.label} ${item.value} ${item.safeWording ?? ""}`.toLowerCase();
+  return data.profile.employment.find((role) => text.includes(role.company.toLowerCase()))?.company;
+}
+
+function approvedRecentRole(data: CareerOsData): string | undefined {
+  return approvedItems(data, "Employment")[0]
+    ? safeWording(approvedItems(data, "Employment")[0])
+    : undefined;
 }
 
 export function buildTailoredCv(
@@ -45,46 +95,69 @@ export function buildTailoredCv(
         .join(", ")
     : "delivery, analytics and stakeholder management";
 
+  const employment = approvedItems(data, "Employment");
+  const education = approvedItems(data, "Education");
+  const certifications = approvedItems(data, "Certification");
+  const projects = approvedItems(data, "Project");
+  const skills = verifiedSkills(data).slice(0, 14);
+  const tools = approvedToolNames(data);
+
   const lines: string[] = [];
   lines.push(`# ${p.name}`);
   lines.push(`${p.location} | ${p.headline}`);
   lines.push("");
   lines.push("## Professional Summary");
   lines.push(
-    `${p.summary} Applying for ${job.title} at ${job.company}, with emphasis on ${focus.toLowerCase()}.`,
+    `${approvedProfessionalSummary(data)} Applying for ${job.title} at ${job.company}, with emphasis on ${focus.toLowerCase()}.`,
   );
-  lines.push("");
-  lines.push("## Core Skills");
-  lines.push(p.skills.slice(0, 14).join(" | "));
-  lines.push("");
-  lines.push("## Tools and Platforms");
-  lines.push(p.tools.join(" | "));
+
+  if (skills.length) {
+    lines.push("");
+    lines.push("## Core Skills");
+    lines.push(skills.join(" | "));
+  }
+
+  if (tools.length) {
+    lines.push("");
+    lines.push("## Tools and Platforms");
+    lines.push(tools.join(" | "));
+  }
+
   lines.push("");
   lines.push("## Professional Experience");
-  p.employment.forEach((role) => {
-    lines.push(`### ${role.title} — ${role.company} (${role.employmentType})`);
-    lines.push(`${role.start} – ${role.end} | ${role.location}`);
-    const evidenceBullets = (claimsByEmployer.get(role.company) ?? []).map((e) =>
-      e.metricValue && e.status === "Verified" && !/not yet confirmed/i.test(e.metricValue)
-        ? `- ${e.claim} (${e.metricValue}).`
-        : `- ${e.claim}.`,
-    );
-    const bullets = evidenceBullets.length
-      ? evidenceBullets
-      : role.highlights.slice(0, 3).map((h) => `- ${h}`);
-    bullets.forEach((b) => lines.push(b));
+  employment.forEach((item) => {
+    lines.push(`### ${safeWording(item)}`);
+    const employer = employerForItem(data, item);
+    if (employer) {
+      (claimsByEmployer.get(employer) ?? []).forEach((e) => {
+        lines.push(
+          e.metricValue && !/not yet confirmed/i.test(e.metricValue)
+            ? `- ${e.claim} (${e.metricValue}).`
+            : `- ${e.claim}.`,
+        );
+      });
+    }
     lines.push("");
   });
-  lines.push("## Education");
-  p.education.forEach((e) => lines.push(`- ${e.qualification}, ${e.institution} — ${e.detail}`));
-  lines.push("");
-  lines.push("## Certifications");
-  p.certifications.forEach((c) => lines.push(`- ${c.name}, ${c.issuer} (${c.completed})`));
-  lines.push("");
-  lines.push("## Selected Projects");
-  p.projects.forEach((pr) => lines.push(`- ${pr.name}: ${pr.summary}`));
 
-  return { body: lines.join("\n"), evidenceIds: pickedIds };
+  if (education.length) {
+    lines.push("## Education");
+    education.forEach((item) => lines.push(`- ${safeWording(item)}`));
+    lines.push("");
+  }
+
+  if (certifications.length) {
+    lines.push("## Certifications and Training");
+    certifications.forEach((item) => lines.push(`- ${safeWording(item)}`));
+    lines.push("");
+  }
+
+  if (projects.length) {
+    lines.push("## Selected Projects");
+    projects.forEach((item) => lines.push(`- ${item.label}: ${safeWording(item)}`));
+  }
+
+  return { body: lines.join("\n").trim(), evidenceIds: pickedIds };
 }
 
 export function suggestCvCategory(job: JobRecord): CvCategory {
@@ -108,13 +181,21 @@ export function buildCoverLetter(
   const p = data.profile;
   const picked = relevantEvidence(data, job, 4);
   const gapNote = scan && scan.gaps.length ? scan.gaps[0] : undefined;
+  const recentRole = approvedRecentRole(data);
+  const ucl = approvedItems(data, "Education").find((item) => item.id === "pi-ucl-msc");
+  const background = [
+    recentRole ? `My recent experience includes ${recentRole}` : undefined,
+    ucl ? safeWording(ucl) : undefined,
+  ]
+    .filter(Boolean)
+    .join(". ");
 
   const bodyLines = [
     `Dear Hiring Team,`,
     ``,
-    `I am applying for the ${job.title} role at ${job.company}. I am currently ${p.employment[0]?.title} at ${p.employment[0]?.company} and a part-time MSc Technology Management candidate at UCL, and the role matches how I already work: evidence-led delivery across marketing, analytics and technology.`,
+    `I am applying for the ${job.title} role at ${job.company}. ${background}. The role matches how I work: evidence-led delivery across marketing, analytics and technology.`,
     ``,
-    `Three points from my record that are directly relevant:`,
+    `Three points from my verified record that are directly relevant:`,
     ...picked.map(
       (e) =>
         `- ${e.claim}${e.metricValue && !/not yet confirmed/i.test(e.metricValue) ? ` (${e.metricValue})` : ""}, at ${e.employer}.`,
@@ -132,11 +213,11 @@ export function buildCoverLetter(
   ];
 
   const emailVersion = [
-    `Subject: Application — ${job.title}`,
+    `Subject: Application | ${job.title}`,
     ``,
     `Hello,`,
     ``,
-    `I am applying for the ${job.title} role at ${job.company}. I am ${p.employment[0]?.title} at ${p.employment[0]?.company} and a part-time UCL MSc Technology Management candidate.`,
+    `I am applying for the ${job.title} role at ${job.company}. ${background}.`,
     ``,
     picked
       .slice(0, 2)
@@ -181,6 +262,22 @@ const VAGUE_TERMS = [
   "passionate",
 ];
 
+function blockedProfileClaims(cvBody: string, data: CareerOsData): string[] {
+  const lower = cvBody.toLowerCase();
+  return (data.profileItems ?? [])
+    .filter((item) => item.status !== "Approved")
+    .filter((item) => {
+      const candidates = [item.label, item.value, item.safeWording].filter(
+        (value): value is string => Boolean(value),
+      );
+      return candidates.some((candidate) => {
+        const normalized = candidate.toLowerCase();
+        return normalized.length >= 12 && lower.includes(normalized);
+      });
+    })
+    .map((item) => `${item.label} — status: ${item.status}. Remove or resolve before export.`);
+}
+
 export function runCvHealthCheck(
   cvBody: string,
   data: CareerOsData,
@@ -207,9 +304,12 @@ export function runCvHealthCheck(
     .filter((b) => VAGUE_TERMS.some((t) => b.toLowerCase().includes(t)) || b.trim().length < 45)
     .slice(0, 8);
 
-  const unsupportedClaims = unverified
+  const unsupportedEvidence = unverified
     .filter((e) => lower.includes(e.claim.toLowerCase().slice(0, 28)))
     .map((e) => `${e.claim} — status: ${e.status}. Remove or verify before export.`);
+  const unsupportedClaims = [
+    ...new Set([...unsupportedEvidence, ...blockedProfileClaims(cvBody, data)]),
+  ];
 
   const responsibilitiesCoverage = scan
     ? (scan.subScores.find((s) => s.key === "responsibilities")?.score ?? 0)

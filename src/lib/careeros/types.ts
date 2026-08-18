@@ -89,10 +89,14 @@ export type ProfileSourceType =
   | "Evidence Audit"
   | "User Confirmation"
   | "Project Evidence"
+  | "Evidence Register"
+  | "Primary Evidence"
   | "Other";
 
 export type ProfileSourceIngestionStatus = "Imported" | "Indexed" | "Excluded";
 export type ProfileSourceTrust = "Canonical" | "Alternative" | "Historical" | "Unsafe" | "Evidence";
+export type ProfileSourceExtractionStatus =
+  "Reconciled" | "Raw extracted" | "Audit only" | "Missing raw file" | "Excluded";
 
 export interface CareerProfileSource {
   id: string;
@@ -102,7 +106,10 @@ export interface CareerProfileSource {
   modifiedAt?: string | undefined;
   ownership: "Confirmed mine" | "Likely mine" | "User confirmed";
   ingestionStatus: ProfileSourceIngestionStatus;
+  extractionStatus?: ProfileSourceExtractionStatus | undefined;
   trust: ProfileSourceTrust;
+  externalFileId?: string | undefined;
+  externalUrl?: string | undefined;
   notes?: string | undefined;
 }
 
@@ -127,6 +134,23 @@ export interface CareerProfileItem {
   safeWording?: string | undefined;
   sourceIds: string[];
   evidenceIds: string[];
+  status: CareerProfileItemStatus;
+  confidence: "High" | "Medium" | "Low";
+  notes?: string | undefined;
+  updatedAt: string;
+}
+
+export type CareerClaimVariantBasis =
+  "Raw source" | "Evidence audit" | "CareerOS register" | "Primary evidence" | "User confirmation";
+
+export interface CareerClaimVariant {
+  id: string;
+  canonicalKey: string;
+  kind: CareerProfileItemKind;
+  label: string;
+  value: string;
+  sourceIds: string[];
+  basis: CareerClaimVariantBasis;
   status: CareerProfileItemStatus;
   confidence: "High" | "Medium" | "Low";
   notes?: string | undefined;
@@ -285,6 +309,7 @@ export interface CareerOsData {
   profileVersions: ProfileVersion[];
   profileSources?: CareerProfileSource[];
   profileItems?: CareerProfileItem[];
+  profileClaimVariants?: CareerClaimVariant[];
   evidence: EvidenceRecord[];
   jobs: JobRecord[];
   applications: Application[];
