@@ -283,8 +283,8 @@ export interface Settings {
 export interface CareerOsData {
   profile: CareerProfile;
   profileVersions: ProfileVersion[];
-  profileSources: CareerProfileSource[];
-  profileItems: CareerProfileItem[];
+  profileSources?: CareerProfileSource[];
+  profileItems?: CareerProfileItem[];
   evidence: EvidenceRecord[];
   jobs: JobRecord[];
   applications: Application[];
