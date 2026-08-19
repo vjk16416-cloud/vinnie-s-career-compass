@@ -12,7 +12,9 @@ export default defineTool({
     status: z
       .enum(["Verified", "Needs Evidence", "Archived", "Excluded", "All"])
       .describe("Filter by evidence status. Use 'All' for every record."),
-    search: z.string().describe("Free-text filter over the claim, employer and skills. Use '' for none."),
+    search: z
+      .string()
+      .describe("Free-text filter over the claim, employer and skills. Use '' for none."),
   },
   outputSchema: { count: z.number(), items: z.array(z.unknown()) },
   annotations: { readOnlyHint: true, idempotentHint: true, openWorldHint: false },
