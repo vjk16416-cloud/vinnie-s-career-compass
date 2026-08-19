@@ -45,6 +45,7 @@ jobs:
             src/lib/careeros/cloud-state.repository.ts \
             src/lib/careeros/evidence-map.ts \
             src/lib/careeros/generate.profile.test.ts \
+            src/lib/careeros/generic-requirements.ts \
             src/lib/careeros/job-extract.functions.ts \
             src/lib/careeros/job-extract.server.test.ts \
             src/lib/careeros/job-extract.server.ts \
@@ -68,6 +69,7 @@ jobs:
             src/lib/careeros/store.cloud.test.tsx \
             src/lib/careeros/store.tsx \
             src/lib/careeros/types.ts \
+            src/routes/-job-scan.test.tsx \
             src/routes/applications.\$id.tsx \
             src/routes/job-scan.tsx \
             src/routes/profile.tsx \
@@ -100,6 +102,7 @@ jobs:
               src/lib/careeros/cloud-state.repository.ts \
               src/lib/careeros/evidence-map.ts \
               src/lib/careeros/generate.profile.test.ts \
+              src/lib/careeros/generic-requirements.ts \
               src/lib/careeros/job-extract.functions.ts \
               src/lib/careeros/job-extract.server.test.ts \
               src/lib/careeros/job-extract.server.ts \
@@ -123,6 +126,7 @@ jobs:
               src/lib/careeros/store.cloud.test.tsx \
               src/lib/careeros/store.tsx \
               src/lib/careeros/types.ts \
+              src/routes/-job-scan.test.tsx \
               src/routes/applications.\$id.tsx \
               src/routes/job-scan.tsx \
               src/routes/profile.tsx \
