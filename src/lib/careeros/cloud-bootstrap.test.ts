@@ -9,6 +9,8 @@ import { CAREER_OS_CACHE_KEY } from "./local-cache";
 import { createCareerOsData } from "./profile-data";
 import type { CareerOsData } from "./types";
 
+const CAREER_OS_CACHE_META_KEY = "careeros:v1:cloud-cache";
+
 function memoryStorage(initial?: Record<string, string>): Storage {
   const values = new Map(Object.entries(initial ?? {}));
   return {
@@ -73,7 +75,10 @@ describe("bootstrapCareerState", () => {
     cloud.profile.headline = "Cloud headline";
     const local = createCareerOsData();
     local.profile.headline = "Old local headline";
-    const storage = storageWith(local);
+    const storage = memoryStorage({
+      [CAREER_OS_CACHE_KEY]: JSON.stringify(local),
+      [CAREER_OS_CACHE_META_KEY]: JSON.stringify({ userId: "user-1", confirmed: true }),
+    });
     const repository = repositoryWith(cloudRow(cloud));
 
     const result = await bootstrapCareerState({ userId: "user-1", repository, storage });
@@ -85,6 +90,26 @@ describe("bootstrapCareerState", () => {
     expect(repository.create).not.toHaveBeenCalled();
     expect(JSON.parse(storage.getItem(CAREER_OS_CACHE_KEY) ?? "{}").profile.headline).toBe(
       "Cloud headline",
+    );
+  });
+
+  it("preserves divergent unconfirmed local data when cloud already exists", async () => {
+    const cloud = createCareerOsData();
+    cloud.profile.headline = "Cloud headline";
+    const local = createCareerOsData();
+    local.profile.headline = "Local work from this device";
+    const storage = storageWith(local);
+    const repository = repositoryWith(cloudRow(cloud));
+
+    const result = await bootstrapCareerState({ userId: "user-1", repository, storage });
+
+    expect(result.mode).toBe("local-conflict");
+    expect(result.source).toBe("local-conflict");
+    expect(result.canEdit).toBe(false);
+    expect(result.data.profile.headline).toBe("Cloud headline");
+    expect(result.pendingLocalData?.profile.headline).toBe("Local work from this device");
+    expect(JSON.parse(storage.getItem(CAREER_OS_CACHE_KEY) ?? "{}").profile.headline).toBe(
+      "Local work from this device",
     );
   });
 
@@ -106,6 +131,10 @@ describe("bootstrapCareerState", () => {
     );
     expect(result.source).toBe("local-migration");
     expect(result.data.profile.headline).toBe("Migrated local headline");
+    expect(JSON.parse(storage.getItem(CAREER_OS_CACHE_META_KEY) ?? "null")).toEqual({
+      userId: "user-1",
+      confirmed: true,
+    });
   });
 
   it("uploads seed data when neither cloud nor local state exists", async () => {
