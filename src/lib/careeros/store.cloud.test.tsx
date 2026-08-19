@@ -187,4 +187,63 @@ describe("CareerOsProvider cloud persistence", () => {
     expect(screen.getByTestId("headline")).toHaveTextContent("Cached headline");
     expect(repository.save).not.toHaveBeenCalled();
   });
+
+  it("requires an explicit choice before replacing divergent local data with cloud data", async () => {
+    const cloud = createCareerOsData();
+    cloud.profile.headline = "Cloud headline";
+    const local = createCareerOsData();
+    local.profile.headline = "Local work from this device";
+    writeCareerOsCache(window.localStorage, local);
+    const repository = repositoryWith(
+      async () => row(cloud),
+      async (_userId, data) => row(data),
+    );
+
+    renderStore(repository);
+
+    await screen.findByRole("heading", { name: "Different CareerOS data found on this device" });
+    expect(readCareerOsCache(window.localStorage)?.profile.headline).toBe(
+      "Local work from this device",
+    );
+    expect(repository.save).not.toHaveBeenCalled();
+
+    fireEvent.click(screen.getByRole("button", { name: "Keep cloud version" }));
+
+    await screen.findByText("synced");
+    expect(screen.getByTestId("headline")).toHaveTextContent("Cloud headline");
+    expect(screen.getByTestId("editable")).toHaveTextContent("true");
+    expect(readCareerOsCache(window.localStorage)?.profile.headline).toBe("Cloud headline");
+    expect(repository.save).not.toHaveBeenCalled();
+  });
+
+  it("only replaces cloud data with the local version after the explicit save succeeds", async () => {
+    const cloud = createCareerOsData();
+    cloud.profile.headline = "Cloud headline";
+    const local = createCareerOsData();
+    local.profile.headline = "Local work from this device";
+    writeCareerOsCache(window.localStorage, local);
+    const save = deferred<CareerStateRow>();
+    const repository = repositoryWith(
+      async () => row(cloud),
+      async (_userId, data) => save.promise.then(() => row(data)),
+    );
+
+    renderStore(repository);
+    await screen.findByRole("heading", { name: "Different CareerOS data found on this device" });
+
+    fireEvent.click(screen.getByRole("button", { name: "Use local version" }));
+    await waitFor(() => expect(repository.save).toHaveBeenCalledTimes(1));
+    expect(readCareerOsCache(window.localStorage)?.profile.headline).toBe(
+      "Local work from this device",
+    );
+
+    save.resolve(row(local));
+
+    await screen.findByText("synced");
+    expect(screen.getByTestId("headline")).toHaveTextContent("Local work from this device");
+    expect(screen.getByTestId("editable")).toHaveTextContent("true");
+    expect(readCareerOsCache(window.localStorage)?.profile.headline).toBe(
+      "Local work from this device",
+    );
+  });
 });
