@@ -39,7 +39,7 @@ function makeRepository() {
   return {
     load: vi.fn().mockResolvedValue(row),
     create: vi.fn().mockResolvedValue(row),
-    save: vi.fn().mockImplementation(async (data) => ({ ...row, data })),
+    save: vi.fn().mockImplementation(async (_userId, data) => ({ ...row, data })),
   };
 }
 
@@ -133,17 +133,18 @@ describe("trustworthy Job Scan UI", () => {
     });
     fireEvent.click(screen.getByRole("button", { name: "Analyse role" }));
 
-    await waitFor(() => expect(repository.save).toHaveBeenCalled());
-    const savedStates = repository.save.mock.calls.map(([data]) => data);
-    expect(
-      savedStates.some(
-        (data) =>
-          data.jobs?.[0]?.description === manualDescription &&
-          data.jobs?.[0]?.extractionCompleteness === "manual" &&
-          data.jobs?.[0]?.extractionMethod === "manual" &&
-          data.jobs?.[0]?.descriptionWordCount > 40,
-      ),
-    ).toBe(true);
+    await waitFor(() => {
+      const savedStates = repository.save.mock.calls.map((call) => call[1]);
+      expect(
+        savedStates.some(
+          (data) =>
+            data.jobs?.[0]?.description === manualDescription &&
+            data.jobs?.[0]?.extractionCompleteness === "manual" &&
+            data.jobs?.[0]?.extractionMethod === "manual" &&
+            data.jobs?.[0]?.descriptionWordCount > 40,
+        ),
+      ).toBe(true);
+    });
   });
 
   it("renders the requirement-level Evidence Map behind the compatibility score", () => {
