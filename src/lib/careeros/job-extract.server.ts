@@ -330,7 +330,11 @@ function locationOf(object: Record<string, unknown>) {
       const address = (location as Record<string, unknown>)["address"];
       if (address && typeof address === "object") {
         const record = address as Record<string, unknown>;
-        const segments = [record["addressLocality"], record["addressRegion"], record["addressCountry"]]
+        const segments = [
+          record["addressLocality"],
+          record["addressRegion"],
+          record["addressCountry"],
+        ]
           .map(textOf)
           .filter(Boolean);
         if (segments.length) parts.push(segments.join(", "));
@@ -361,7 +365,9 @@ function salaryOf(object: Record<string, unknown>) {
   const single = textOf(range["value"]);
   const unit = textOf(range["unitText"]).toLowerCase();
   const amount = min && max ? `${min} – ${max}` : single || min || max;
-  return amount ? `${currency ? `${currency} ` : ""}${amount}${unit ? ` per ${unit}` : ""}`.trim() : "";
+  return amount
+    ? `${currency ? `${currency} ` : ""}${amount}${unit ? ` per ${unit}` : ""}`.trim()
+    : "";
 }
 
 function prettyEmployment(value: string) {
@@ -419,7 +425,8 @@ function assemble(base: AssembleBase, descriptionText: string): JobExtract | nul
       : "partial";
   const qualityNotes: string[] = [];
   if (!enoughText) qualityNotes.push(`Only ${words} meaningful words were captured.`);
-  if (responsibilities.length < 2) qualityNotes.push("Few clearly labelled responsibilities were found.");
+  if (responsibilities.length < 2)
+    qualityNotes.push("Few clearly labelled responsibilities were found.");
   if (requiredSkills.length < 2) qualityNotes.push("Few clearly labelled requirements were found.");
   if (!identityPresent && base.method === "structured") {
     qualityNotes.push("The structured data did not include both role title and company.");

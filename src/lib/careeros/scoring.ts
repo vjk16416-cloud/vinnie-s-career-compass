@@ -82,9 +82,7 @@ function keywordCoverage(job: JobRecord, data: CareerOsData) {
   const approvedItems = arr(data.profileItems).filter((item) => item.status === "Approved");
   const corpus = [
     verified.map((record) => `${record.claim} ${arr(record.skills).join(" ")}`).join(" "),
-    approvedItems
-      .map((item) => `${item.label} ${item.safeWording ?? item.value}`)
-      .join(" "),
+    approvedItems.map((item) => `${item.label} ${item.safeWording ?? item.value}`).join(" "),
     arr(data.profile.employment)
       .map(
         (role) =>
@@ -131,7 +129,8 @@ function strengthFor(item: EvidenceMapItem, data: CareerOsData) {
   const profileItem = item.profileItemIds
     .map((id) => data.profileItems?.find((record) => record.id === id))
     .find((record) => record?.status === "Approved");
-  const support = evidence?.claim ?? profileItem?.safeWording ?? profileItem?.value ?? item.explanation;
+  const support =
+    evidence?.claim ?? profileItem?.safeWording ?? profileItem?.value ?? item.explanation;
   return {
     text: `${item.requirement}: ${support}`,
     evidenceId: evidence?.id,

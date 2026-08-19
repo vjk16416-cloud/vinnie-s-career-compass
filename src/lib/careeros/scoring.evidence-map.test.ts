@@ -110,7 +110,10 @@ describe("evidence-first role scoring", () => {
       },
     ];
 
-    const result = runScan(job("At least 5 years of project delivery experience is required."), data);
+    const result = runScan(
+      job("At least 5 years of project delivery experience is required."),
+      data,
+    );
     const experience = findRequirement(evidenceMap(result), /5 years/i);
 
     expect(experience).toMatchObject({

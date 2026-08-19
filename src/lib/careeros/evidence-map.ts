@@ -56,7 +56,12 @@ const RESPONSIBILITY_SIGNALS: Array<{
   },
   {
     requirement: "Direct line management",
-    patterns: [/direct line management/i, /line management/i, /direct reports?/i, /manage a team of/i],
+    patterns: [
+      /direct line management/i,
+      /line management/i,
+      /direct reports?/i,
+      /manage a team of/i,
+    ],
   },
 ];
 
@@ -88,7 +93,12 @@ const QUALIFICATION_SIGNALS: Array<{
   },
   {
     requirement: "Degree-level education",
-    patterns: [/degree[- ]level/i, /university degree/i, /bachelor'?s? degree/i, /\bdegree required\b/i],
+    patterns: [
+      /degree[- ]level/i,
+      /university degree/i,
+      /bachelor'?s? degree/i,
+      /\bdegree required\b/i,
+    ],
     genericKind: "Education",
   },
 ];
@@ -155,7 +165,8 @@ function matchedPattern(text: string, patterns: RegExp[]) {
 function priorityFor(text: string, requirement: string): RequirementPriority {
   const lower = text.toLowerCase();
   const index = lower.indexOf(requirement.toLowerCase());
-  const nearby = index >= 0 ? lower.slice(Math.max(0, index - 100), index + requirement.length + 100) : lower;
+  const nearby =
+    index >= 0 ? lower.slice(Math.max(0, index - 100), index + requirement.length + 100) : lower;
   return /preferred|desirable|nice to have|bonus|advantage/.test(nearby) ? "Preferred" : "Required";
 }
 
@@ -245,7 +256,8 @@ function qualificationRequirement(
 function monthIndex(value: string, now = new Date()) {
   const trimmed = value.trim().toLowerCase();
   if (!trimmed) return null;
-  if (trimmed === "present" || trimmed === "current") return now.getUTCFullYear() * 12 + now.getUTCMonth();
+  if (trimmed === "present" || trimmed === "current")
+    return now.getUTCFullYear() * 12 + now.getUTCMonth();
   const match = trimmed.match(/([a-z]{3,9})\s+(\d{4})/i);
   if (!match) return null;
   const month = MONTHS[match[1]!.slice(0, 3).toLowerCase()];
@@ -266,7 +278,9 @@ export function employmentYears(data: CareerOsData) {
 }
 
 function experienceRequirement(data: CareerOsData, jobText: string): EvidenceMapItem | null {
-  const match = jobText.match(/(?:at least\s*)?(\d+)\+?\s*(?:years?|yrs?)\b[^.]{0,80}(?:experience|delivery)?/i);
+  const match = jobText.match(
+    /(?:at least\s*)?(\d+)\+?\s*(?:years?|yrs?)\b[^.]{0,80}(?:experience|delivery)?/i,
+  );
   if (!match) return null;
   const wanted = Number(match[1]);
   if (!Number.isFinite(wanted) || wanted <= 0) return null;
@@ -306,13 +320,18 @@ export function buildEvidenceMap(job: JobRecord, data: CareerOsData): EvidenceMa
     const records = (signal.evidenceIds ?? [])
       .map((id) => data.evidence.find((record) => record.id === id))
       .filter((record): record is EvidenceRecord => Boolean(record));
-    addUnique(items, evidenceRequirement(data, text, signal.requirement, "Responsibility", records));
+    addUnique(
+      items,
+      evidenceRequirement(data, text, signal.requirement, "Responsibility", records),
+    );
   }
 
   for (const signal of QUALIFICATION_SIGNALS) {
     if (!matchedPattern(text, signal.patterns)) continue;
     const profileItems = (data.profileItems ?? []).filter((item) =>
-      signal.genericKind ? item.kind === signal.genericKind : (signal.profileItemIds ?? []).includes(item.id),
+      signal.genericKind
+        ? item.kind === signal.genericKind
+        : (signal.profileItemIds ?? []).includes(item.id),
     );
     addUnique(items, qualificationRequirement(data, text, signal.requirement, profileItems));
   }
@@ -338,7 +357,9 @@ export function buildEvidenceMap(job: JobRecord, data: CareerOsData): EvidenceMa
       addUnique(items, evidenceRequirement(data, text, tool, "Tool", records));
       continue;
     }
-    const recorded = (data.profile.tools ?? []).some((candidate) => normalise(candidate) === normalise(tool));
+    const recorded = (data.profile.tools ?? []).some(
+      (candidate) => normalise(candidate) === normalise(tool),
+    );
     addUnique(items, {
       id: `tool-${normalise(tool).replace(/\s+/g, "-")}`,
       requirement: tool,
@@ -360,13 +381,18 @@ export function buildEvidenceMap(job: JobRecord, data: CareerOsData): EvidenceMa
     const verifiedRecords = data.evidence.filter(
       (record) =>
         record.status === "Verified" &&
-        containsPhrase(`${record.employer} ${record.claim} ${(record.skills ?? []).join(" ")}`, sector),
+        containsPhrase(
+          `${record.employer} ${record.claim} ${(record.skills ?? []).join(" ")}`,
+          sector,
+        ),
     );
     const approvedItems = (data.profileItems ?? []).filter(
       (item) => item.status === "Approved" && containsPhrase(`${item.label} ${item.value}`, sector),
     );
     const direct = verifiedRecords.length > 0 || approvedItems.length > 0;
-    const recordedDomain = (data.profile.domains ?? []).some((domain) => containsPhrase(domain, sector));
+    const recordedDomain = (data.profile.domains ?? []).some((domain) =>
+      containsPhrase(domain, sector),
+    );
     const status: RequirementMatchStatus = direct ? "Covered" : recordedDomain ? "Partial" : "Gap";
     addUnique(items, {
       id: `sector-${normalise(sector).replace(/\s+/g, "-")}`,
