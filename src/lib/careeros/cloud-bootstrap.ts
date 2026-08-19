@@ -5,14 +5,20 @@ import {
   type CareerStateRepository,
   type CareerStateRow,
 } from "./cloud-state.repository";
-import { readCareerOsCache, writeCareerOsCache } from "./local-cache";
+import {
+  isCareerOsCacheCloudConfirmed,
+  markCareerOsCacheCloudConfirmed,
+  readCareerOsCache,
+  writeCareerOsCache,
+} from "./local-cache";
 import type { CareerOsData } from "./types";
 
 export type CareerStateBootstrapResult = {
   data: CareerOsData;
-  mode: "synced" | "offline-cache";
-  source: "cloud" | "local-migration" | "seed" | "cache-fallback";
+  mode: "synced" | "offline-cache" | "local-conflict";
+  source: "cloud" | "local-migration" | "seed" | "cache-fallback" | "local-conflict";
   canEdit: boolean;
+  pendingLocalData?: CareerOsData;
 };
 
 export class CareerStateBootstrapError extends Error {
@@ -30,6 +36,10 @@ type BootstrapInput = {
 
 function normaliseCloudRow(row: CareerStateRow): CareerOsData {
   return withMasterProfileFoundation(normaliseData(row.data));
+}
+
+function sameCareerState(left: CareerOsData, right: CareerOsData): boolean {
+  return JSON.stringify(left) === JSON.stringify(right);
 }
 
 export async function bootstrapCareerState({
@@ -54,7 +64,20 @@ export async function bootstrapCareerState({
 
   if (cloud) {
     const data = normaliseCloudRow(cloud);
+    const localIsConfirmedCloudCopy = isCareerOsCacheCloudConfirmed(storage, userId);
+
+    if (local && !localIsConfirmedCloudCopy && !sameCareerState(local, data)) {
+      return {
+        data,
+        mode: "local-conflict",
+        source: "local-conflict",
+        canEdit: false,
+        pendingLocalData: local,
+      };
+    }
+
     writeCareerOsCache(storage, data);
+    markCareerOsCacheCloudConfirmed(storage, userId);
     return { data, mode: "synced", source: "cloud", canEdit: true };
   }
 
@@ -62,6 +85,7 @@ export async function bootstrapCareerState({
   const confirmed = await repository.create(userId, initial, CAREER_STATE_SCHEMA_VERSION);
   const data = normaliseCloudRow(confirmed);
   writeCareerOsCache(storage, data);
+  markCareerOsCacheCloudConfirmed(storage, userId);
 
   return {
     data,
