@@ -157,6 +157,23 @@ export interface CareerClaimVariant {
   updatedAt: string;
 }
 
+export type ProfileDecisionAction = "Approve" | "Needs Evidence" | "Exclude" | "Resolve Conflict";
+export type ProfileDecisionTarget = "Profile Item" | "Claim Variant";
+
+export interface CareerProfileDecision {
+  id: string;
+  at: string;
+  action: ProfileDecisionAction;
+  targetType: ProfileDecisionTarget;
+  profileItemId?: string;
+  canonicalKey?: string;
+  selectedVariantId?: string;
+  previousStatus?: CareerProfileItemStatus;
+  newStatus: CareerProfileItemStatus;
+  sourceIds: string[];
+  note?: string;
+}
+
 export type ApplicationStage =
   | "Interested"
   | "Preparing"
@@ -310,6 +327,7 @@ export interface CareerOsData {
   profileSources?: CareerProfileSource[];
   profileItems?: CareerProfileItem[];
   profileClaimVariants?: CareerClaimVariant[];
+  profileDecisions?: CareerProfileDecision[];
   evidence: EvidenceRecord[];
   jobs: JobRecord[];
   applications: Application[];

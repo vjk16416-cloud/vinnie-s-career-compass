@@ -4,12 +4,40 @@ import "@/test/setup";
 import { isRedirect } from "@tanstack/react-router";
 import { cleanup, render, waitFor } from "@testing-library/react";
 import { createElement } from "react";
-import { afterEach, describe, expect, it, vi } from "vitest";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
+import { createCareerOsData } from "../careeros/profile-data";
 import { PrivateCareerOsProvider } from "./auth-context";
 import { guardCareerOsRoute } from "./route-guard";
 
+const { createRepository } = vi.hoisted(() => ({ createRepository: vi.fn() }));
+
+vi.mock("../careeros/cloud-state.repository", async () => {
+  const actual = await vi.importActual<typeof import("../careeros/cloud-state.repository")>(
+    "../careeros/cloud-state.repository",
+  );
+  return { ...actual, createSupabaseCareerStateRepository: createRepository };
+});
+
 const authorisedUser = { id: "user-123", email: "vjk16416@gmail.com" };
+
+function cloudRow() {
+  return {
+    userId: authorisedUser.id,
+    schemaVersion: 1,
+    data: createCareerOsData(),
+    createdAt: "2026-08-18T20:00:00.000Z",
+    updatedAt: "2026-08-18T20:00:00.000Z",
+  };
+}
+
+function resolvedRepository() {
+  return {
+    load: vi.fn().mockResolvedValue(cloudRow()),
+    create: vi.fn().mockResolvedValue(cloudRow()),
+    save: vi.fn().mockResolvedValue(cloudRow()),
+  };
+}
 
 function location(pathname: string, href = pathname) {
   return { pathname, href };
@@ -22,9 +50,15 @@ function privateCareerContent(authUser: typeof authorisedUser | null) {
   });
 }
 
+beforeEach(() => {
+  createRepository.mockReturnValue(resolvedRepository());
+  window.localStorage.clear();
+});
+
 afterEach(() => {
   cleanup();
   vi.restoreAllMocks();
+  createRepository.mockReset();
 });
 
 async function expectLoginRedirect(pathname: string, href = pathname) {
@@ -131,25 +165,27 @@ describe("CareerOS route guard", () => {
     await guard;
   });
 
-  it("does not mount private local-storage state while protected authentication is pending", () => {
+  it("does not mount private career state while protected authentication is pending", () => {
     const getItem = vi.spyOn(Object.getPrototypeOf(window.localStorage), "getItem");
 
     const view = render(privateCareerContent(null));
 
     expect(view.queryByText("Private career route")).not.toBeInTheDocument();
     expect(getItem).not.toHaveBeenCalled();
+    expect(createRepository).not.toHaveBeenCalled();
   });
 
-  it("does not mount private local-storage state for an unauthorised protected route", () => {
+  it("does not mount private career state for an unauthorised protected route", () => {
     const getItem = vi.spyOn(Object.getPrototypeOf(window.localStorage), "getItem");
 
     const view = render(privateCareerContent(null));
 
     expect(view.queryByText("Private career route")).not.toBeInTheDocument();
     expect(getItem).not.toHaveBeenCalled();
+    expect(createRepository).not.toHaveBeenCalled();
   });
 
-  it("mounts private local-storage state only after a protected route has an authorised user", async () => {
+  it("mounts private career state only after auth and cloud bootstrap complete", async () => {
     const getItem = vi.spyOn(Object.getPrototypeOf(window.localStorage), "getItem");
     const view = render(privateCareerContent(null));
 
@@ -158,7 +194,9 @@ describe("CareerOS route guard", () => {
 
     view.rerender(privateCareerContent(authorisedUser));
 
-    expect(view.getByText("Private career route")).toBeInTheDocument();
-    await waitFor(() => expect(getItem).toHaveBeenCalled());
+    expect(view.queryByText("Private career route")).not.toBeInTheDocument();
+    await waitFor(() => expect(view.getByText("Private career route")).toBeInTheDocument());
+    expect(getItem).toHaveBeenCalled();
+    expect(createRepository).toHaveBeenCalledOnce();
   });
 });

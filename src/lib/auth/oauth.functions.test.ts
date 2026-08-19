@@ -79,6 +79,18 @@ describe("startGoogleSignIn", () => {
     expect(GOOGLE_SIGN_IN_ERROR).toBe("CareerOS could not start Google Sign-In. Please try again.");
   });
 
+  it("explains when the Google provider is not enabled without exposing raw provider JSON", async () => {
+    const providerError = Object.assign(
+      new Error("Unsupported provider: provider is not enabled"),
+      { code: "validation_failed" },
+    );
+    const { supabase } = createBrowserSupabase(providerError);
+
+    await expect(startGoogleSignIn("/", () => supabase as never)).resolves.toEqual({
+      error: "Google Sign-In is not enabled yet. Finish the CareerOS Google setup, then try again.",
+    });
+  });
+
   it("returns the same non-secret message when auth configuration throws", async () => {
     await expect(
       startGoogleSignIn("/", () => {

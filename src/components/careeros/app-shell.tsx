@@ -12,6 +12,7 @@ import {
 } from "lucide-react";
 import type { ReactNode } from "react";
 import { AccountMenu } from "@/components/auth/account-menu";
+import { useCareerOs } from "@/lib/careeros/store";
 import { cn } from "@/lib/utils";
 
 export const NAV_ITEMS = [
@@ -41,6 +42,16 @@ export function AppShell({
   children: ReactNode;
 }) {
   const pathname = useRouterState({ select: (s) => s.location.pathname });
+  const { syncStatus, syncMessage } = useCareerOs();
+  const degraded = syncStatus === "offline-cache" || syncStatus === "save-error";
+  const syncLabel =
+    syncStatus === "saving"
+      ? "Saving to cloud..."
+      : syncStatus === "offline-cache"
+        ? "Cloud unavailable: cached copy"
+        : syncStatus === "save-error"
+          ? "Last change restored after save failure"
+          : "Cloud synced";
 
   return (
     <div className="min-h-screen bg-background text-foreground">
@@ -83,9 +94,7 @@ export function AppShell({
         </nav>
         <div className="border-t border-sidebar-border px-3 py-3">
           <p className="text-[11px] leading-relaxed text-muted-foreground">
-            Data source: <span className="text-foreground">Local seeded data</span>
-            <br />
-            No external systems connected.
+            Data status: <span className="text-foreground">{syncLabel}</span>
           </p>
         </div>
       </aside>
@@ -107,6 +116,14 @@ export function AppShell({
         </header>
 
         <main id="main" className="mx-auto max-w-6xl px-4 pb-28 pt-5 md:px-6 lg:pb-12">
+          {degraded ? (
+            <div
+              role="status"
+              className="mb-4 rounded-md border border-warning/40 bg-warning/10 p-3 text-sm text-muted-foreground"
+            >
+              {syncMessage}
+            </div>
+          ) : null}
           {children}
         </main>
       </div>

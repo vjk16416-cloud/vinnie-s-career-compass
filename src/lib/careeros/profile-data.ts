@@ -6,6 +6,7 @@ import { createSeedData } from "./seed";
 import type {
   CareerClaimVariant,
   CareerOsData,
+  CareerProfileDecision,
   CareerProfileItem,
   CareerProfileSource,
   ProfileSourceExtractionStatus,
@@ -122,6 +123,7 @@ export type CareerOsDataWithMasterProfile = CareerOsData & {
   profileSources: CareerProfileSource[];
   profileItems: CareerProfileItem[];
   profileClaimVariants: CareerClaimVariant[];
+  profileDecisions: CareerProfileDecision[];
 };
 
 export function withMasterProfileFoundation(data: CareerOsData): CareerOsDataWithMasterProfile {
@@ -130,6 +132,7 @@ export function withMasterProfileFoundation(data: CareerOsData): CareerOsDataWit
     profileSources: mergeById(seededProfileSources(), data.profileSources),
     profileItems: mergeById(SEEDED_PROFILE_ITEMS, data.profileItems),
     profileClaimVariants: mergeById(PROFILE_CLAIM_VARIANTS, data.profileClaimVariants),
+    profileDecisions: data.profileDecisions ?? [],
   };
 }
 

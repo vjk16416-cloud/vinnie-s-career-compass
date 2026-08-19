@@ -1,8 +1,8 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { AppShell } from "@/components/careeros/app-shell";
+import { EvidenceReviewPanel } from "@/components/careeros/evidence-review-panel";
 import { Panel, StatusPill } from "@/components/careeros/ui-bits";
 import { extractionCoverage } from "@/lib/careeros/profile-coverage";
-import { unresolvedVariantKeys, variantsByCanonicalKey } from "@/lib/careeros/profile-extraction";
 import { useCareerOs } from "@/lib/careeros/store";
 
 export const Route = createFileRoute("/profile")({
@@ -28,17 +28,10 @@ function ProfilePage() {
   const p = data.profile;
   const sources = data.profileSources ?? [];
   const profileItems = data.profileItems ?? [];
-  const claimVariants = data.profileClaimVariants ?? [];
   const coverage = extractionCoverage(sources);
-  const variantGroups = variantsByCanonicalKey(claimVariants);
-  const unresolvedKeys = unresolvedVariantKeys(claimVariants);
   const importedSources = sources.filter((source) => source.ingestionStatus === "Imported").length;
   const indexedSources = sources.filter((source) => source.ingestionStatus === "Indexed").length;
   const approvedItems = profileItems.filter((item) => item.status === "Approved");
-  const attentionItems = profileItems.filter(
-    (item) =>
-      item.status === "Conflict" || item.status === "Needs Evidence" || item.status === "Excluded",
-  );
   const approvedSummary = approvedItems.find((item) => item.id === "pi-professional-summary");
   const approvedCertifications = approvedItems.filter((item) => item.kind === "Certification");
   const approvedEducation = approvedItems.filter((item) => item.kind === "Education");
@@ -55,6 +48,8 @@ function ProfilePage() {
             CareerOS never updates this record silently. Changes require your explicit approval.
           </p>
         </Panel>
+
+        <EvidenceReviewPanel />
 
         <div className="grid gap-4 lg:grid-cols-2">
           <Panel title="Master profile coverage">
@@ -116,51 +111,6 @@ function ProfilePage() {
               File Library. Historical audit-only sources remain provenance and conflict context,
               not claimed full-text extraction, until their raw files are available.
             </p>
-          </Panel>
-        </div>
-
-        <div className="grid gap-4 lg:grid-cols-2">
-          <Panel title="Approval layer">
-            <div className="flex flex-wrap gap-1.5">
-              <StatusPill label={`${approvedItems.length} approved items`} />
-              <StatusPill label={`${attentionItems.length} need attention`} />
-            </div>
-            {attentionItems.length > 0 ? (
-              <ul className="mt-3 space-y-2 text-sm text-muted-foreground">
-                {attentionItems.map((item) => (
-                  <li key={item.id} className="rounded-md border border-border p-2.5">
-                    <div className="flex flex-wrap items-center gap-2">
-                      <span className="font-medium text-foreground">{item.label}</span>
-                      <StatusPill label={item.status} />
-                    </div>
-                    <p className="mt-1 text-xs leading-relaxed">{item.notes ?? item.value}</p>
-                  </li>
-                ))}
-              </ul>
-            ) : (
-              <p className="mt-3 text-sm text-muted-foreground">No unresolved profile items.</p>
-            )}
-          </Panel>
-
-          <Panel title="Conflicting source variants">
-            {unresolvedKeys.length > 0 ? (
-              <ul className="space-y-2 text-sm text-muted-foreground">
-                {unresolvedKeys.map((key) => (
-                  <li key={key} className="rounded-md border border-border p-2.5">
-                    <p className="font-medium text-foreground">{key}</p>
-                    <ul className="mt-1.5 space-y-1 text-xs">
-                      {(variantGroups.get(key) ?? []).map((variant) => (
-                        <li key={variant.id}>
-                          {variant.value} · {variant.status} · {variant.sourceIds.join(", ")}
-                        </li>
-                      ))}
-                    </ul>
-                  </li>
-                ))}
-              </ul>
-            ) : (
-              <p className="text-sm text-muted-foreground">No unresolved claim variants.</p>
-            )}
           </Panel>
         </div>
 
