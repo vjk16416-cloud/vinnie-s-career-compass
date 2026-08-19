@@ -96,11 +96,7 @@ export type ProfileSourceType =
 export type ProfileSourceIngestionStatus = "Imported" | "Indexed" | "Excluded";
 export type ProfileSourceTrust = "Canonical" | "Alternative" | "Historical" | "Unsafe" | "Evidence";
 export type ProfileSourceExtractionStatus =
-  | "Reconciled"
-  | "Raw extracted"
-  | "Audit only"
-  | "Missing raw file"
-  | "Excluded";
+  "Reconciled" | "Raw extracted" | "Audit only" | "Missing raw file" | "Excluded";
 
 export interface CareerProfileSource {
   id: string;
@@ -145,11 +141,7 @@ export interface CareerProfileItem {
 }
 
 export type CareerClaimVariantBasis =
-  | "Raw source"
-  | "Evidence audit"
-  | "CareerOS register"
-  | "Primary evidence"
-  | "User confirmation";
+  "Raw source" | "Evidence audit" | "CareerOS register" | "Primary evidence" | "User confirmation";
 
 export interface CareerClaimVariant {
   id: string;
@@ -304,13 +296,7 @@ export interface ScanSubScore {
 }
 
 export type RequirementCategory =
-  | "Responsibility"
-  | "Skill"
-  | "Experience"
-  | "Qualification"
-  | "Sector"
-  | "Tool"
-  | "Competency";
+  "Responsibility" | "Skill" | "Experience" | "Qualification" | "Sector" | "Tool" | "Competency";
 export type RequirementPriority = "Required" | "Preferred";
 export type RequirementMatchStatus = "Covered" | "Partial" | "Gap" | "Blocked";
 
