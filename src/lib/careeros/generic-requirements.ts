@@ -24,14 +24,31 @@ function priorityFor(context: string): RequirementPriority {
     : "Required";
 }
 
+function meaningfulTokens(value: string) {
+  return new Set(
+    normalise(value)
+      .split(" ")
+      .filter((token) => token.length > 2 && !["the", "and", "for", "with", "from"].includes(token)),
+  );
+}
+
+function genuinelyEquivalent(left: string, right: string) {
+  const normalLeft = normalise(left);
+  const normalRight = normalise(right);
+  if (!normalLeft || !normalRight) return false;
+  if (normalLeft === normalRight) return true;
+
+  const leftTokens = meaningfulTokens(left);
+  const rightTokens = meaningfulTokens(right);
+  if (leftTokens.size < 2 || rightTokens.size < 2) return false;
+
+  const shared = [...leftTokens].filter((token) => rightTokens.has(token)).length;
+  const smaller = Math.min(leftTokens.size, rightTokens.size);
+  return smaller > 0 && shared / smaller >= 0.8;
+}
+
 function isAlreadyRepresented(candidate: string, items: EvidenceMapItem[]) {
-  const needle = normalise(candidate);
-  if (!needle) return true;
-  return items.some((item) => {
-    const existing = normalise(item.requirement);
-    if (!existing) return false;
-    return needle === existing || needle.includes(existing) || existing.includes(needle);
-  });
+  return items.some((item) => genuinelyEquivalent(candidate, item.requirement));
 }
 
 interface CandidateRequirement {
