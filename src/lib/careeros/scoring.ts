@@ -1,4 +1,5 @@
 import { buildEvidenceMap, evidenceMapScore } from "./evidence-map";
+import { addUnmappedRequirementGaps } from "./generic-requirements";
 import type {
   CareerOsData,
   EvidenceMapItem,
@@ -162,7 +163,10 @@ export function runScan(job: JobRecord, input: CareerOsData): ScanResult {
     },
   } as CareerOsData;
 
-  const evidenceMap = buildEvidenceMap(job, data);
+  const evidenceMap = addUnmappedRequirementGaps(
+    buildEvidenceMap(job, data),
+    job.description ?? "",
+  );
   const overall = evidenceMapScore(evidenceMap);
   const keyword = keywordCoverage(job, data);
 
