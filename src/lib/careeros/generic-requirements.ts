@@ -32,8 +32,11 @@ function requirementPhrase(sentence: string) {
   const required = trimmed.match(/^(.+?)\s+(?:is|are)\s+(?:also\s+)?required\b/i)?.[1];
   if (required) return cleanRequirement(required);
 
-  const experience = trimmed.match(/\b(?:experience|knowledge|proficiency|expertise)\s+(?:in|with|of)\s+(.+)$/i)?.[0];
-  if (experience && /required|essential|must|need/i.test(trimmed)) return cleanRequirement(experience);
+  const experience = trimmed.match(
+    /\b(?:experience|knowledge|proficiency|expertise)\s+(?:in|with|of)\s+(.+)$/i,
+  )?.[0];
+  if (experience && /required|essential|must|need/i.test(trimmed))
+    return cleanRequirement(experience);
 
   const ability = trimmed.match(/\bability to\s+(.+)$/i)?.[0];
   if (ability && /required|essential|must|need/i.test(trimmed)) return cleanRequirement(ability);
