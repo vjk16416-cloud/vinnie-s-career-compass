@@ -117,7 +117,7 @@ export function LoginCard({ error, returnTo, startSignIn = startGoogleSignIn }: 
               id="login-access-note"
               className="space-y-1 text-center text-xs leading-5 text-muted-foreground"
             >
-              <p>No CareerOS password required.</p>
+              <p>No separate password, just your Google account.</p>
               <p>Access is limited to vjk16416@gmail.com</p>
             </div>
           </CardContent>
