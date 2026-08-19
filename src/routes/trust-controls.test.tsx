@@ -73,9 +73,7 @@ describe("CareerOS trust controls", () => {
     renderPrivateRoute(<SettingsPage />);
 
     expect(await screen.findByRole("heading", { name: "Settings" })).toBeInTheDocument();
-    expect(
-      screen.getByText(/Supabase is the canonical CareerOS store/i),
-    ).toBeInTheDocument();
+    expect(screen.getByText(/Supabase is the canonical CareerOS store/i)).toBeInTheDocument();
     expect(screen.getByText(/browser keeps a local cache/i)).toBeInTheDocument();
     expect(screen.queryByText(/Everything lives in this browser/i)).not.toBeInTheDocument();
   });
@@ -88,7 +86,9 @@ describe("CareerOS trust controls", () => {
     fireEvent.click(screen.getByRole("button", { name: "Reset to seeded data" }));
 
     expect(screen.getByRole("alertdialog")).toBeInTheDocument();
-    expect(screen.getByRole("heading", { name: "Reset CareerOS to seeded data?" })).toBeInTheDocument();
+    expect(
+      screen.getByRole("heading", { name: "Reset CareerOS to seeded data?" }),
+    ).toBeInTheDocument();
     expect(screen.getByText(/sync across your devices/i)).toBeInTheDocument();
     expect(repository.save).not.toHaveBeenCalled();
 
@@ -108,7 +108,9 @@ describe("CareerOS trust controls", () => {
     fireEvent.click(action);
 
     expect(screen.getByRole("alertdialog")).toBeInTheDocument();
-    expect(screen.getByRole("heading", { name: `Mark evidence as ${status}?` })).toBeInTheDocument();
+    expect(
+      screen.getByRole("heading", { name: `Mark evidence as ${status}?` }),
+    ).toBeInTheDocument();
     expect(repository.save).not.toHaveBeenCalled();
 
     fireEvent.click(screen.getByRole("button", { name: confirmLabel }));
