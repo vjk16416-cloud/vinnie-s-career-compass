@@ -43,7 +43,11 @@ jobs:
             src/lib/careeros/cloud-bootstrap.ts \
             src/lib/careeros/cloud-state.repository.test.ts \
             src/lib/careeros/cloud-state.repository.ts \
+            src/lib/careeros/evidence-map.ts \
             src/lib/careeros/generate.profile.test.ts \
+            src/lib/careeros/job-extract.functions.ts \
+            src/lib/careeros/job-extract.server.test.ts \
+            src/lib/careeros/job-extract.server.ts \
             src/lib/careeros/local-cache.ts \
             src/lib/careeros/ordered-save-queue.test.ts \
             src/lib/careeros/ordered-save-queue.ts \
@@ -59,10 +63,13 @@ jobs:
             src/lib/careeros/profile-reconciled-items.ts \
             src/lib/careeros/profile-review.test.ts \
             src/lib/careeros/profile-review.ts \
+            src/lib/careeros/scoring.evidence-map.test.ts \
+            src/lib/careeros/scoring.ts \
             src/lib/careeros/store.cloud.test.tsx \
             src/lib/careeros/store.tsx \
             src/lib/careeros/types.ts \
             src/routes/applications.\$id.tsx \
+            src/routes/job-scan.tsx \
             src/routes/profile.tsx \
             src/lib/cloudflare/wrangler-config.test.ts \
             src/integrations/supabase/auth-attacher.ts \
@@ -91,7 +98,11 @@ jobs:
               src/lib/careeros/cloud-bootstrap.ts \
               src/lib/careeros/cloud-state.repository.test.ts \
               src/lib/careeros/cloud-state.repository.ts \
+              src/lib/careeros/evidence-map.ts \
               src/lib/careeros/generate.profile.test.ts \
+              src/lib/careeros/job-extract.functions.ts \
+              src/lib/careeros/job-extract.server.test.ts \
+              src/lib/careeros/job-extract.server.ts \
               src/lib/careeros/local-cache.ts \
               src/lib/careeros/ordered-save-queue.test.ts \
               src/lib/careeros/ordered-save-queue.ts \
@@ -107,10 +118,13 @@ jobs:
               src/lib/careeros/profile-reconciled-items.ts \
               src/lib/careeros/profile-review.test.ts \
               src/lib/careeros/profile-review.ts \
+              src/lib/careeros/scoring.evidence-map.test.ts \
+              src/lib/careeros/scoring.ts \
               src/lib/careeros/store.cloud.test.tsx \
               src/lib/careeros/store.tsx \
               src/lib/careeros/types.ts \
               src/routes/applications.\$id.tsx \
+              src/routes/job-scan.tsx \
               src/routes/profile.tsx \
               src/lib/cloudflare/wrangler-config.test.ts \
               src/integrations/supabase/auth-attacher.ts \
