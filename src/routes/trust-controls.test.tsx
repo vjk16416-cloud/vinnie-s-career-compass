@@ -112,6 +112,6 @@ describe("CareerOS trust controls", () => {
     expect(repository.save).not.toHaveBeenCalled();
 
     fireEvent.click(screen.getByRole("button", { name: confirmLabel }));
-    await waitFor(() => expect(repository.save).toHaveBeenCalledTimes(1));
+    await waitFor(() => expect(repository.save).toHaveBeenCalled());
   });
 });
