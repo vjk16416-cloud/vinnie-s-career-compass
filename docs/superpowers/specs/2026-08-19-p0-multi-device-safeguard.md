@@ -1,7 +1,7 @@
 # CareerOS P0 Multi-device Local Data Safeguard
 
 Date: 2026-08-19
-Status: Approved P0 design addendum
+Status: Implemented and verified on PR #15
 Parent design: `docs/superpowers/specs/2026-08-18-p0-trust-foundation-design.md`
 
 ## Purpose
@@ -34,12 +34,20 @@ Supabase remains the canonical cross-device storage location. The provenance mar
 
 This safeguard applies to CareerOS browser data. It does not copy or synchronise ChatGPT conversations, GitHub repository content, or Google Drive source documents into Supabase.
 
-## Verification requirements
+## Verification
 
-Automated tests must prove:
+TDD red runs demonstrated both missing behaviours before implementation:
 
-- divergent unconfirmed local data is preserved when a cloud row already exists;
-- successful first-device migration marks the cache as cloud-confirmed;
-- cloud data is not selected over divergent local data until the user explicitly chooses it;
-- local data replaces cloud state only after a successful explicit Supabase save;
-- the complete P0 test suite, targeted formatting/lint checks and production build remain green.
+- bootstrap returned `synced` instead of `local-conflict` and had no cloud-cache provenance marker;
+- the provider had no explicit conflict-resolution screen or choice actions.
+
+Fresh focused verification on commit `e46abda06818e88dc1af06ff2f115e68495179e6`, workflow run `32237909843`:
+
+- 22 test files passed;
+- 110/110 tests passed;
+- P0 Prettier check passed;
+- targeted P0 ESLint completed with 0 errors and 2 existing Fast Refresh warnings in `store.tsx`;
+- production Vite/Nitro/Cloudflare build passed;
+- the auth-focused workflow also passed on the same commit.
+
+The repository-wide Verify workflow still stops at lint because of pre-existing Lovable-generated formatting debt outside the P0 change set. The focused P0 gate verifies the files changed by this trust release and runs the production build independently.
