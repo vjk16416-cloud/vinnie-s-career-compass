@@ -18,30 +18,10 @@ function cleanRequirement(value: string) {
     .replace(/[.;:,]+$/, "");
 }
 
-function priorityFor(sentence: string): RequirementPriority {
-  return /preferred|desirable|nice to have|bonus|advantage/i.test(sentence)
+function priorityFor(context: string): RequirementPriority {
+  return /preferred|desirable|nice to have|bonus|advantage/i.test(context)
     ? "Preferred"
     : "Required";
-}
-
-function requirementPhrase(sentence: string) {
-  const trimmed = sentence.trim();
-  const mustHave = trimmed.match(/\bmust have\s+(.+)$/i)?.[1];
-  if (mustHave) return cleanRequirement(mustHave);
-
-  const required = trimmed.match(/^(.+?)\s+(?:is|are)\s+(?:also\s+)?required\b/i)?.[1];
-  if (required) return cleanRequirement(required);
-
-  const experience = trimmed.match(
-    /\b(?:experience|knowledge|proficiency|expertise)\s+(?:in|with|of)\s+(.+)$/i,
-  )?.[0];
-  if (experience && /required|essential|must|need/i.test(trimmed))
-    return cleanRequirement(experience);
-
-  const ability = trimmed.match(/\bability to\s+(.+)$/i)?.[0];
-  if (ability && /required|essential|must|need/i.test(trimmed)) return cleanRequirement(ability);
-
-  return "";
 }
 
 function isAlreadyRepresented(candidate: string, items: EvidenceMapItem[]) {
@@ -54,18 +34,55 @@ function isAlreadyRepresented(candidate: string, items: EvidenceMapItem[]) {
   });
 }
 
-export function addUnmappedRequirementGaps(
-  existing: EvidenceMapItem[],
-  jobDescription: string,
-): EvidenceMapItem[] {
-  const result = [...existing];
+interface CandidateRequirement {
+  phrase: string;
+  context: string;
+}
+
+function collectCandidateRequirements(jobDescription: string): CandidateRequirement[] {
+  const candidates: CandidateRequirement[] = [];
+  const patterns = [
+    /\bmust have\s+([^.!?\n]+)/gi,
+    /\b(?:required|essential)\s*:\s*([^.!?\n]+)/gi,
+    /([^.!?\n]{5,160}?)\s+(?:is|are)\s+(?:also\s+)?required\b/gi,
+  ];
+
+  for (const pattern of patterns) {
+    for (const match of jobDescription.matchAll(pattern)) {
+      const raw = match[1] ?? "";
+      const phrase = cleanRequirement(raw);
+      if (!phrase) continue;
+      candidates.push({ phrase, context: match[0] });
+    }
+  }
+
   const sentences = jobDescription
     .split(/\n+|(?<=[.!?])\s+/)
     .map((sentence) => sentence.trim())
     .filter(Boolean);
 
   for (const sentence of sentences) {
-    const phrase = requirementPhrase(sentence);
+    if (!/required|essential|must|need/i.test(sentence)) continue;
+    const experience = sentence.match(
+      /\b(?:experience|knowledge|proficiency|expertise)\s+(?:in|with|of)\s+([^.!?\n]+)/i,
+    )?.[0];
+    if (experience) candidates.push({ phrase: cleanRequirement(experience), context: sentence });
+
+    const ability = sentence.match(/\bability to\s+([^.!?\n]+)/i)?.[0];
+    if (ability) candidates.push({ phrase: cleanRequirement(ability), context: sentence });
+  }
+
+  return candidates;
+}
+
+export function addUnmappedRequirementGaps(
+  existing: EvidenceMapItem[],
+  jobDescription: string,
+): EvidenceMapItem[] {
+  const result = [...existing];
+
+  for (const candidate of collectCandidateRequirements(jobDescription)) {
+    const phrase = candidate.phrase;
     if (!phrase || phrase.length < 5 || phrase.length > 180) continue;
     if (isAlreadyRepresented(phrase, result)) continue;
 
@@ -73,7 +90,7 @@ export function addUnmappedRequirementGaps(
       id: `unmapped-${normalise(phrase).replace(/\s+/g, "-").slice(0, 80)}`,
       requirement: phrase,
       category: "Skill",
-      priority: priorityFor(sentence),
+      priority: priorityFor(candidate.context),
       status: "Gap",
       score: 0,
       evidenceIds: [],
