@@ -128,7 +128,10 @@ describe("authorised account shell", () => {
 
     fireEvent.click(within(mobileNav).getByRole("button", { name: "More" }));
 
-    expect(screen.getByRole("link", { name: "Career Profile" })).toHaveAttribute("href", "/profile");
+    expect(screen.getByRole("link", { name: "Career Profile" })).toHaveAttribute(
+      "href",
+      "/profile",
+    );
     expect(screen.getByRole("link", { name: "Job Market Intelligence" })).toHaveAttribute(
       "href",
       "/market",
