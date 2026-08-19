@@ -1,6 +1,7 @@
 import { Link, useRouterState } from "@tanstack/react-router";
 import {
   BriefcaseBusiness,
+  Ellipsis,
   FileText,
   Gauge,
   Home,
@@ -8,10 +9,18 @@ import {
   Settings as SettingsIcon,
   ShieldCheck,
   UserRound,
-  Plus,
 } from "lucide-react";
 import type { ReactNode } from "react";
 import { AccountMenu } from "@/components/auth/account-menu";
+import {
+  Sheet,
+  SheetClose,
+  SheetContent,
+  SheetDescription,
+  SheetHeader,
+  SheetTitle,
+  SheetTrigger,
+} from "@/components/ui/sheet";
 import { useCareerOs } from "@/lib/careeros/store";
 import { cn } from "@/lib/utils";
 
@@ -28,6 +37,10 @@ export const NAV_ITEMS = [
 
 const MOBILE_NAV = NAV_ITEMS.filter((n) =>
   ["/", "/applications", "/job-scan", "/evidence", "/cvs"].includes(n.to),
+);
+
+const MOBILE_MORE_NAV = NAV_ITEMS.filter((n) =>
+  ["/profile", "/market", "/settings"].includes(n.to),
 );
 
 export function AppShell({
@@ -149,16 +162,43 @@ export function AppShell({
               </Link>
             );
           })}
-          <Link
-            to="/job-scan"
-            aria-label="Quick add job"
-            className="flex min-h-14 flex-col items-center justify-center gap-1 text-[10px] text-primary-foreground"
-          >
-            <span className="grid h-8 w-8 place-items-center rounded-full bg-primary">
-              <Plus className="h-4 w-4" aria-hidden="true" />
-            </span>
-            <span className="text-muted-foreground">Add</span>
-          </Link>
+
+          <Sheet>
+            <SheetTrigger asChild>
+              <button
+                type="button"
+                aria-label="More"
+                className={cn(
+                  "flex min-h-14 flex-col items-center justify-center gap-1 px-1 text-[10px]",
+                  MOBILE_MORE_NAV.some((item) => pathname.startsWith(item.to))
+                    ? "text-primary"
+                    : "text-muted-foreground",
+                )}
+              >
+                <Ellipsis className="h-5 w-5" aria-hidden="true" />
+                <span>More</span>
+              </button>
+            </SheetTrigger>
+            <SheetContent side="bottom" className="rounded-t-xl pb-8">
+              <SheetHeader>
+                <SheetTitle>More</SheetTitle>
+                <SheetDescription>Open the rest of your CareerOS workspace.</SheetDescription>
+              </SheetHeader>
+              <nav className="mt-4 grid gap-2" aria-label="More CareerOS sections">
+                {MOBILE_MORE_NAV.map((item) => (
+                  <SheetClose key={item.to} asChild>
+                    <Link
+                      to={item.to}
+                      className="flex items-center gap-3 rounded-md border border-border px-3 py-3 text-sm font-medium hover:bg-accent"
+                    >
+                      <item.icon className="h-4 w-4 shrink-0" aria-hidden="true" />
+                      <span>{item.label}</span>
+                    </Link>
+                  </SheetClose>
+                ))}
+              </nav>
+            </SheetContent>
+          </Sheet>
         </div>
       </nav>
     </div>

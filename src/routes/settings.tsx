@@ -1,7 +1,17 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { toast } from "sonner";
 import { AppShell } from "@/components/careeros/app-shell";
 import { Panel, StatusPill } from "@/components/careeros/ui-bits";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from "@/components/ui/alert-dialog";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -14,7 +24,7 @@ export const Route = createFileRoute("/settings")({
       { title: "Settings — CareerOS" },
       {
         name: "description",
-        content: "Data sources, optional review step and local storage controls.",
+        content: "Data sources, optional review step and cloud storage controls.",
       },
       { property: "og:title", content: "Settings — CareerOS" },
       {
@@ -33,24 +43,34 @@ function SettingsPage() {
   return (
     <AppShell title="Settings" subtitle="Data sources and optional integrations">
       <div className="space-y-4">
-        <Panel title="Data source">
+        <Panel title="CareerOS storage">
           <div className="flex flex-wrap items-center gap-2">
-            <StatusPill label="Local seeded data" tone="info" />
+            <StatusPill label="Supabase cloud state" tone="info" />
             <span className="text-sm text-muted-foreground">
-              Everything lives in this browser. No external system is connected.
+              Supabase is the canonical CareerOS store. This browser keeps a local cache for
+              resilience and recovery.
             </span>
           </div>
-          <Button
-            className="mt-3"
-            size="sm"
-            variant="secondary"
-            onClick={() => {
-              resetToSeed();
-              toast.success("Local data reset to the seeded career record.");
-            }}
-          >
-            Reset to seeded data
-          </Button>
+          <AlertDialog>
+            <AlertDialogTrigger asChild>
+              <Button className="mt-3" size="sm" variant="secondary">
+                Reset to seeded data
+              </Button>
+            </AlertDialogTrigger>
+            <AlertDialogContent>
+              <AlertDialogHeader>
+                <AlertDialogTitle>Reset CareerOS to seeded data?</AlertDialogTitle>
+                <AlertDialogDescription>
+                  This replaces your current CareerOS state with the seeded career record. The
+                  change will sync across your devices after it is saved to Supabase.
+                </AlertDialogDescription>
+              </AlertDialogHeader>
+              <AlertDialogFooter>
+                <AlertDialogCancel>Cancel</AlertDialogCancel>
+                <AlertDialogAction onClick={resetToSeed}>Reset CareerOS</AlertDialogAction>
+              </AlertDialogFooter>
+            </AlertDialogContent>
+          </AlertDialog>
         </Panel>
 
         <Panel title="Google Drive source" description="Future integration target — not connected.">

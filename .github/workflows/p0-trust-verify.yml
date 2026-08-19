@@ -14,7 +14,10 @@ on:
       - "src/lib/auth/**"
       - "src/lib/careeros/**"
       - "src/routes/applications.$id.tsx"
+      - "src/routes/evidence.tsx"
       - "src/routes/profile.tsx"
+      - "src/routes/settings.tsx"
+      - "src/routes/-trust-controls.test.tsx"
       - "supabase/migrations/**"
 
 permissions:
@@ -44,6 +47,7 @@ jobs:
           bunx prettier --check \
             src/components/auth/account-shell.integration.test.tsx \
             src/components/auth/login-card.test.tsx \
+            src/components/auth/login-card.tsx \
             src/components/careeros/app-shell.tsx \
             src/components/careeros/cv-health-check-panel.test.tsx \
             src/components/careeros/cv-health-check-panel.tsx \
@@ -67,13 +71,17 @@ jobs:
             src/lib/careeros/store.tsx \
             src/lib/careeros/types.ts \
             'src/routes/applications.$id.tsx' \
-            src/routes/profile.tsx
+            src/routes/evidence.tsx \
+            src/routes/profile.tsx \
+            src/routes/settings.tsx \
+            src/routes/-trust-controls.test.tsx
 
       - name: Lint P0 files
         run: |
           bunx eslint \
             src/components/auth/account-shell.integration.test.tsx \
             src/components/auth/login-card.test.tsx \
+            src/components/auth/login-card.tsx \
             src/components/careeros/app-shell.tsx \
             src/components/careeros/cv-health-check-panel.test.tsx \
             src/components/careeros/cv-health-check-panel.tsx \
@@ -97,7 +105,10 @@ jobs:
             src/lib/careeros/store.tsx \
             src/lib/careeros/types.ts \
             'src/routes/applications.$id.tsx' \
-            src/routes/profile.tsx
+            src/routes/evidence.tsx \
+            src/routes/profile.tsx \
+            src/routes/settings.tsx \
+            src/routes/-trust-controls.test.tsx
 
       - name: Run production build
         run: bun run build

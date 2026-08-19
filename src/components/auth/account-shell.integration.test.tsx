@@ -3,7 +3,7 @@ import "@/test/setup";
 
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { RouterContextProvider } from "@tanstack/react-router";
-import { cleanup, render, screen } from "@testing-library/react";
+import { cleanup, fireEvent, render, screen, within } from "@testing-library/react";
 import { afterEach, describe, expect, it, vi, type Mock } from "vitest";
 
 import { AppShell } from "@/components/careeros/app-shell";
@@ -112,6 +112,31 @@ describe("authorised account shell", () => {
     expect(
       screen.getByText("Cloud data is temporarily unavailable. Viewing the last saved copy."),
     ).toBeInTheDocument();
+  });
+
+  it("uses the sixth mobile slot for More and exposes secondary destinations", async () => {
+    createRepository.mockReturnValue(resolvedRepository());
+    renderPrivateContent(
+      <AppShell title="CareerOS home">
+        <p>Private workspace</p>
+      </AppShell>,
+    );
+
+    expect(await screen.findByText("Private workspace")).toBeInTheDocument();
+    const mobileNav = screen.getByRole("navigation", { name: "Primary mobile" });
+    expect(within(mobileNav).queryByText("Add")).not.toBeInTheDocument();
+
+    fireEvent.click(within(mobileNav).getByRole("button", { name: "More" }));
+
+    expect(screen.getByRole("link", { name: "Career Profile" })).toHaveAttribute(
+      "href",
+      "/profile",
+    );
+    expect(screen.getByRole("link", { name: "Job Market Intelligence" })).toHaveAttribute(
+      "href",
+      "/market",
+    );
+    expect(screen.getByRole("link", { name: "Settings" })).toHaveAttribute("href", "/settings");
   });
 
   it("renders the GET logout confirmation without invoking the POST logout action", () => {
