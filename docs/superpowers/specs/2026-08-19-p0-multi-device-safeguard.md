@@ -41,12 +41,6 @@ TDD red runs demonstrated both missing behaviours before implementation:
 - bootstrap returned `synced` instead of `local-conflict` and had no cloud-cache provenance marker;
 - the provider had no explicit conflict-resolution screen or choice actions.
 
-The PR verification gate covers the completed safeguard with:
-
-- the complete test suite;
-- P0 Prettier checks;
-- targeted P0 ESLint;
-- the production Vite/Nitro/Cloudflare build;
-- the auth-focused verification workflow.
+The focused P0 verification gate covers the completed safeguard with the complete test suite, P0 Prettier checks, targeted P0 ESLint, the production Vite/Nitro/Cloudflare build and the auth-focused verification workflow.
 
 The repository-wide Verify workflow may still stop at lint because of pre-existing Lovable-generated formatting debt outside the P0 change set. The focused P0 gate verifies the files changed by this trust release and runs the production build independently.
