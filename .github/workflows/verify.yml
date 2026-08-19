@@ -64,7 +64,19 @@ jobs:
             src/lib/careeros/types.ts \
             src/routes/applications.\$id.tsx \
             src/routes/profile.tsx \
-            src/lib/cloudflare/wrangler-config.test.ts
+            src/lib/cloudflare/wrangler-config.test.ts \
+            src/integrations/supabase/auth-attacher.ts \
+            src/integrations/supabase/auth-middleware.ts \
+            src/integrations/supabase/client.server.ts \
+            src/integrations/supabase/client.ts \
+            src/integrations/supabase/types.ts \
+            src/lib/mcp/tools/extract-job-posting.ts \
+            src/lib/mcp/tools/list-evidence.ts \
+            'src/routes/[.]lovable.oauth.consent.tsx' \
+            'src/routes/[.mcp]/invoke-tool/$tool.ts' \
+            'src/routes/[.mcp]/list-tools.ts' \
+            'src/routes/[.well-known]/oauth-protected-resource.ts' \
+            src/routes/mcp.ts
           if ! git diff --quiet; then
             git config user.name "github-actions[bot]"
             git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
@@ -100,7 +112,19 @@ jobs:
               src/lib/careeros/types.ts \
               src/routes/applications.\$id.tsx \
               src/routes/profile.tsx \
-              src/lib/cloudflare/wrangler-config.test.ts
+              src/lib/cloudflare/wrangler-config.test.ts \
+              src/integrations/supabase/auth-attacher.ts \
+              src/integrations/supabase/auth-middleware.ts \
+              src/integrations/supabase/client.server.ts \
+              src/integrations/supabase/client.ts \
+              src/integrations/supabase/types.ts \
+              src/lib/mcp/tools/extract-job-posting.ts \
+              src/lib/mcp/tools/list-evidence.ts \
+              'src/routes/[.]lovable.oauth.consent.tsx' \
+              'src/routes/[.mcp]/invoke-tool/$tool.ts' \
+              'src/routes/[.mcp]/list-tools.ts' \
+              'src/routes/[.well-known]/oauth-protected-resource.ts' \
+              src/routes/mcp.ts
             git commit -m "Format verification files"
             git push origin HEAD:${GITHUB_REF_NAME}
           fi
