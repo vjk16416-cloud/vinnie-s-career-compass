@@ -45,6 +45,7 @@ jobs:
             src/lib/careeros/cloud-state.repository.ts \
             src/lib/careeros/evidence-map.ts \
             src/lib/careeros/generate.profile.test.ts \
+            src/lib/careeros/generic-requirements.test.ts \
             src/lib/careeros/generic-requirements.ts \
             src/lib/careeros/job-extract.functions.ts \
             src/lib/careeros/job-extract.server.test.ts \
@@ -102,6 +103,7 @@ jobs:
               src/lib/careeros/cloud-state.repository.ts \
               src/lib/careeros/evidence-map.ts \
               src/lib/careeros/generate.profile.test.ts \
+              src/lib/careeros/generic-requirements.test.ts \
               src/lib/careeros/generic-requirements.ts \
               src/lib/careeros/job-extract.functions.ts \
               src/lib/careeros/job-extract.server.test.ts \
