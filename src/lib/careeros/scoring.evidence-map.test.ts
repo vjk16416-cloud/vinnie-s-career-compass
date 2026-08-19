@@ -139,4 +139,22 @@ describe("evidence-first role scoring", () => {
       evidenceIds: [],
     });
   });
+
+  it("keeps an unfamiliar required criterion visible as a Gap instead of silently ignoring it", () => {
+    const data = createCareerOsData();
+    const result = runScan(
+      job(
+        "You must have advanced financial modelling experience for investment cases. Budget ownership is also required.",
+      ),
+      data,
+    );
+
+    const financialModelling = findRequirement(evidenceMap(result), /financial modelling/i);
+
+    expect(financialModelling).toMatchObject({
+      priority: "Required",
+      status: "Gap",
+      score: 0,
+    });
+  });
 });
