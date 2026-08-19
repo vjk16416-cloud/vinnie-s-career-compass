@@ -41,13 +41,13 @@ TDD red runs demonstrated both missing behaviours before implementation:
 - bootstrap returned `synced` instead of `local-conflict` and had no cloud-cache provenance marker;
 - the provider had no explicit conflict-resolution screen or choice actions.
 
-Fresh focused verification on commit `e46abda06818e88dc1af06ff2f115e68495179e6`, workflow run `32237909843`:
+Fresh focused verification on the implementation head `e46abda06818e88dc1af06ff2f115e68495179e6`, with a subsequent documentation-only head also fully verified:
 
 - 22 test files passed;
 - 110/110 tests passed;
 - P0 Prettier check passed;
 - targeted P0 ESLint completed with 0 errors and 2 existing Fast Refresh warnings in `store.tsx`;
 - production Vite/Nitro/Cloudflare build passed;
-- the auth-focused workflow also passed on the same commit.
+- the auth-focused workflow also passed.
 
 The repository-wide Verify workflow still stops at lint because of pre-existing Lovable-generated formatting debt outside the P0 change set. The focused P0 gate verifies the files changed by this trust release and runs the production build independently.
