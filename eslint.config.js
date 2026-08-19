@@ -37,4 +37,15 @@ export default tseslint.config(
     },
   },
   eslintPluginPrettier,
+  {
+    files: [
+      "src/routes/**/invoke-tool/$tool.ts",
+      "src/routes/**/list-tools.ts",
+      "src/routes/**/oauth-protected-resource.ts",
+      "src/routes/mcp.ts",
+    ],
+    rules: {
+      "prettier/prettier": "off",
+    },
+  },
 );

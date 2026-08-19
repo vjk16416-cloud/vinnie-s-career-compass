@@ -18,7 +18,10 @@ export default defineTool({
     if (denied) return denied;
 
     if (!url.startsWith("https://")) {
-      return { content: [{ type: "text" as const, text: "Only https URLs are supported." }], isError: true as const };
+      return {
+        content: [{ type: "text" as const, text: "Only https URLs are supported." }],
+        isError: true as const,
+      };
     }
 
     try {
@@ -33,7 +36,9 @@ export default defineTool({
       });
       if (!res.ok) {
         return {
-          content: [{ type: "text" as const, text: `The site responded with status ${res.status}.` }],
+          content: [
+            { type: "text" as const, text: `The site responded with status ${res.status}.` },
+          ],
           isError: true as const,
         };
       }
@@ -44,7 +49,12 @@ export default defineTool({
       };
     } catch {
       return {
-        content: [{ type: "text" as const, text: "We could not open that link from here. Paste the advert text instead." }],
+        content: [
+          {
+            type: "text" as const,
+            text: "We could not open that link from here. Paste the advert text instead.",
+          },
+        ],
         isError: true as const,
       };
     }
