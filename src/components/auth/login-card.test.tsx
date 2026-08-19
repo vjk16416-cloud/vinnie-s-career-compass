@@ -24,7 +24,7 @@ describe("LoginCard", () => {
     expect(screen.getByRole("heading", { name: "CareerOS" })).toBeInTheDocument();
     expect(screen.getByText("Private career workspace")).toBeInTheDocument();
     expect(screen.getByRole("button", { name: "Sign in with Google" })).toBeEnabled();
-    expect(screen.getByText("No CareerOS password required.")).toBeInTheDocument();
+    expect(screen.getByText("No separate password, just your Google account.")).toBeInTheDocument();
     expect(screen.getByText("Access is limited to vjk16416@gmail.com")).toBeInTheDocument();
     expectGoogleOnlyControls();
   });
