@@ -1,7 +1,10 @@
 export interface JobExtract {
   ok: true;
   confidence: "high" | "medium";
+  completeness: "complete" | "partial";
   method: "structured" | "semantic";
+  wordCount: number;
+  qualityNotes: string[];
   title: string;
   company: string;
   location: string;
@@ -21,10 +24,12 @@ export interface JobExtract {
   applyUrl: string;
   text: string;
 }
+
 export interface ExtractFailure {
   ok: false;
   reason: string;
 }
+
 export type ExtractResult = JobExtract | ExtractFailure;
 
 const NAMED: Record<string, string> = {
@@ -48,9 +53,9 @@ const NAMED: Record<string, string> = {
 
 export function decodeEntities(input: string): string {
   return input
-    .replace(/&#x([0-9a-f]+);/gi, (_, h) => safeChar(parseInt(h, 16)))
-    .replace(/&#(\d+);/g, (_, d) => safeChar(Number(d)))
-    .replace(/&([a-z]+);/gi, (m, n: string) => NAMED[n.toLowerCase()] ?? m);
+    .replace(/&#x([0-9a-f]+);/gi, (_, hex) => safeChar(parseInt(hex, 16)))
+    .replace(/&#(\d+);/g, (_, decimal) => safeChar(Number(decimal)))
+    .replace(/&([a-z]+);/gi, (match, name: string) => NAMED[name.toLowerCase()] ?? match);
 }
 
 function safeChar(code: number) {
@@ -67,7 +72,7 @@ export function htmlToText(html: string): string {
       .replace(/<script[\s\S]*?<\/script>/gi, " ")
       .replace(/<style[\s\S]*?<\/style>/gi, " ")
       .replace(/<br\s*\/?>/gi, "\n")
-      .replace(/<\/(p|div|li|h[1-6]|tr|section)>/gi, "\n")
+      .replace(/<\/(p|div|li|h[1-6]|tr|section|article)>/gi, "\n")
       .replace(/<li[^>]*>/gi, "• ")
       .replace(/<[^>]+>/g, " "),
   )
@@ -78,11 +83,9 @@ export function htmlToText(html: string): string {
     .trim();
 }
 
-function wordCount(t: string) {
-  return t.split(/\s+/).filter(Boolean).length;
+function countWords(text: string) {
+  return text.split(/\s+/).filter(Boolean).length;
 }
-
-/* ---------------- boilerplate cleaning ---------------- */
 
 const NOISE_PATTERNS = [
   /cookie/i,
@@ -105,25 +108,31 @@ const NOISE_PATTERNS = [
   /javascript|enable cookies|browser/i,
 ];
 
-function cleanLines(text: string): string[] {
+function cleanLines(text: string) {
   const seen = new Set<string>();
-  const out: string[] = [];
-  for (const rawLine of text.split("\n")) {
-    const line = rawLine.replace(/^[•\-*\u2022\s]+/, "").trim();
-    if (!line) continue;
-    if (line.length < 3) continue;
-    if (NOISE_PATTERNS.some((p) => p.test(line))) continue;
+  const lines: string[] = [];
+  for (const raw of text.split("\n")) {
+    const line = raw.replace(/^[•\-*\u2022\s]+/, "").trim();
+    if (line.length < 3 || NOISE_PATTERNS.some((pattern) => pattern.test(line))) continue;
     const key = line.toLowerCase().replace(/[^a-z0-9]+/g, "");
     if (!key || seen.has(key)) continue;
     seen.add(key);
-    out.push(line);
+    lines.push(line);
   }
-  return out;
+  return lines;
 }
 
-/* ---------------- sectioning ---------------- */
+interface SectionBuckets {
+  responsibilities: string[];
+  requiredSkills: string[];
+  preferredSkills: string[];
+  qualifications: string[];
+  benefits: string[];
+  about: string[];
+  intro: string[];
+}
 
-const SECTION_RULES: { key: keyof SectionBuckets; re: RegExp }[] = [
+const SECTION_RULES: Array<{ key: keyof SectionBuckets; re: RegExp }> = [
   {
     key: "responsibilities",
     re: /(responsibilit|what you.?ll (do|be doing)|the role|key duties|duties|accountabilit|main tasks|day to day|day-to-day|purpose of the (role|job))/i,
@@ -147,19 +156,8 @@ const SECTION_RULES: { key: keyof SectionBuckets; re: RegExp }[] = [
   },
 ];
 
-interface SectionBuckets {
-  responsibilities: string[];
-  requiredSkills: string[];
-  preferredSkills: string[];
-  qualifications: string[];
-  benefits: string[];
-  about: string[];
-  intro: string[];
-}
-
-function looksLikeHeading(line: string): boolean {
-  if (line.length > 90) return false;
-  if (/[.!?]$/.test(line)) return false;
+function looksLikeHeading(line: string) {
+  if (line.length > 90 || /[.!?]$/.test(line)) return false;
   return /:$/.test(line) || line.split(/\s+/).length <= 9;
 }
 
@@ -176,7 +174,7 @@ function sectionise(lines: string[]): SectionBuckets {
   let current: keyof SectionBuckets = "intro";
   for (const line of lines) {
     if (looksLikeHeading(line)) {
-      const rule = SECTION_RULES.find((r) => r.re.test(line));
+      const rule = SECTION_RULES.find((candidate) => candidate.re.test(line));
       if (rule) {
         current = rule.key;
         continue;
@@ -240,27 +238,28 @@ const COMPETENCY_LIBRARY = [
   "presentation",
 ];
 
-function findTools(text: string): string[] {
+function findTools(text: string) {
   const lower = text.toLowerCase();
-  return TOOL_LIBRARY.filter((t) => lower.includes(t.toLowerCase()));
+  return TOOL_LIBRARY.filter((tool) => lower.includes(tool.toLowerCase()));
 }
 
-function findCompetencies(text: string): string[] {
+function findCompetencies(text: string) {
   const lower = text.toLowerCase();
-  return COMPETENCY_LIBRARY.filter((c) => lower.includes(c)).map(
-    (c) => c.charAt(0).toUpperCase() + c.slice(1),
+  return COMPETENCY_LIBRARY.filter((item) => lower.includes(item)).map(
+    (item) => item.charAt(0).toUpperCase() + item.slice(1),
   );
 }
 
-function findExperience(lines: string[]): string[] {
+function findExperience(lines: string[]) {
   return lines
     .filter(
-      (l) => /\b\d+\+?\s*(\+)?\s*(years?|yrs)\b/i.test(l) || /experience (in|of|with)/i.test(l),
+      (line) =>
+        /\b\d+\+?\s*(\+)?\s*(years?|yrs)\b/i.test(line) || /experience (in|of|with)/i.test(line),
     )
-    .slice(0, 6);
+    .slice(0, 8);
 }
 
-function detectWorkplaceType(text: string): string {
+function detectWorkplaceType(text: string) {
   const lower = text.toLowerCase();
   if (/\bhybrid\b/.test(lower)) return "Hybrid";
   if (/\b(fully )?remote\b|work from home|telecommute/.test(lower)) return "Remote";
@@ -268,7 +267,7 @@ function detectWorkplaceType(text: string): string {
   return "";
 }
 
-function detectEmploymentType(text: string): string {
+function detectEmploymentType(text: string) {
   const lower = text.toLowerCase();
   if (/fixed[- ]term/.test(lower)) return "Fixed-term";
   if (/\bcontract\b|\bcontractor\b|\binterim\b/.test(lower)) return "Contract";
@@ -278,153 +277,161 @@ function detectEmploymentType(text: string): string {
   return "";
 }
 
-function detectSalary(text: string): string {
-  const m =
+function detectSalary(text: string) {
+  const match =
     text.match(
       /(£|\$|€)\s?\d[\d,.]*\s?(k)?\s?(-|–|to)\s?(£|\$|€)?\s?\d[\d,.]*\s?(k)?(\s?(per annum|pa|p\.a\.|a year))?/i,
     ) ?? text.match(/(£|\$|€)\s?\d[\d,.]*\s?(k)?(\s?(per annum|per hour|pa|a year|an hour))?/i);
-  return m ? m[0].replace(/\s+/g, " ").trim() : "";
+  return match ? match[0].replace(/\s+/g, " ").trim() : "";
 }
 
-function detectClosingDate(text: string): string {
-  const m = text.match(
+function detectClosingDate(text: string) {
+  const match = text.match(
     /(closing date|applications? close[sd]?|deadline)[^\n]{0,40}?((\d{1,2}\s+\w+\s+\d{4})|(\d{1,2}[/-]\d{1,2}[/-]\d{2,4})|(\w+\s+\d{1,2},?\s+\d{4}))/i,
   );
-  return m?.[2] ? m[2].trim() : "";
+  return match?.[2]?.trim() ?? "";
 }
 
-/* ---------------- JSON-LD ---------------- */
-
-function flatten(node: unknown, out: Record<string, unknown>[] = []): Record<string, unknown>[] {
+function flatten(node: unknown, out: Record<string, unknown>[] = []) {
   if (Array.isArray(node)) {
-    node.forEach((n) => flatten(n, out));
+    node.forEach((item) => flatten(item, out));
   } else if (node && typeof node === "object") {
-    const obj = node as Record<string, unknown>;
-    out.push(obj);
-    if (obj["@graph"]) flatten(obj["@graph"], out);
+    const object = node as Record<string, unknown>;
+    out.push(object);
+    if (object["@graph"]) flatten(object["@graph"], out);
   }
   return out;
 }
 
-function typeMatches(obj: Record<string, unknown>): boolean {
-  const t = obj["@type"];
-  const types = Array.isArray(t) ? t : [t];
-  return types.some((x) => typeof x === "string" && x.toLowerCase() === "jobposting");
+function typeMatches(object: Record<string, unknown>) {
+  const raw = object["@type"];
+  const types = Array.isArray(raw) ? raw : [raw];
+  return types.some((value) => typeof value === "string" && value.toLowerCase() === "jobposting");
 }
 
-function textOf(v: unknown): string {
-  if (typeof v === "string") return v;
-  if (typeof v === "number") return String(v);
-  if (Array.isArray(v)) return v.map(textOf).filter(Boolean).join(", ");
-  if (v && typeof v === "object") {
-    const o = v as Record<string, unknown>;
-    return textOf(o["name"] ?? o["addressLocality"] ?? o["address"] ?? o["value"] ?? "");
+function textOf(value: unknown): string {
+  if (typeof value === "string" || typeof value === "number") return String(value);
+  if (Array.isArray(value)) return value.map(textOf).filter(Boolean).join(", ");
+  if (value && typeof value === "object") {
+    const object = value as Record<string, unknown>;
+    return textOf(
+      object["name"] ?? object["addressLocality"] ?? object["address"] ?? object["value"] ?? "",
+    );
   }
   return "";
 }
 
-function locationOf(obj: Record<string, unknown>): string {
-  const jl = obj["jobLocation"];
-  const nodes = Array.isArray(jl) ? jl : [jl];
+function locationOf(object: Record<string, unknown>) {
+  const raw = object["jobLocation"];
+  const locations = Array.isArray(raw) ? raw : [raw];
   const parts: string[] = [];
-  for (const n of nodes) {
-    if (n && typeof n === "object") {
-      const addr = (n as Record<string, unknown>)["address"];
-      if (addr && typeof addr === "object") {
-        const a = addr as Record<string, unknown>;
-        const seg = [a["addressLocality"], a["addressRegion"], a["addressCountry"]]
+  for (const location of locations) {
+    if (location && typeof location === "object") {
+      const address = (location as Record<string, unknown>)["address"];
+      if (address && typeof address === "object") {
+        const record = address as Record<string, unknown>;
+        const segments = [record["addressLocality"], record["addressRegion"], record["addressCountry"]]
           .map(textOf)
           .filter(Boolean);
-        if (seg.length) parts.push(seg.join(", "));
+        if (segments.length) parts.push(segments.join(", "));
         continue;
       }
     }
-    const t = textOf(n);
-    if (t) parts.push(t);
+    const value = textOf(location);
+    if (value) parts.push(value);
   }
   if (!parts.length) {
-    const remote = textOf(obj["applicantLocationRequirements"]);
-    if (remote) parts.push(`Remote — ${remote}`);
-    if (obj["jobLocationType"] === "TELECOMMUTE" && !remote) parts.push("Remote");
+    const remote = textOf(object["applicantLocationRequirements"]);
+    if (remote) parts.push(`Remote – ${remote}`);
+    if (object["jobLocationType"] === "TELECOMMUTE" && !remote) parts.push("Remote");
   }
   return [...new Set(parts)].join(" / ").slice(0, 120);
 }
 
-function salaryOf(obj: Record<string, unknown>): string {
-  const bs = obj["baseSalary"];
-  if (!bs || typeof bs !== "object") return "";
-  const o = bs as Record<string, unknown>;
-  const currency = textOf(o["currency"]) || "";
-  const value = o["value"];
-  if (value && typeof value === "object") {
-    const v = value as Record<string, unknown>;
-    const min = textOf(v["minValue"]);
-    const max = textOf(v["maxValue"]);
-    const single = textOf(v["value"]);
-    const unit = textOf(v["unitText"]).toLowerCase();
-    const range = min && max ? `${min} – ${max}` : single || min || max;
-    if (!range) return "";
-    return `${currency ? currency + " " : ""}${range}${unit ? ` per ${unit}` : ""}`.trim();
-  }
-  return textOf(value);
+function salaryOf(object: Record<string, unknown>) {
+  const salary = object["baseSalary"];
+  if (!salary || typeof salary !== "object") return "";
+  const record = salary as Record<string, unknown>;
+  const currency = textOf(record["currency"]);
+  const value = record["value"];
+  if (!value || typeof value !== "object") return textOf(value);
+  const range = value as Record<string, unknown>;
+  const min = textOf(range["minValue"]);
+  const max = textOf(range["maxValue"]);
+  const single = textOf(range["value"]);
+  const unit = textOf(range["unitText"]).toLowerCase();
+  const amount = min && max ? `${min} – ${max}` : single || min || max;
+  return amount ? `${currency ? `${currency} ` : ""}${amount}${unit ? ` per ${unit}` : ""}`.trim() : "";
 }
 
-/* ---------------- assembly ---------------- */
+function prettyEmployment(value: string) {
+  const map: Record<string, string> = {
+    FULL_TIME: "Permanent (full-time)",
+    PART_TIME: "Part-time",
+    CONTRACTOR: "Contract",
+    TEMPORARY: "Fixed-term",
+    INTERN: "Internship",
+    OTHER: "",
+  };
+  return value
+    .split(/,\s*/)
+    .map((item) => map[item.trim().toUpperCase()] ?? item.trim())
+    .filter(Boolean)
+    .join(", ");
+}
 
-function assemble(
-  base: {
-    method: "structured" | "semantic";
-    title: string;
-    company: string;
-    location: string;
-    employmentType: string;
-    salary: string;
-    closingDate: string;
-    applyUrl: string;
-    sourceUrl: string;
-  },
-  descriptionText: string,
-): JobExtract | null {
+interface AssembleBase {
+  method: "structured" | "semantic";
+  title: string;
+  company: string;
+  location: string;
+  employmentType: string;
+  salary: string;
+  closingDate: string;
+  applyUrl: string;
+  sourceUrl: string;
+}
+
+function assemble(base: AssembleBase, descriptionText: string): JobExtract | null {
   const lines = cleanLines(descriptionText);
   const body = lines.join("\n");
-  if (wordCount(body) < 60) return null;
+  const words = countWords(body);
+  if (words < 60) return null;
 
   const buckets = sectionise(lines);
-  const summarySource = buckets.intro.length ? buckets.intro : lines;
-  const summary = summarySource
-    .filter((l) => l.split(/\s+/).length > 8)
-    .slice(0, 3)
-    .join(" ")
-    .slice(0, 600);
-
   const responsibilities = buckets.responsibilities.slice(0, 14);
   const requiredSkills = buckets.requiredSkills.slice(0, 14);
   const preferredSkills = buckets.preferredSkills.slice(0, 10);
   const qualifications = buckets.qualifications.slice(0, 8);
+  const summarySource = buckets.intro.length ? buckets.intro : lines;
+  const summary = summarySource
+    .filter((line) => line.split(/\s+/).length > 8)
+    .slice(0, 3)
+    .join(" ")
+    .slice(0, 600);
 
-  const core = [
-    summary,
-    ...responsibilities,
-    ...requiredSkills,
-    ...preferredSkills,
-    ...qualifications,
-  ].join("\n");
-
-  // If sectioning found nothing useful, fall back to the cleaned body.
-  const structured = responsibilities.length + requiredSkills.length + qualifications.length >= 3;
-  const text = structured ? core : body;
-
-  const confidence: JobExtract["confidence"] =
-    base.method === "structured" && structured
-      ? "high"
-      : base.method === "structured"
-        ? "high"
-        : "medium";
+  const enoughSections = responsibilities.length >= 2 && requiredSkills.length >= 2;
+  const enoughText = words >= 120;
+  const identityPresent = Boolean(base.title.trim() && base.company.trim());
+  const completeness: JobExtract["completeness"] =
+    enoughText && enoughSections && (base.method === "semantic" || identityPresent)
+      ? "complete"
+      : "partial";
+  const qualityNotes: string[] = [];
+  if (!enoughText) qualityNotes.push(`Only ${words} meaningful words were captured.`);
+  if (responsibilities.length < 2) qualityNotes.push("Few clearly labelled responsibilities were found.");
+  if (requiredSkills.length < 2) qualityNotes.push("Few clearly labelled requirements were found.");
+  if (!identityPresent && base.method === "structured") {
+    qualityNotes.push("The structured data did not include both role title and company.");
+  }
 
   return {
     ok: true,
-    confidence,
+    confidence: completeness === "complete" ? "high" : "medium",
+    completeness,
     method: base.method,
+    wordCount: words,
+    qualityNotes,
     title: base.title.slice(0, 140),
     company: base.company.slice(0, 120),
     location: base.location.slice(0, 120),
@@ -442,7 +449,7 @@ function assemble(
     competencies: findCompetencies(body),
     sourceUrl: base.sourceUrl,
     applyUrl: base.applyUrl || base.sourceUrl,
-    text: text.slice(0, 20000),
+    text: body.slice(0, 20000),
   };
 }
 
@@ -451,28 +458,27 @@ function fromJsonLd(html: string, sourceUrl: string): JobExtract | null {
     ...html.matchAll(/<script[^>]+type=["']application\/ld\+json["'][^>]*>([\s\S]*?)<\/script>/gi),
   ];
   for (const block of blocks) {
-    const rawJson = decodeEntities(block[1] ?? "").trim();
+    const raw = decodeEntities(block[1] ?? "").trim();
     let parsed: unknown;
     try {
-      parsed = JSON.parse(rawJson);
+      parsed = JSON.parse(raw);
     } catch {
       continue;
     }
-    for (const obj of flatten(parsed)) {
-      if (!typeMatches(obj)) continue;
-      const description = typeof obj["description"] === "string" ? obj["description"] : "";
+    for (const object of flatten(parsed)) {
+      if (!typeMatches(object)) continue;
+      const description = typeof object["description"] === "string" ? object["description"] : "";
       const text = htmlToText(description);
-      if (wordCount(text) < 60) continue;
       const built = assemble(
         {
           method: "structured",
-          title: decodeEntities(textOf(obj["title"])).trim(),
-          company: decodeEntities(textOf(obj["hiringOrganization"])).trim(),
-          location: decodeEntities(locationOf(obj)).trim(),
-          employmentType: prettyEmployment(textOf(obj["employmentType"])),
-          salary: salaryOf(obj),
-          closingDate: textOf(obj["validThrough"]).slice(0, 10),
-          applyUrl: textOf(obj["url"]) || sourceUrl,
+          title: decodeEntities(textOf(object["title"])).trim(),
+          company: decodeEntities(textOf(object["hiringOrganization"])).trim(),
+          location: decodeEntities(locationOf(object)).trim(),
+          employmentType: prettyEmployment(textOf(object["employmentType"])),
+          salary: salaryOf(object),
+          closingDate: textOf(object["validThrough"]).slice(0, 10),
+          applyUrl: textOf(object["url"]) || sourceUrl,
           sourceUrl,
         },
         text,
@@ -483,33 +489,17 @@ function fromJsonLd(html: string, sourceUrl: string): JobExtract | null {
   return null;
 }
 
-function prettyEmployment(v: string): string {
-  const map: Record<string, string> = {
-    FULL_TIME: "Permanent (full-time)",
-    PART_TIME: "Part-time",
-    CONTRACTOR: "Contract",
-    TEMPORARY: "Fixed-term",
-    INTERN: "Internship",
-    OTHER: "",
-  };
-  return v
-    .split(/,\s*/)
-    .map((x) => map[x.trim().toUpperCase()] ?? x.trim())
-    .filter(Boolean)
-    .join(", ");
-}
-
-function metaContent(html: string, key: string): string {
-  const re = new RegExp(
+function metaContent(html: string, key: string) {
+  const first = new RegExp(
     `<meta[^>]+(?:property|name)=["']${key}["'][^>]+content=["']([^"']*)["']`,
     "i",
   );
-  const alt = new RegExp(
+  const second = new RegExp(
     `<meta[^>]+content=["']([^"']*)["'][^>]+(?:property|name)=["']${key}["']`,
     "i",
   );
-  const m = html.match(re) ?? html.match(alt);
-  return m?.[1] ? decodeEntities(m[1]).trim() : "";
+  const match = html.match(first) ?? html.match(second);
+  return match?.[1] ? decodeEntities(match[1]).trim() : "";
 }
 
 const CONTAINER_PATTERNS = [
@@ -531,12 +521,12 @@ function fromSemantic(html: string, sourceUrl: string): JobExtract | null {
 
   let best = "";
   for (const pattern of CONTAINER_PATTERNS) {
-    const m = cleaned.match(pattern);
-    const text = m?.[1] ? htmlToText(m[1]) : "";
-    if (wordCount(text) > wordCount(best)) best = text;
-    if (wordCount(best) >= 150) break;
+    const match = cleaned.match(pattern);
+    const text = match?.[1] ? htmlToText(match[1]) : "";
+    if (countWords(text) > countWords(best)) best = text;
+    if (countWords(best) >= 180) break;
   }
-  if (wordCount(best) < 120) return null;
+  if (countWords(best) < 120) return null;
 
   const h1 = htmlToText(html.match(/<h1[^>]*>([\s\S]*?)<\/h1>/i)?.[1] ?? "").split("\n")[0] ?? "";
   const titleTag = decodeEntities(html.match(/<title[^>]*>([\s\S]*?)<\/title>/i)?.[1] ?? "")
@@ -565,13 +555,13 @@ function fromSemantic(html: string, sourceUrl: string): JobExtract | null {
 }
 
 export function extractJobPosting(html: string, sourceUrl = ""): ExtractResult {
-  const jsonLd = fromJsonLd(html, sourceUrl);
-  if (jsonLd) return jsonLd;
+  const structured = fromJsonLd(html, sourceUrl);
+  if (structured) return structured;
   const semantic = fromSemantic(html, sourceUrl);
   if (semantic) return semantic;
   return {
     ok: false,
     reason:
-      "The page did not return a readable job description — it is likely rendered by scripts or behind a sign-in.",
+      "The page did not return a readable job description. It may be rendered by scripts, behind a sign-in, or too incomplete to analyse safely. Paste the full job description manually instead.",
   };
 }
