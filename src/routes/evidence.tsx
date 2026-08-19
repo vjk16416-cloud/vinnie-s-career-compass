@@ -3,6 +3,16 @@ import { useState } from "react";
 import { toast } from "sonner";
 import { AppShell } from "@/components/careeros/app-shell";
 import { Panel, StatusPill, evidenceTone } from "@/components/careeros/ui-bits";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 import { Button } from "@/components/ui/button";
 import {
   Select,
@@ -15,6 +25,12 @@ import { useCareerOs } from "@/lib/careeros/store";
 import type { EvidenceStatus } from "@/lib/careeros/types";
 
 const STATUSES: EvidenceStatus[] = ["Verified", "Needs Evidence", "Archived", "Excluded"];
+const CONFIRMED_STATUSES: EvidenceStatus[] = ["Verified", "Excluded"];
+
+type PendingStatusChange = {
+  id: string;
+  status: EvidenceStatus;
+};
 
 export const Route = createFileRoute("/evidence")({
   head: () => ({
@@ -37,6 +53,7 @@ export const Route = createFileRoute("/evidence")({
 function EvidencePage() {
   const { data, update, logActivity } = useCareerOs();
   const [filter, setFilter] = useState<"All" | EvidenceStatus>("All");
+  const [pendingStatusChange, setPendingStatusChange] = useState<PendingStatusChange | null>(null);
   const rows = data.evidence.filter((e) => filter === "All" || e.status === filter);
 
   function setStatus(id: string, status: EvidenceStatus) {
@@ -50,6 +67,20 @@ function EvidencePage() {
     });
     logActivity(`Evidence ${id} status changed to ${status} (approved by you).`);
     toast.success(`Status updated to ${status}.`);
+  }
+
+  function requestStatusChange(id: string, status: EvidenceStatus) {
+    if (CONFIRMED_STATUSES.includes(status)) {
+      setPendingStatusChange({ id, status });
+      return;
+    }
+    setStatus(id, status);
+  }
+
+  function confirmStatusChange() {
+    if (!pendingStatusChange) return;
+    setStatus(pendingStatusChange.id, pendingStatusChange.status);
+    setPendingStatusChange(null);
   }
 
   return (
@@ -107,7 +138,12 @@ function EvidencePage() {
               </div>
               <div className="flex flex-wrap gap-2">
                 {STATUSES.filter((s) => s !== e.status).map((s) => (
-                  <Button key={s} size="sm" variant="secondary" onClick={() => setStatus(e.id, s)}>
+                  <Button
+                    key={s}
+                    size="sm"
+                    variant="secondary"
+                    onClick={() => requestStatusChange(e.id, s)}
+                  >
                     Mark {s}
                   </Button>
                 ))}
@@ -116,6 +152,32 @@ function EvidencePage() {
           </Panel>
         ))}
       </div>
+
+      <AlertDialog
+        open={pendingStatusChange !== null}
+        onOpenChange={(open) => {
+          if (!open) setPendingStatusChange(null);
+        }}
+      >
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>
+              Mark evidence as {pendingStatusChange?.status ?? "this status"}?
+            </AlertDialogTitle>
+            <AlertDialogDescription>
+              {pendingStatusChange?.status === "Verified"
+                ? "Verified evidence can be asserted in generated CVs and cover letters. Confirm only if the source supports this claim."
+                : "Excluded evidence is blocked from generated CVs and cover letters until you deliberately change its status again."}
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogAction onClick={confirmStatusChange}>
+              Confirm {pendingStatusChange?.status ?? "change"}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </AppShell>
   );
 }
