@@ -28,7 +28,9 @@ function meaningfulTokens(value: string) {
   return new Set(
     normalise(value)
       .split(" ")
-      .filter((token) => token.length > 2 && !["the", "and", "for", "with", "from"].includes(token)),
+      .filter(
+        (token) => token.length > 2 && !["the", "and", "for", "with", "from"].includes(token),
+      ),
   );
 }
 
