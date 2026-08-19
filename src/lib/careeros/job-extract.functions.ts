@@ -6,7 +6,7 @@ import { extractJobPosting } from "./job-extract.server";
 const Input = z.object({ url: z.string().url() });
 
 export const extractJobFromUrl = createServerFn({ method: "POST" })
-  .inputValidator((data: unknown) => Input.parse(data))
+  .validator((data: unknown) => Input.parse(data))
   .handler(async ({ data }) => {
     await requireAuthorisedUser();
 

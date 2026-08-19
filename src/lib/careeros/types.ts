@@ -206,6 +206,9 @@ export interface ApplicationHistoryEntry {
   entry: string;
 }
 
+export type JobExtractionCompleteness = "complete" | "partial" | "manual";
+export type JobExtractionMethod = "structured" | "semantic" | "manual";
+
 export interface JobRecord {
   id: string;
   company: string;
@@ -215,6 +218,9 @@ export interface JobRecord {
   description: string;
   createdAt: string;
   sourceType: "url" | "paste";
+  extractionCompleteness?: JobExtractionCompleteness;
+  extractionMethod?: JobExtractionMethod;
+  descriptionWordCount?: number;
 }
 
 export interface Application {
@@ -289,6 +295,24 @@ export interface ScanSubScore {
   reason: string;
 }
 
+export type RequirementCategory =
+  "Responsibility" | "Skill" | "Experience" | "Qualification" | "Sector" | "Tool" | "Competency";
+export type RequirementPriority = "Required" | "Preferred";
+export type RequirementMatchStatus = "Covered" | "Partial" | "Gap" | "Blocked";
+
+export interface EvidenceMapItem {
+  id: string;
+  requirement: string;
+  category: RequirementCategory;
+  priority: RequirementPriority;
+  status: RequirementMatchStatus;
+  score: number;
+  evidenceIds: string[];
+  profileItemIds: string[];
+  sourceIds: string[];
+  explanation: string;
+}
+
 export type Verdict = "Strong Fit" | "Competitive" | "Plausible Stretch" | "Weak Fit";
 
 export interface ScanResult {
@@ -304,6 +328,7 @@ export interface ScanResult {
   missingKeywords: string[];
   matchedKeywords: string[];
   blockedEvidence: { id: string; claim: string; status: EvidenceStatus }[];
+  evidenceMap?: EvidenceMapItem[];
   strategy: "Apply" | "Apply with tailored positioning" | "Consider" | "Skip";
   reasons: string[];
 }

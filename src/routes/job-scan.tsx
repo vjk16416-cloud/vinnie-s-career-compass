@@ -9,6 +9,16 @@ import {
   StatusPill,
   evidenceTone,
 } from "@/components/careeros/ui-bits";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -16,18 +26,25 @@ import { Textarea } from "@/components/ui/textarea";
 import { extractJobFromUrl } from "@/lib/careeros/job-extract.functions";
 import { runScan } from "@/lib/careeros/scoring";
 import { uid, useCareerOs } from "@/lib/careeros/store";
-import type { JobRecord, ScanResult } from "@/lib/careeros/types";
+import type {
+  EvidenceMapItem,
+  JobExtractionCompleteness,
+  JobExtractionMethod,
+  JobRecord,
+  RequirementMatchStatus,
+  ScanResult,
+} from "@/lib/careeros/types";
 
 export const Route = createFileRoute("/job-scan")({
   head: () => ({
     meta: [
-      { title: "Job Scan — CareerOS" },
+      { title: "Job Scan | CareerOS" },
       {
         name: "description",
         content:
           "Add a job by URL or paste, then run an explainable role compatibility scan against verified evidence.",
       },
-      { property: "og:title", content: "Job Scan — CareerOS" },
+      { property: "og:title", content: "Job Scan | CareerOS" },
       {
         property: "og:description",
         content: "Explainable role compatibility scoring from verified career evidence.",
@@ -39,6 +56,10 @@ export const Route = createFileRoute("/job-scan")({
 
 interface ExtractedDetail {
   confidence: "high" | "medium";
+  completeness: JobExtractionCompleteness;
+  method: JobExtractionMethod;
+  wordCount: number;
+  qualityNotes: string[];
   workplaceType: string;
   employmentType: string;
   salary: string;
@@ -53,6 +74,14 @@ interface ExtractedDetail {
   applyUrl: string;
 }
 
+interface PendingExtraction {
+  text: string;
+  title: string;
+  company: string;
+  location: string;
+  detail: ExtractedDetail;
+}
+
 function words(text: string) {
   return text.trim().split(/\s+/).filter(Boolean).length;
 }
@@ -61,8 +90,8 @@ function Chips({ items, tone = "neutral" }: { items: string[]; tone?: "neutral" 
   if (!items.length) return null;
   return (
     <div className="flex flex-wrap gap-1.5">
-      {items.map((i) => (
-        <StatusPill key={i} label={i} tone={tone} />
+      {items.map((item) => (
+        <StatusPill key={item} label={item} tone={tone} />
       ))}
     </div>
   );
@@ -74,9 +103,9 @@ function DetailList({ title, items }: { title: string; items: string[] }) {
     <div className="min-w-0">
       <p className="text-xs font-medium text-foreground">{title}</p>
       <ul className="mt-1 space-y-1 text-xs leading-relaxed text-muted-foreground">
-        {items.slice(0, 8).map((i) => (
-          <li key={i} className="break-words">
-            • {i}
+        {items.slice(0, 8).map((item) => (
+          <li key={item} className="break-words">
+            • {item}
           </li>
         ))}
       </ul>
@@ -96,6 +125,7 @@ function JobScanPage() {
   const [location, setLocation] = useState("");
   const [description, setDescription] = useState("");
   const [detail, setDetail] = useState<ExtractedDetail | null>(null);
+  const [pendingExtraction, setPendingExtraction] = useState<PendingExtraction | null>(null);
   const [fetching, setFetching] = useState(false);
   const [scanning, setScanning] = useState(false);
   const [fallback, setFallback] = useState<string | null>(null);
@@ -105,6 +135,20 @@ function JobScanPage() {
 
   const jdWords = words(description);
   const insufficient = jdWords < 40;
+
+  function applyExtraction(extraction: PendingExtraction) {
+    setDescription(extraction.text);
+    if (extraction.title) setTitle(extraction.title);
+    if (extraction.company) setCompany(extraction.company);
+    if (extraction.location) setLocation(extraction.location);
+    setDetail(extraction.detail);
+    setPendingExtraction(null);
+    toast.success(
+      extraction.detail.completeness === "complete"
+        ? "Complete job description extracted. Check it, then analyse."
+        : "Partial job description extracted. Review it carefully before analysing.",
+    );
+  }
 
   async function handleFetch() {
     const target = url.trim();
@@ -121,34 +165,41 @@ function JobScanPage() {
     try {
       const result = await extractJobFromUrl({ data: { url: target } });
       if (result.ok) {
-        setDescription(result.text);
-        if (result.title) setTitle(result.title);
-        if (result.company) setCompany(result.company);
-        if (result.location) setLocation(result.location);
-        setDetail({
-          confidence: result.confidence,
-          workplaceType: result.workplaceType,
-          employmentType: result.employmentType,
-          salary: result.salary,
-          closingDate: result.closingDate,
-          responsibilities: result.responsibilities,
-          requiredSkills: result.requiredSkills,
-          preferredSkills: result.preferredSkills,
-          qualifications: result.qualifications,
-          experience: result.experience,
-          tools: result.tools,
-          competencies: result.competencies,
-          applyUrl: result.applyUrl,
-        });
-        toast.success(
-          result.confidence === "high"
-            ? "Job posting extracted. Check the preview, then analyse."
-            : "Partial extraction. Please check and correct the preview before analysing.",
-        );
+        const extraction: PendingExtraction = {
+          text: result.text,
+          title: result.title,
+          company: result.company,
+          location: result.location,
+          detail: {
+            confidence: result.confidence,
+            completeness: result.completeness,
+            method: result.method,
+            wordCount: result.wordCount,
+            qualityNotes: result.qualityNotes,
+            workplaceType: result.workplaceType,
+            employmentType: result.employmentType,
+            salary: result.salary,
+            closingDate: result.closingDate,
+            responsibilities: result.responsibilities,
+            requiredSkills: result.requiredSkills,
+            preferredSkills: result.preferredSkills,
+            qualifications: result.qualifications,
+            experience: result.experience,
+            tools: result.tools,
+            competencies: result.competencies,
+            applyUrl: result.applyUrl,
+          },
+        };
+
+        if (description.trim() && description.trim() !== result.text.trim()) {
+          setPendingExtraction(extraction);
+        } else {
+          applyExtraction(extraction);
+        }
       } else {
         setDetail(null);
         setFallback(
-          `${result.reason} Paste the job description below instead — the scan works exactly the same way. Nothing is analysed from an unreliable page.`,
+          `${result.reason} Paste the job description below instead. The scan works the same way, and CareerOS will not analyse an unreliable extraction.`,
         );
       }
     } catch {
@@ -165,12 +216,13 @@ function JobScanPage() {
     if (busy.current) return;
     setScanError(null);
     if (insufficient) {
-      toast.error("Add more of the job description — at least a short paragraph.");
+      toast.error("Add more of the job description, at least a short paragraph.");
       return;
     }
     busy.current = true;
     setScanning(true);
     try {
+      const extracted = detail && detail.method !== "manual";
       const record: JobRecord = {
         id: uid("job"),
         company: company.trim() || "Unspecified company",
@@ -180,7 +232,10 @@ function JobScanPage() {
         url: url.trim() || undefined,
         description: description.trim(),
         createdAt: new Date().toISOString(),
-        sourceType: url.trim() ? "url" : "paste",
+        sourceType: extracted ? "url" : "paste",
+        extractionCompleteness: extracted ? detail.completeness : "manual",
+        extractionMethod: extracted ? detail.method : "manual",
+        descriptionWordCount: jdWords,
       };
       const result = runScan(record, data);
       update((draft) => {
@@ -189,19 +244,19 @@ function JobScanPage() {
         return draft;
       });
       logActivity(
-        `Ran a role scan for ${record.title} at ${record.company} — ${result.overall}% fit.`,
+        `Ran a role scan for ${record.title} at ${record.company}: ${result.overall}% fit.`,
       );
       setJob(record);
       setScan(result);
-      toast.success(`Scan complete — ${result.overall}% compatibility.`);
+      toast.success(`Scan complete: ${result.overall}% compatibility.`);
       window.setTimeout(
-        () => resultsRef.current?.scrollIntoView({ behavior: "smooth", block: "start" }),
+        () => resultsRef.current?.scrollIntoView?.({ behavior: "smooth", block: "start" }),
         60,
       );
-    } catch (err) {
-      const message = err instanceof Error ? err.message : "Unknown error";
+    } catch (error) {
+      const message = error instanceof Error ? error.message : "Unknown error";
       setScanError(`The scan could not complete: ${message}`);
-      toast.error("Scan failed — see the message below.");
+      toast.error("Scan failed. See the message below.");
     } finally {
       busy.current = false;
       setScanning(false);
@@ -215,6 +270,7 @@ function JobScanPage() {
     setLocation("");
     setDescription("");
     setDetail(null);
+    setPendingExtraction(null);
     setScan(null);
     setJob(null);
     setFallback(null);
@@ -240,7 +296,14 @@ function JobScanPage() {
                 : detail?.workplaceType === "On-site"
                   ? "On-site"
                   : "Unspecified",
-          employmentType: "Unspecified",
+          employmentType:
+            detail?.employmentType === "Contract"
+              ? "Contract"
+              : detail?.employmentType === "Fixed-term"
+                ? "Fixed-term"
+                : detail?.employmentType.toLowerCase().includes("permanent")
+                  ? "Permanent"
+                  : "Unspecified",
           priority: scan.overall >= 70 ? "High" : "Medium",
           stage: "Preparing",
           dateAdded: new Date().toISOString(),
@@ -249,7 +312,7 @@ function JobScanPage() {
           salary: detail?.salary || undefined,
           deadline: detail?.closingDate || undefined,
           compatibilityScore: scan.overall,
-          nextAction: "Review match analysis and tailor CV",
+          nextAction: "Review the Evidence Map and tailor CV",
           history: [
             {
               at: new Date().toISOString(),
@@ -268,12 +331,12 @@ function JobScanPage() {
   return (
     <AppShell
       title="Job Scan"
-      subtitle="Add a job by link or paste the description — either is enough"
+      subtitle="Add a job by link or paste the description. Either is enough."
     >
       <div className="space-y-4">
         <Panel
           title="1. Add the job"
-          description="Use the link if the site allows it; pasting always works."
+          description="Use the link if the site allows it. Pasting always works."
         >
           <div className="space-y-4">
             <div>
@@ -283,7 +346,7 @@ function JobScanPage() {
                   id="jd-url"
                   placeholder="https://…"
                   value={url}
-                  onChange={(e) => setUrl(e.target.value)}
+                  onChange={(event) => setUrl(event.target.value)}
                   inputMode="url"
                 />
                 <Button
@@ -307,7 +370,7 @@ function JobScanPage() {
                 className="rounded-md border border-warning/40 bg-warning/10 p-3 text-sm"
               >
                 <p className="font-medium text-foreground">
-                  Extraction blocked — paste the description instead
+                  Extraction blocked. Paste the description instead.
                 </p>
                 <p className="mt-1 text-muted-foreground">{fallback}</p>
               </div>
@@ -320,13 +383,13 @@ function JobScanPage() {
                 className="mt-1.5 min-h-56 text-sm"
                 placeholder="Paste the full job description here."
                 value={description}
-                onChange={(e) => setDescription(e.target.value)}
+                onChange={(event) => {
+                  setDescription(event.target.value);
+                  if (detail?.method !== "manual") setDetail(null);
+                }}
               />
               <p className="mt-1.5 text-xs text-muted-foreground">
-                {jdWords} words{" "}
-                {insufficient
-                  ? "— add at least 40 words to run a reliable scan."
-                  : "— ready to analyse."}
+                {jdWords} words. {insufficient ? "Add at least 40 words." : "Ready to analyse."}
               </p>
             </div>
           </div>
@@ -337,13 +400,13 @@ function JobScanPage() {
             title="2. Check the details"
             description="Everything here is editable before you analyse."
             actions={
-              detail ? (
+              detail && detail.method !== "manual" ? (
                 <StatusPill
-                  label={`Extraction confidence: ${detail.confidence}`}
-                  tone={detail.confidence === "high" ? "success" : "warning"}
+                  label={`Extraction: ${detail.completeness === "complete" ? "Complete" : "Partial"}`}
+                  tone={detail.completeness === "complete" ? "success" : "warning"}
                 />
               ) : (
-                <StatusPill label="Entered manually" tone="info" />
+                <StatusPill label="Manual input" tone="info" />
               )
             }
           >
@@ -354,7 +417,7 @@ function JobScanPage() {
                   id="jd-title"
                   className="mt-1.5"
                   value={title}
-                  onChange={(e) => setTitle(e.target.value)}
+                  onChange={(event) => setTitle(event.target.value)}
                 />
               </div>
               <div>
@@ -363,7 +426,7 @@ function JobScanPage() {
                   id="jd-company"
                   className="mt-1.5"
                   value={company}
-                  onChange={(e) => setCompany(e.target.value)}
+                  onChange={(event) => setCompany(event.target.value)}
                 />
               </div>
               <div>
@@ -372,7 +435,7 @@ function JobScanPage() {
                   id="jd-loc"
                   className="mt-1.5"
                   value={location}
-                  onChange={(e) => setLocation(e.target.value)}
+                  onChange={(event) => setLocation(event.target.value)}
                 />
               </div>
               <div>
@@ -382,19 +445,20 @@ function JobScanPage() {
                   className="mt-1.5"
                   placeholder="Hybrid / Remote / On-site"
                   value={detail?.workplaceType ?? ""}
-                  onChange={(e) =>
-                    setDetail((d) => ({
-                      ...(d ?? emptyDetail()),
-                      workplaceType: e.target.value,
+                  onChange={(event) =>
+                    setDetail((current) => ({
+                      ...(current ?? emptyDetail()),
+                      workplaceType: event.target.value,
                     }))
                   }
                 />
               </div>
             </div>
 
-            {detail ? (
+            {detail && detail.method !== "manual" ? (
               <div className="mt-4 space-y-3 border-t border-border pt-4">
                 <div className="flex flex-wrap gap-2">
+                  <StatusPill label={`${detail.wordCount} JD words captured`} tone="info" />
                   {detail.employmentType ? (
                     <StatusPill label={`Type: ${detail.employmentType}`} />
                   ) : null}
@@ -403,6 +467,20 @@ function JobScanPage() {
                     <StatusPill label={`Closes: ${detail.closingDate}`} tone="warning" />
                   ) : null}
                 </div>
+
+                {detail.completeness === "partial" ? (
+                  <div className="rounded-md border border-warning/40 bg-warning/10 p-3 text-xs">
+                    <p className="font-medium text-foreground">
+                      Partial extraction. Review before scanning.
+                    </p>
+                    <ul className="mt-1 space-y-1 text-muted-foreground">
+                      {detail.qualityNotes.map((note) => (
+                        <li key={note}>• {note}</li>
+                      ))}
+                    </ul>
+                  </div>
+                ) : null}
+
                 <div className="grid gap-4 md:grid-cols-2">
                   <DetailList title="Responsibilities" items={detail.responsibilities} />
                   <DetailList title="Required skills / experience" items={detail.requiredSkills} />
@@ -451,6 +529,35 @@ function JobScanPage() {
           {scan && job ? <ScanResultView scan={scan} onCreate={createApplication} /> : null}
         </div>
       </div>
+
+      <AlertDialog
+        open={Boolean(pendingExtraction)}
+        onOpenChange={(open) => {
+          if (!open) setPendingExtraction(null);
+        }}
+      >
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Use the extracted job description?</AlertDialogTitle>
+            <AlertDialogDescription>
+              You already have text in the job description box. CareerOS will not replace it unless
+              you choose to use the newly extracted version.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel onClick={() => setPendingExtraction(null)}>
+              Keep my pasted text
+            </AlertDialogCancel>
+            <AlertDialogAction
+              onClick={() => {
+                if (pendingExtraction) applyExtraction(pendingExtraction);
+              }}
+            >
+              Use extracted text
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </AppShell>
   );
 }
@@ -458,6 +565,10 @@ function JobScanPage() {
 function emptyDetail(): ExtractedDetail {
   return {
     confidence: "medium",
+    completeness: "manual",
+    method: "manual",
+    wordCount: 0,
+    qualityNotes: [],
     workplaceType: "",
     employmentType: "",
     salary: "",
@@ -476,15 +587,85 @@ function emptyDetail(): ExtractedDetail {
 const PLAIN_VERDICT: Record<string, string> = {
   "Strong Fit": "You meet the core of this role on verified evidence. Apply with a tailored CV.",
   Competitive:
-    "You are a credible candidate. Close the named gaps in your covering letter and lead with your strongest verified evidence.",
+    "You are a credible candidate. Close the named gaps honestly and lead with your strongest verified evidence.",
   "Plausible Stretch":
-    "This is a stretch. Only apply if the role is a genuine priority and you can address the gaps honestly.",
-  "Weak Fit": "The evidence does not support this role well. Your time is better spent elsewhere.",
+    "This is a stretch. Apply only if the role is a genuine priority and you can address the gaps honestly.",
+  "Weak Fit":
+    "The approved evidence does not support this role well. Your time may be better spent elsewhere.",
 };
+
+function requirementTone(status: RequirementMatchStatus) {
+  if (status === "Covered") return "success" as const;
+  if (status === "Partial") return "warning" as const;
+  if (status === "Blocked") return "danger" as const;
+  return "danger" as const;
+}
+
+function EvidenceMapPanel({ items }: { items: EvidenceMapItem[] }) {
+  const covered = items.filter((item) => item.status === "Covered").length;
+  const partial = items.filter((item) => item.status === "Partial").length;
+  const gaps = items.filter((item) => item.status === "Gap").length;
+  const blocked = items.filter((item) => item.status === "Blocked").length;
+
+  return (
+    <Panel
+      title="Evidence Map"
+      description="The compatibility score is built from these job criteria and the evidence CareerOS is allowed to use."
+      actions={<StatusPill label={`${items.length} criteria mapped`} tone="info" />}
+    >
+      <div className="mb-3 flex flex-wrap gap-2">
+        <StatusPill label={`${covered} Covered`} tone="success" />
+        <StatusPill label={`${partial} Partial`} tone="warning" />
+        <StatusPill label={`${gaps} Gap`} tone="danger" />
+        <StatusPill label={`${blocked} Blocked`} tone="danger" />
+      </div>
+
+      {items.length ? (
+        <ul className="space-y-2">
+          {items.map((item) => (
+            <li key={item.id} className="rounded-md border border-border p-3 text-sm">
+              <div className="flex flex-wrap items-center gap-2">
+                <span className="min-w-0 flex-1 font-medium text-foreground">
+                  {item.requirement}
+                </span>
+                <StatusPill label={item.category} />
+                <StatusPill label={item.priority} tone="info" />
+                <StatusPill label={item.status} tone={requirementTone(item.status)} />
+              </div>
+              <p className="mt-1.5 text-xs leading-relaxed text-muted-foreground">
+                {item.explanation}
+              </p>
+              {item.evidenceIds.length || item.profileItemIds.length || item.sourceIds.length ? (
+                <details className="mt-2 text-xs text-muted-foreground">
+                  <summary className="cursor-pointer">View evidence references</summary>
+                  <div className="mt-1 space-y-1">
+                    {item.evidenceIds.length ? (
+                      <p>Evidence: {item.evidenceIds.join(", ")}</p>
+                    ) : null}
+                    {item.profileItemIds.length ? (
+                      <p>Master Profile: {item.profileItemIds.join(", ")}</p>
+                    ) : null}
+                    {item.sourceIds.length ? <p>Sources: {item.sourceIds.join(", ")}</p> : null}
+                  </div>
+                </details>
+              ) : null}
+            </li>
+          ))}
+        </ul>
+      ) : (
+        <p className="text-sm text-muted-foreground">
+          CareerOS could not map clear job criteria from this description. Review the JD before
+          relying on the score.
+        </p>
+      )}
+    </Panel>
+  );
+}
 
 export function ScanResultView({ scan, onCreate }: { scan: ScanResult; onCreate?: () => void }) {
   const tone = scan.overall >= 70 ? "success" : scan.overall >= 50 ? "warning" : "danger";
   const topDimensions = [...scan.subScores].sort((a, b) => b.score - a.score);
+  const evidenceMap = scan.evidenceMap ?? [];
 
   return (
     <div className="space-y-4">
@@ -502,6 +683,10 @@ export function ScanResultView({ scan, onCreate }: { scan: ScanResult; onCreate?
             <p className="text-sm leading-relaxed text-muted-foreground">
               {PLAIN_VERDICT[scan.verdict] ?? ""}
             </p>
+            <p className="text-xs text-muted-foreground">
+              This percentage is calculated from the Evidence Map below. Keyword coverage is
+              supporting context only.
+            </p>
             {onCreate ? (
               <Button size="sm" onClick={onCreate}>
                 Create application workspace
@@ -511,18 +696,22 @@ export function ScanResultView({ scan, onCreate }: { scan: ScanResult; onCreate?
         </div>
       </Panel>
 
+      <EvidenceMapPanel items={evidenceMap} />
+
       <div className="grid gap-4 lg:grid-cols-2">
         <Panel title="Strong matches" description="Backed by verified evidence only">
           <ul className="space-y-2 text-sm">
             {scan.strengths.length ? (
-              scan.strengths.map((s) => (
+              scan.strengths.map((strength) => (
                 <li
-                  key={s.text}
+                  key={strength.text}
                   className="rounded-md border border-success/30 bg-success/10 p-2.5"
                 >
-                  {s.text}
-                  {s.evidenceId ? (
-                    <span className="ml-2 text-xs text-muted-foreground">Ref: {s.evidenceId}</span>
+                  {strength.text}
+                  {strength.evidenceId ? (
+                    <span className="ml-2 text-xs text-muted-foreground">
+                      Ref: {strength.evidenceId}
+                    </span>
                   ) : null}
                 </li>
               ))
@@ -535,20 +724,23 @@ export function ScanResultView({ scan, onCreate }: { scan: ScanResult; onCreate?
         <Panel title="Important gaps" description="Address these honestly or skip the role">
           <ul className="space-y-2 text-sm">
             {scan.gaps.length ? (
-              scan.gaps.map((g) => (
+              scan.gaps.map((gap) => (
                 <li
-                  key={g}
+                  key={gap}
                   className="rounded-md border border-warning/30 bg-warning/10 p-2.5 text-foreground"
                 >
-                  {g}
+                  {gap}
                 </li>
               ))
             ) : (
               <li className="text-muted-foreground">No material gaps.</li>
             )}
-            {scan.partials.map((p) => (
-              <li key={p} className="rounded-md border border-border p-2.5 text-muted-foreground">
-                {p}
+            {scan.partials.map((partial) => (
+              <li
+                key={partial}
+                className="rounded-md border border-border p-2.5 text-muted-foreground"
+              >
+                {partial}
               </li>
             ))}
           </ul>
@@ -556,19 +748,19 @@ export function ScanResultView({ scan, onCreate }: { scan: ScanResult; onCreate?
       </div>
 
       <Panel
-        title="Evidence position"
-        description="Only Verified records can be used in tailored documents."
+        title="Blocked evidence"
+        description="These records may be relevant, but CareerOS cannot use them until their evidence status permits it."
       >
         {scan.blockedEvidence.length === 0 ? (
           <p className="text-sm text-muted-foreground">
-            Nothing relevant is blocked — every matching record is verified.
+            No matching evidence is currently blocked from use.
           </p>
         ) : (
           <ul className="space-y-2">
-            {scan.blockedEvidence.map((b) => (
-              <li key={b.id} className="flex flex-wrap items-center gap-2 text-sm">
-                <span className="min-w-0 flex-1">{b.claim}</span>
-                <StatusPill label={b.status} tone={evidenceTone(b.status)} />
+            {scan.blockedEvidence.map((blockedItem) => (
+              <li key={blockedItem.id} className="flex flex-wrap items-center gap-2 text-sm">
+                <span className="min-w-0 flex-1">{blockedItem.claim}</span>
+                <StatusPill label={blockedItem.status} tone={evidenceTone(blockedItem.status)} />
               </li>
             ))}
           </ul>
@@ -577,12 +769,12 @@ export function ScanResultView({ scan, onCreate }: { scan: ScanResult; onCreate?
 
       <Panel title="Next actions">
         <ol className="space-y-1.5 text-sm text-muted-foreground">
-          <li>1. Tailor a CV version from verified evidence only.</li>
+          <li>1. Review every required Gap or Blocked criterion before deciding to apply.</li>
+          <li>2. Tailor a CV version from verified and approved evidence only.</li>
           <li>
-            2. Cover the {scan.missingKeywords.length} lower-coverage terms where you have genuine
-            evidence.
+            3. Use the {scan.missingKeywords.length} lower-coverage terms only where you have
+            genuine evidence.
           </li>
-          <li>3. Prepare answers for each gap listed above.</li>
         </ol>
       </Panel>
 
@@ -591,31 +783,36 @@ export function ScanResultView({ scan, onCreate }: { scan: ScanResult; onCreate?
           Detailed scoring breakdown
         </summary>
         <div className="mt-4 grid gap-4 md:grid-cols-2">
-          {topDimensions.map((s) => (
-            <ScoreBar key={s.key} label={s.label} value={s.score} reason={s.reason} />
+          {topDimensions.map((subScore) => (
+            <ScoreBar
+              key={subScore.key}
+              label={subScore.label}
+              value={subScore.score}
+              reason={subScore.reason}
+            />
           ))}
         </div>
         <div className="mt-5 grid gap-4 md:grid-cols-2">
           <div>
             <p className="text-xs text-muted-foreground">Keywords matched</p>
             <div className="mt-1.5 flex flex-wrap gap-1.5">
-              {scan.matchedKeywords.map((k) => (
-                <StatusPill key={k} label={k} tone="success" />
+              {scan.matchedKeywords.map((keyword) => (
+                <StatusPill key={keyword} label={keyword} tone="success" />
               ))}
             </div>
           </div>
           <div>
             <p className="text-xs text-muted-foreground">Missing or low coverage</p>
             <div className="mt-1.5 flex flex-wrap gap-1.5">
-              {scan.missingKeywords.map((k) => (
-                <StatusPill key={k} label={k} tone="warning" />
+              {scan.missingKeywords.map((keyword) => (
+                <StatusPill key={keyword} label={keyword} tone="warning" />
               ))}
             </div>
           </div>
         </div>
         <ul className="mt-5 space-y-1 text-xs leading-relaxed text-muted-foreground">
-          {scan.reasons.map((r) => (
-            <li key={r}>{r}</li>
+          {scan.reasons.map((reason) => (
+            <li key={reason}>{reason}</li>
           ))}
         </ul>
       </details>

@@ -1,14 +1,18 @@
+import { buildEvidenceMap, evidenceMapScore } from "./evidence-map";
+import { addUnmappedRequirementGaps } from "./generic-requirements";
 import type {
   CareerOsData,
+  EvidenceMapItem,
   EvidenceRecord,
   JobRecord,
+  RequirementCategory,
   ScanResult,
   ScanSubScore,
   Verdict,
 } from "./types";
 
 const STOPWORDS = new Set(
-  `a an the and or for with you your we our will be to of in on at as is are have has that this from by role team work working experience across including able strong good excellent ability who what their they them it its into using use used within about more than other well not can may should must new all any also please apply job description candidate candidates company help support ensure across`.split(
+  `a an the and or for with you your we our will be to of in on at as is are have has that this from by role team work working experience across including able strong good excellent ability who what their they them it its into using use used within about more than other well not can may should must new all any also please apply job description candidate candidates company help support ensure`.split(
     /\s+/,
   ),
 );
@@ -18,102 +22,9 @@ export function tokenise(text: string): string[] {
     .toLowerCase()
     .replace(/[^a-z0-9+#./\s-]/g, " ")
     .split(/[\s/]+/)
-    .map((w) => w.replace(/^[-.]+|[-.]+$/g, ""))
-    .filter((w) => w.length > 2 && !STOPWORDS.has(w));
+    .map((word) => word.replace(/^[-.]+|[-.]+$/g, ""))
+    .filter((word) => word.length > 2 && !STOPWORDS.has(word));
 }
-
-function has(text: string, phrase: string) {
-  return text.toLowerCase().includes(phrase.toLowerCase());
-}
-
-function ratio(matched: number, total: number) {
-  if (total === 0) return 0.6;
-  return matched / total;
-}
-
-function pct(v: number) {
-  return Math.max(0, Math.min(100, Math.round(v * 100)));
-}
-
-const RESPONSIBILITY_SIGNALS: { phrase: string; capability: string; evidence: string[] }[] = [
-  {
-    phrase: "stakeholder",
-    capability: "Stakeholder management",
-    evidence: ["ev-rag", "ev-agency"],
-  },
-  { phrase: "report", capability: "Performance reporting", evidence: ["ev-rag", "ev-powerbi"] },
-  { phrase: "budget", capability: "Budget ownership", evidence: ["ev-budget"] },
-  { phrase: "agency", capability: "Agency and vendor management", evidence: ["ev-agency"] },
-  { phrase: "roadmap", capability: "Product roadmapping", evidence: ["ev-npd"] },
-  { phrase: "positioning", capability: "Value proposition development", evidence: ["ev-npd"] },
-  {
-    phrase: "go-to-market",
-    capability: "Go-to-market delivery",
-    evidence: ["ev-budget", "ev-adoption"],
-  },
-  { phrase: "a/b test", capability: "A/B testing", evidence: ["ev-ab"] },
-  { phrase: "experiment", capability: "Experimentation", evidence: ["ev-ab"] },
-  { phrase: "campaign", capability: "Campaign delivery", evidence: ["ev-budget"] },
-  { phrase: "agile", capability: "Agile delivery", evidence: ["ev-agile"] },
-  { phrase: "project", capability: "Project delivery", evidence: ["ev-adoption", "ev-agile"] },
-  { phrase: "programme", capability: "Programme delivery", evidence: ["ev-adoption"] },
-  { phrase: "training", capability: "Client training and enablement", evidence: ["ev-adoption"] },
-  { phrase: "customer", capability: "Client engagement", evidence: ["ev-adoption"] },
-  {
-    phrase: "analytics",
-    capability: "Analytics and measurement",
-    evidence: ["ev-powerbi", "ev-ab"],
-  },
-  { phrase: "dashboard", capability: "Dashboarding", evidence: ["ev-powerbi"] },
-  { phrase: "crm", capability: "CRM delivery", evidence: ["ev-crm"] },
-  { phrase: "technology", capability: "Technology evaluation", evidence: ["ev-trl"] },
-  { phrase: "innovation", capability: "Innovation and NPD", evidence: ["ev-npd", "ev-trl"] },
-  { phrase: "risk", capability: "Risk assessment", evidence: ["ev-trl", "ev-rag"] },
-  { phrase: "cross-functional", capability: "Cross-functional working", evidence: ["ev-agile"] },
-];
-
-const TOOL_LIBRARY = [
-  "power bi",
-  "salesforce",
-  "hubspot",
-  "ga4",
-  "google analytics",
-  "dv360",
-  "google ads",
-  "meta",
-  "hotjar",
-  "asana",
-  "jira",
-  "ms project",
-  "clickup",
-  "zoho",
-  "sql",
-  "tableau",
-  "looker",
-  "figma",
-  "amplitude",
-  "mixpanel",
-  "excel",
-  "python",
-];
-
-const SECTOR_LIBRARY = [
-  { term: "education", owned: true, label: "Higher education" },
-  { term: "university", owned: true, label: "Higher education" },
-  { term: "saas", owned: true, label: "B2B SaaS" },
-  { term: "software", owned: true, label: "Engineering software" },
-  { term: "engineering", owned: true, label: "Engineering clients" },
-  { term: "recruitment", owned: true, label: "Recruitment" },
-  { term: "charity", owned: true, label: "Charity / non-profit" },
-  { term: "non-profit", owned: true, label: "Charity / non-profit" },
-  { term: "entertainment", owned: true, label: "Live entertainment" },
-  { term: "fintech", owned: false, label: "Fintech" },
-  { term: "banking", owned: false, label: "Banking" },
-  { term: "healthcare", owned: false, label: "Healthcare" },
-  { term: "insurance", owned: false, label: "Insurance" },
-  { term: "retail", owned: false, label: "Retail" },
-  { term: "gaming", owned: false, label: "Gaming" },
-];
 
 function verdictFor(score: number): Verdict {
   if (score >= 78) return "Strong Fit";
@@ -122,252 +33,179 @@ function verdictFor(score: number): Verdict {
   return "Weak Fit";
 }
 
-function strategyFor(score: number, gaps: number): ScanResult["strategy"] {
-  if (score >= 78) return "Apply";
+function strategyFor(score: number, materialGaps: number): ScanResult["strategy"] {
+  if (score >= 78 && materialGaps <= 2) return "Apply";
   if (score >= 64) return "Apply with tailored positioning";
-  if (score >= 48 && gaps <= 4) return "Consider";
+  if (score >= 48 && materialGaps <= 4) return "Consider";
   return "Skip";
 }
 
-function arr<T>(v: T[] | undefined | null): T[] {
-  return Array.isArray(v) ? v : [];
+function arr<T>(value: T[] | undefined | null): T[] {
+  return Array.isArray(value) ? value : [];
 }
 
-export function runScan(job: JobRecord, input: CareerOsData): ScanResult {
-  const profileIn = input?.profile ?? ({} as CareerOsData["profile"]);
-  const data = {
-    ...input,
-    evidence: arr(input?.evidence).filter((e) => e && typeof e === "object"),
-    profile: {
-      ...profileIn,
-      skills: arr(profileIn.skills),
-      tools: arr(profileIn.tools),
-      domains: arr(profileIn.domains),
-      employment: arr(profileIn.employment),
-      summary: profileIn.summary ?? "",
-    },
-  } as CareerOsData;
+function average(items: EvidenceMapItem[]) {
+  if (!items.length) return 70;
+  return Math.round(items.reduce((sum, item) => sum + item.score, 0) / items.length);
+}
 
-  const jd = job.description || "";
-  const jdLower = jd.toLowerCase();
-  const evidence = data.evidence.map((e) => ({ ...e, skills: arr(e.skills) }));
-  const verified = evidence.filter((e) => e.status === "Verified");
-  const unusable = evidence.filter((e) => e.status !== "Verified");
+function categorySubScore(
+  evidenceMap: EvidenceMapItem[],
+  category: RequirementCategory,
+  key: string,
+  label: string,
+): ScanSubScore {
+  const items = evidenceMap.filter((item) => item.category === category);
+  const covered = items.filter((item) => item.status === "Covered").length;
+  const blocked = items.filter((item) => item.status === "Blocked").length;
+  const gaps = items.filter((item) => item.status === "Gap").length;
+  const partials = items.filter((item) => item.status === "Partial").length;
 
-  const verifiedSkills = new Set<string>();
-  verified.forEach((e) => e.skills.forEach((s) => verifiedSkills.add(String(s).toLowerCase())));
-  data.profile.skills.forEach((s) => verifiedSkills.add(String(s).toLowerCase()));
+  return {
+    key,
+    label,
+    score: average(items),
+    reason: items.length
+      ? `${covered} covered, ${partials} partial, ${gaps} gap and ${blocked} blocked across ${items.length} detected ${label.toLowerCase()} requirements.`
+      : `No explicit ${label.toLowerCase()} requirement was detected, so this dimension is neutral and does not drive the overall score.`,
+  };
+}
 
-  // --- Responsibilities ---
-  const requiredResponsibilities = RESPONSIBILITY_SIGNALS.filter((r) => has(jdLower, r.phrase));
-  const coveredResponsibilities = requiredResponsibilities.filter((r) =>
-    r.evidence.some((id) => verified.some((v) => v.id === id)),
-  );
-  const responsibilitiesScore = pct(
-    ratio(coveredResponsibilities.length, requiredResponsibilities.length),
-  );
-
-  // --- Skills ---
-  const jdTokens = new Set(tokenise(jd));
-  const profileSkillTokens = [...verifiedSkills];
-  const skillsMatched = profileSkillTokens.filter((s) =>
-    s.split(/\s+/).every((part) => jdTokens.has(part)),
-  );
-  const jdSkillDemand = Math.max(6, Math.round(jdTokens.size * 0.12));
-  const skillsScore = pct(Math.min(1, skillsMatched.length / jdSkillDemand));
-
-  // --- Experience / seniority ---
-  const seniorityWanted = /head of|director|vp |principal|lead\b/.test(jdLower)
-    ? "lead"
-    : /senior|manager/.test(jdLower)
-      ? "manager"
-      : "mid";
-  const yearsMatch = jdLower.match(/(\d+)\+?\s*years/);
-  const yearsWanted = yearsMatch ? Number(yearsMatch[1]) : 5;
-  const yearsHeld = 9; // 2016 onwards, continuous professional experience
-  let experienceScore = pct(Math.min(1, yearsHeld / Math.max(1, yearsWanted)));
-  if (seniorityWanted === "lead") experienceScore = Math.round(experienceScore * 0.7);
-  if (seniorityWanted === "manager") experienceScore = Math.round(experienceScore * 0.95);
-
-  // --- Qualifications ---
-  const wantsDegree = /degree|bsc|ba\b|msc|master/.test(jdLower);
-  const wantsPm = /prince2|apm|pmp|project management qualification|agile certifi/.test(jdLower);
-  const qualPoints =
-    (wantsDegree ? 1 : 0) + (wantsPm ? 1 : 0) === 0
-      ? 0.8
-      : ((wantsDegree ? 1 : 0) + (wantsPm ? 1 : 0)) / ((wantsDegree ? 1 : 0) + (wantsPm ? 1 : 0));
-  const qualificationsScore = pct(qualPoints * 0.95);
-
-  // --- Sector ---
-  const mentionedSectors = SECTOR_LIBRARY.filter((s) => has(jdLower, s.term));
-  const ownedSectors = mentionedSectors.filter((s) => s.owned);
-  const sectorScore = mentionedSectors.length
-    ? pct(0.35 + 0.65 * ratio(ownedSectors.length, mentionedSectors.length))
-    : 70;
-
-  // --- Tools ---
-  const toolsWanted = TOOL_LIBRARY.filter((t) => has(jdLower, t));
-  const ownedTools = data.profile.tools.map((t) => t.toLowerCase());
-  const toolsMatched = toolsWanted.filter((t) =>
-    ownedTools.some((o) => o.includes(t) || t.includes(o)),
-  );
-  const toolsScore = toolsWanted.length ? pct(ratio(toolsMatched.length, toolsWanted.length)) : 70;
-
-  // --- Evidence strength ---
-  const relevantEvidence = verified.filter((e) =>
-    e.skills.some((s) => jdTokens.has(s.toLowerCase().split(" ")[0] ?? "")),
-  );
-  const highConfidence = relevantEvidence.filter((e) => e.confidence === "High").length;
-  const evidenceScore = pct(
-    Math.min(1, (relevantEvidence.length * 0.12 + highConfidence * 0.08) as number),
-  );
-
-  // --- ATS keywords ---
-  const jdKeywordCounts = new Map<string, number>();
-  tokenise(jd).forEach((t) => jdKeywordCounts.set(t, (jdKeywordCounts.get(t) ?? 0) + 1));
-  const topKeywords = [...jdKeywordCounts.entries()]
+function keywordCoverage(job: JobRecord, data: CareerOsData) {
+  const counts = new Map<string, number>();
+  tokenise(job.description).forEach((token) => counts.set(token, (counts.get(token) ?? 0) + 1));
+  const topKeywords = [...counts.entries()]
     .sort((a, b) => b[1] - a[1])
     .slice(0, 30)
-    .map(([k]) => k);
+    .map(([token]) => token);
+
+  const verified = arr(data.evidence).filter((record) => record.status === "Verified");
+  const approvedItems = arr(data.profileItems).filter((item) => item.status === "Approved");
   const corpus = [
-    data.profile.summary,
-    data.profile.skills.join(" "),
-    data.profile.tools.join(" "),
-    data.profile.domains.join(" "),
-    verified.map((e) => `${e.claim} ${e.skills.join(" ")}`).join(" "),
-    data.profile.employment
-      .map((e) => `${e.title ?? ""} ${e.summary ?? ""} ${arr(e.highlights).join(" ")}`)
+    verified.map((record) => `${record.claim} ${arr(record.skills).join(" ")}`).join(" "),
+    approvedItems.map((item) => `${item.label} ${item.safeWording ?? item.value}`).join(" "),
+    arr(data.profile.employment)
+      .map(
+        (role) =>
+          `${role.title} ${role.company} ${role.summary} ${arr(role.highlights).join(" ")} ${arr(role.skills).join(" ")}`,
+      )
       .join(" "),
   ]
     .join(" ")
     .toLowerCase();
-  const matchedKeywords = topKeywords.filter((k) => corpus.includes(k));
-  const missingKeywords = topKeywords.filter((k) => !corpus.includes(k));
-  const atsScore = pct(ratio(matchedKeywords.length, topKeywords.length));
 
-  const subScores: ScanSubScore[] = [
-    {
-      key: "responsibilities",
-      label: "Responsibilities Fit",
-      score: responsibilitiesScore,
-      reason: `${coveredResponsibilities.length} of ${requiredResponsibilities.length || "0"} detected responsibility themes are covered by verified evidence.`,
-    },
-    {
-      key: "skills",
-      label: "Skills Fit",
-      score: skillsScore,
-      reason: `${skillsMatched.length} of your recorded skills appear directly in the job description.`,
-    },
-    {
-      key: "experience",
-      label: "Experience / Seniority Fit",
-      score: experienceScore,
-      reason: `Role reads as ${seniorityWanted}-level and asks for around ${yearsWanted} years; your record shows roughly ${yearsHeld} years of continuous professional experience.`,
-    },
-    {
-      key: "qualifications",
-      label: "Qualifications / Certifications Fit",
-      score: qualificationsScore,
-      reason:
-        wantsDegree || wantsPm
-          ? "Stated qualification requirements are met by your degree, MSc in progress and project management certifications."
-          : "No specific qualifications requested; your degree and certifications are treated as a general strength.",
-    },
-    {
-      key: "sector",
-      label: "Sector / Domain Fit",
-      score: sectorScore,
-      reason: mentionedSectors.length
-        ? `Job references ${mentionedSectors.map((s) => s.label).join(", ")}. You hold direct exposure to ${ownedSectors.length ? ownedSectors.map((s) => s.label).join(", ") : "none of these"}.`
-        : "No specific sector signalled, so your mixed education, SaaS and non-profit exposure is treated as neutral.",
-    },
-    {
-      key: "tools",
-      label: "Tools / Technology Fit",
-      score: toolsScore,
-      reason: toolsWanted.length
-        ? `Named tools: ${toolsWanted.join(", ")}. You have recorded experience with ${toolsMatched.join(", ") || "none of them"}.`
-        : "No specific tooling named in the description.",
-    },
-    {
+  const matchedKeywords = topKeywords.filter((keyword) => corpus.includes(keyword));
+  const missingKeywords = topKeywords.filter((keyword) => !corpus.includes(keyword));
+  const score = topKeywords.length
+    ? Math.round((matchedKeywords.length / topKeywords.length) * 100)
+    : 0;
+
+  return { matchedKeywords, missingKeywords, score };
+}
+
+function evidenceStrengthSubScore(evidenceMap: EvidenceMapItem[]): ScanSubScore {
+  if (!evidenceMap.length) {
+    return {
       key: "evidence",
       label: "Evidence Strength",
-      score: evidenceScore,
-      reason: `${relevantEvidence.length} verified evidence records map to this role, ${highConfidence} of them at high confidence.`,
+      score: 0,
+      reason: "No requirement-level evidence map could be built from this job description.",
+    };
+  }
+  const covered = evidenceMap.filter((item) => item.status === "Covered").length;
+  const partial = evidenceMap.filter((item) => item.status === "Partial").length;
+  const score = Math.round(((covered + partial * 0.5) / evidenceMap.length) * 100);
+  return {
+    key: "evidence",
+    label: "Evidence Strength",
+    score,
+    reason: `${covered} of ${evidenceMap.length} mapped requirements are fully covered by approved evidence; ${partial} are only partial.`,
+  };
+}
+
+function strengthFor(item: EvidenceMapItem, data: CareerOsData) {
+  const evidence = item.evidenceIds
+    .map((id) => data.evidence.find((record) => record.id === id))
+    .find((record) => record?.status === "Verified");
+  const profileItem = item.profileItemIds
+    .map((id) => data.profileItems?.find((record) => record.id === id))
+    .find((record) => record?.status === "Approved");
+  const support =
+    evidence?.claim ?? profileItem?.safeWording ?? profileItem?.value ?? item.explanation;
+  return {
+    text: `${item.requirement}: ${support}`,
+    evidenceId: evidence?.id,
+  };
+}
+
+function blockedEvidenceFor(evidenceMap: EvidenceMapItem[], data: CareerOsData) {
+  const ids = new Set(
+    evidenceMap.filter((item) => item.status === "Blocked").flatMap((item) => item.evidenceIds),
+  );
+  return [...ids]
+    .map((id) => data.evidence.find((record) => record.id === id))
+    .filter((record): record is EvidenceRecord => Boolean(record))
+    .map((record) => ({ id: record.id, claim: record.claim, status: record.status }));
+}
+
+export function runScan(job: JobRecord, input: CareerOsData): ScanResult {
+  const profile = input.profile ?? ({} as CareerOsData["profile"]);
+  const data = {
+    ...input,
+    evidence: arr(input.evidence).filter((record) => record && typeof record === "object"),
+    profile: {
+      ...profile,
+      skills: arr(profile.skills),
+      tools: arr(profile.tools),
+      domains: arr(profile.domains),
+      employment: arr(profile.employment),
+      summary: profile.summary ?? "",
     },
+  } as CareerOsData;
+
+  const evidenceMap = addUnmappedRequirementGaps(
+    buildEvidenceMap(job, data),
+    job.description ?? "",
+  );
+  const overall = evidenceMapScore(evidenceMap);
+  const keyword = keywordCoverage(job, data);
+
+  const subScores: ScanSubScore[] = [
+    categorySubScore(evidenceMap, "Responsibility", "responsibilities", "Responsibilities Fit"),
+    categorySubScore(evidenceMap, "Skill", "skills", "Skills Fit"),
+    categorySubScore(evidenceMap, "Experience", "experience", "Experience Fit"),
+    categorySubScore(evidenceMap, "Qualification", "qualifications", "Qualifications Fit"),
+    categorySubScore(evidenceMap, "Sector", "sector", "Sector Fit"),
+    categorySubScore(evidenceMap, "Tool", "tools", "Tools Fit"),
+    evidenceStrengthSubScore(evidenceMap),
     {
       key: "ats",
       label: "Keyword / ATS Coverage",
-      score: atsScore,
-      reason: `${matchedKeywords.length} of the ${topKeywords.length} most prominent job description terms appear in your career record.`,
+      score: keyword.score,
+      reason: `${keyword.matchedKeywords.length} of the ${keyword.matchedKeywords.length + keyword.missingKeywords.length} most prominent job-description terms appear in approved or verified career material. Keyword coverage is supporting context and does not set the overall compatibility score.`,
     },
   ];
 
-  const weights: Record<string, number> = {
-    responsibilities: 0.2,
-    skills: 0.16,
-    experience: 0.14,
-    qualifications: 0.08,
-    sector: 0.08,
-    tools: 0.12,
-    evidence: 0.12,
-    ats: 0.1,
-  };
-  const overall = Math.round(
-    subScores.reduce((sum, s) => sum + s.score * (weights[s.key] ?? 0), 0),
-  );
-
-  const strengths = coveredResponsibilities.slice(0, 6).map((r) => {
-    const ev = verified.find((v) => r.evidence.includes(v.id));
-    return {
-      text: `${r.capability} — ${ev?.claim ?? "covered by your verified record"}`,
-      evidenceId: ev?.id,
-    };
-  });
-
-  const partials: string[] = [];
-  if (toolsWanted.length && toolsMatched.length < toolsWanted.length) {
-    partials.push(
-      `Tooling partially covered: ${toolsWanted.filter((t) => !toolsMatched.includes(t)).join(", ")} not in your recorded stack.`,
-    );
-  }
-  if (mentionedSectors.length && ownedSectors.length < mentionedSectors.length) {
-    partials.push(
-      `Sector exposure is adjacent rather than direct for ${mentionedSectors
-        .filter((s) => !s.owned)
-        .map((s) => s.label)
-        .join(", ")}.`,
-    );
-  }
-  if (seniorityWanted === "lead") {
-    partials.push(
-      "Role reads as lead/head level; your record is manager-level with delivery ownership.",
-    );
-  }
-
-  const gaps: string[] = [];
-  requiredResponsibilities
-    .filter((r) => !coveredResponsibilities.includes(r))
-    .slice(0, 6)
-    .forEach((r) =>
-      gaps.push(`${r.capability} is requested but has no verified evidence attached.`),
-    );
-  if (missingKeywords.length > 6) {
-    gaps.push(
-      `${missingKeywords.length} prominent job description terms are absent from your record.`,
-    );
-  }
-
-  const blockedEvidence = unusable
-    .filter((e: EvidenceRecord) =>
-      e.skills.some((s) => jdLower.includes(s.toLowerCase().split(" ")[0] ?? "")),
-    )
-    .map((e) => ({ id: e.id, claim: e.claim, status: e.status }));
+  const strengths = evidenceMap
+    .filter((item) => item.status === "Covered")
+    .slice(0, 8)
+    .map((item) => strengthFor(item, data));
+  const partials = evidenceMap
+    .filter((item) => item.status === "Partial")
+    .map((item) => `${item.requirement}: ${item.explanation}`);
+  const gaps = evidenceMap
+    .filter((item) => item.status === "Gap")
+    .map((item) => `${item.requirement}: ${item.explanation}`);
+  const blockedEvidence = blockedEvidenceFor(evidenceMap, data);
+  const materialGaps = evidenceMap.filter(
+    (item) => item.priority === "Required" && (item.status === "Gap" || item.status === "Blocked"),
+  ).length;
 
   const reasons = [
-    `Overall score is weighted towards responsibilities (20%), skills (16%) and experience (14%) rather than keyword matching alone.`,
-    `Only Verified evidence contributed to strengths; ${unusable.length} records were held back because of their status.`,
-    `Verdict "${verdictFor(overall)}" reflects ${overall}% weighted alignment across eight dimensions.`,
+    `Overall compatibility is calculated from ${evidenceMap.length} requirement-level Evidence Map items, not from a fixed career assumption.`,
+    "Covered evidence earns full credit. Partial evidence earns limited credit. Gap and Blocked items earn zero.",
+    `${blockedEvidence.length} evidence records are visible but held out of scoring because their status is not Verified.`,
+    `Keyword coverage is ${keyword.score}% and is shown as supporting context only.`,
   ];
 
   return {
@@ -380,10 +218,11 @@ export function runScan(job: JobRecord, input: CareerOsData): ScanResult {
     strengths,
     partials,
     gaps,
-    missingKeywords: missingKeywords.slice(0, 18),
-    matchedKeywords: matchedKeywords.slice(0, 18),
+    missingKeywords: keyword.missingKeywords.slice(0, 18),
+    matchedKeywords: keyword.matchedKeywords.slice(0, 18),
     blockedEvidence,
-    strategy: strategyFor(overall, gaps.length),
+    evidenceMap,
+    strategy: strategyFor(overall, materialGaps),
     reasons,
   };
 }
