@@ -329,7 +329,10 @@ function JobScanPage() {
   }
 
   return (
-    <AppShell title="Job Scan" subtitle="Add a job by link or paste the description. Either is enough.">
+    <AppShell
+      title="Job Scan"
+      subtitle="Add a job by link or paste the description. Either is enough."
+    >
       <div className="space-y-4">
         <Panel
           title="1. Add the job"
@@ -467,7 +470,9 @@ function JobScanPage() {
 
                 {detail.completeness === "partial" ? (
                   <div className="rounded-md border border-warning/40 bg-warning/10 p-3 text-xs">
-                    <p className="font-medium text-foreground">Partial extraction. Review before scanning.</p>
+                    <p className="font-medium text-foreground">
+                      Partial extraction. Review before scanning.
+                    </p>
                     <ul className="mt-1 space-y-1 text-muted-foreground">
                       {detail.qualityNotes.map((note) => (
                         <li key={note}>• {note}</li>
@@ -585,7 +590,8 @@ const PLAIN_VERDICT: Record<string, string> = {
     "You are a credible candidate. Close the named gaps honestly and lead with your strongest verified evidence.",
   "Plausible Stretch":
     "This is a stretch. Apply only if the role is a genuine priority and you can address the gaps honestly.",
-  "Weak Fit": "The approved evidence does not support this role well. Your time may be better spent elsewhere.",
+  "Weak Fit":
+    "The approved evidence does not support this role well. Your time may be better spent elsewhere.",
 };
 
 function requirementTone(status: RequirementMatchStatus) {
@@ -754,10 +760,7 @@ export function ScanResultView({ scan, onCreate }: { scan: ScanResult; onCreate?
             {scan.blockedEvidence.map((blockedItem) => (
               <li key={blockedItem.id} className="flex flex-wrap items-center gap-2 text-sm">
                 <span className="min-w-0 flex-1">{blockedItem.claim}</span>
-                <StatusPill
-                  label={blockedItem.status}
-                  tone={evidenceTone(blockedItem.status)}
-                />
+                <StatusPill label={blockedItem.status} tone={evidenceTone(blockedItem.status)} />
               </li>
             ))}
           </ul>
@@ -769,8 +772,8 @@ export function ScanResultView({ scan, onCreate }: { scan: ScanResult; onCreate?
           <li>1. Review every required Gap or Blocked criterion before deciding to apply.</li>
           <li>2. Tailor a CV version from verified and approved evidence only.</li>
           <li>
-            3. Use the {scan.missingKeywords.length} lower-coverage terms only where you have genuine
-            evidence.
+            3. Use the {scan.missingKeywords.length} lower-coverage terms only where you have
+            genuine evidence.
           </li>
         </ol>
       </Panel>
