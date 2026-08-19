@@ -15,13 +15,19 @@ import {
   createSupabaseCareerStateRepository,
   type CareerStateRepository,
 } from "./cloud-state.repository";
-import { writeCareerOsCache } from "./local-cache";
+import { markCareerOsCacheCloudConfirmed, writeCareerOsCache } from "./local-cache";
 import { createOrderedSaveQueue } from "./ordered-save-queue";
 import { createCareerOsData } from "./profile-data";
 import { resolveClaimVariant, setProfileItemDecision } from "./profile-review";
 import type { ActivityEntry, CareerOsData, CareerProfileItemStatus } from "./types";
 
-export type CareerSyncStatus = "loading" | "synced" | "saving" | "offline-cache" | "save-error";
+export type CareerSyncStatus =
+  | "loading"
+  | "synced"
+  | "saving"
+  | "offline-cache"
+  | "save-error"
+  | "local-conflict";
 
 interface StoreValue {
   data: CareerOsData;
@@ -70,6 +76,9 @@ export function CareerOsProvider({
   const [syncStatus, setSyncStatus] = useState<CareerSyncStatus>("loading");
   const [syncMessage, setSyncMessage] = useState("Loading cloud data...");
   const [bootstrapError, setBootstrapError] = useState(false);
+  const [localConflict, setLocalConflict] = useState<CareerOsData | null>(null);
+  const [resolvingConflict, setResolvingConflict] = useState(false);
+  const [conflictError, setConflictError] = useState<string | null>(null);
 
   const dataRef = useRef(data);
   const confirmedRef = useRef(data);
@@ -82,6 +91,9 @@ export function CareerOsProvider({
   const load = useCallback(async () => {
     setBootstrapError(false);
     setHydrated(false);
+    setLocalConflict(null);
+    setResolvingConflict(false);
+    setConflictError(null);
     setSyncStatus("loading");
     setSyncMessage("Loading cloud data...");
     canEditRef.current = false;
@@ -110,6 +122,10 @@ export function CareerOsProvider({
       if (result.mode === "offline-cache") {
         setSyncStatus("offline-cache");
         setSyncMessage("Cloud data is temporarily unavailable. Viewing the last saved copy.");
+      } else if (result.mode === "local-conflict") {
+        setLocalConflict(result.pendingLocalData ?? null);
+        setSyncStatus("local-conflict");
+        setSyncMessage("Different local and cloud CareerOS data need your review.");
       } else {
         setSyncStatus("synced");
         setSyncMessage("Cloud synced");
@@ -125,6 +141,53 @@ export function CareerOsProvider({
   useEffect(() => {
     void load();
   }, [load]);
+
+  const keepCloudVersion = useCallback(() => {
+    const cloud = confirmedRef.current;
+    writeCareerOsCache(window.localStorage, cloud);
+    markCareerOsCacheCloudConfirmed(window.localStorage, userId);
+    dataRef.current = cloud;
+    canEditRef.current = true;
+    setData(cloud);
+    setLocalConflict(null);
+    setConflictError(null);
+    setSyncStatus("synced");
+    setSyncMessage("Cloud synced");
+  }, [userId]);
+
+  const useLocalVersion = useCallback(async () => {
+    const local = localConflict;
+    const activeRepository = repositoryRef.current;
+    if (!local || !activeRepository || resolvingConflict) return;
+
+    setResolvingConflict(true);
+    setConflictError(null);
+    setSyncStatus("saving");
+    setSyncMessage("Saving this device's local version to cloud...");
+
+    try {
+      await activeRepository.save(userId, local, CAREER_STATE_SCHEMA_VERSION);
+      queueRef.current?.reset();
+      pendingWritesRef.current = 0;
+      saveEpochRef.current += 1;
+      dataRef.current = local;
+      confirmedRef.current = local;
+      canEditRef.current = true;
+      writeCareerOsCache(window.localStorage, local);
+      markCareerOsCacheCloudConfirmed(window.localStorage, userId);
+      setData(local);
+      setLocalConflict(null);
+      setSyncStatus("synced");
+      setSyncMessage("Cloud synced");
+    } catch {
+      canEditRef.current = false;
+      setConflictError("The local version could not be saved. Nothing has been replaced.");
+      setSyncStatus("local-conflict");
+      setSyncMessage("Different local and cloud CareerOS data still need your review.");
+    } finally {
+      setResolvingConflict(false);
+    }
+  }, [localConflict, resolvingConflict, userId]);
 
   const update = useCallback((fn: (draft: CareerOsData) => CareerOsData) => {
     if (!canEditRef.current) {
@@ -149,6 +212,7 @@ export function CareerOsProvider({
         pendingWritesRef.current -= 1;
         confirmedRef.current = next;
         writeCareerOsCache(window.localStorage, next);
+        markCareerOsCacheCloudConfirmed(window.localStorage, userId);
         if (pendingWritesRef.current === 0) {
           setSyncStatus("synced");
           setSyncMessage("Cloud synced");
@@ -165,7 +229,7 @@ export function CareerOsProvider({
         setSyncMessage("The last change could not be saved and was restored.");
       },
     );
-  }, []);
+  }, [userId]);
 
   const logActivity = useCallback(
     (text: string) => {
@@ -257,6 +321,67 @@ export function CareerOsProvider({
     return (
       <div className="flex min-h-screen items-center justify-center bg-background text-sm text-muted-foreground">
         Loading CareerOS...
+      </div>
+    );
+  }
+
+  if (localConflict) {
+    return (
+      <div className="flex min-h-screen items-center justify-center bg-background px-4 text-foreground">
+        <div className="w-full max-w-xl rounded-lg border border-border bg-card p-5 shadow-sm">
+          <h1 className="text-lg font-semibold">Different CareerOS data found on this device</h1>
+          <p className="mt-2 text-sm leading-relaxed text-muted-foreground">
+            CareerOS found an existing cloud record and a different browser-local copy. Nothing has
+            been overwritten. Choose which version should become the working copy.
+          </p>
+
+          <div className="mt-4 grid gap-3 sm:grid-cols-2">
+            <div className="rounded-md border border-border p-3">
+              <p className="text-xs font-semibold text-muted-foreground">Cloud version</p>
+              <p className="mt-1 text-sm">{data.profile.headline}</p>
+              <p className="mt-2 text-xs text-muted-foreground">
+                {data.applications.length} applications, {data.evidence.length} evidence records
+              </p>
+            </div>
+            <div className="rounded-md border border-border p-3">
+              <p className="text-xs font-semibold text-muted-foreground">This device</p>
+              <p className="mt-1 text-sm">{localConflict.profile.headline}</p>
+              <p className="mt-2 text-xs text-muted-foreground">
+                {localConflict.applications.length} applications, {localConflict.evidence.length}{" "}
+                evidence records
+              </p>
+            </div>
+          </div>
+
+          {conflictError ? (
+            <p role="alert" className="mt-3 text-sm text-destructive">
+              {conflictError}
+            </p>
+          ) : null}
+
+          <div className="mt-5 flex flex-wrap gap-2">
+            <button
+              type="button"
+              className="rounded-md bg-primary px-4 py-2 text-sm font-medium text-primary-foreground disabled:opacity-60"
+              disabled={resolvingConflict}
+              onClick={keepCloudVersion}
+            >
+              Keep cloud version
+            </button>
+            <button
+              type="button"
+              className="rounded-md border border-border px-4 py-2 text-sm font-medium disabled:opacity-60"
+              disabled={resolvingConflict}
+              onClick={() => void useLocalVersion()}
+            >
+              {resolvingConflict ? "Saving local version..." : "Use local version"}
+            </button>
+          </div>
+          <p className="mt-3 text-xs leading-relaxed text-muted-foreground">
+            Using the local version will replace the current cloud CareerOS record only after the
+            cloud save succeeds.
+          </p>
+        </div>
       </div>
     );
   }
