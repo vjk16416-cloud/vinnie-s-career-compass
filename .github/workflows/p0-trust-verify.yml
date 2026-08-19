@@ -17,7 +17,7 @@ on:
       - "src/routes/evidence.tsx"
       - "src/routes/profile.tsx"
       - "src/routes/settings.tsx"
-      - "src/routes/trust-controls.test.tsx"
+      - "src/routes/-trust-controls.test.tsx"
       - "supabase/migrations/**"
 
 permissions:
@@ -74,7 +74,7 @@ jobs:
             src/routes/evidence.tsx \
             src/routes/profile.tsx \
             src/routes/settings.tsx \
-            src/routes/trust-controls.test.tsx
+            src/routes/-trust-controls.test.tsx
 
       - name: Lint P0 files
         run: |
@@ -108,7 +108,7 @@ jobs:
             src/routes/evidence.tsx \
             src/routes/profile.tsx \
             src/routes/settings.tsx \
-            src/routes/trust-controls.test.tsx
+            src/routes/-trust-controls.test.tsx
 
       - name: Run production build
         run: bun run build
