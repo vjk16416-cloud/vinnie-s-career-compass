@@ -22,12 +22,7 @@ import { resolveClaimVariant, setProfileItemDecision } from "./profile-review";
 import type { ActivityEntry, CareerOsData, CareerProfileItemStatus } from "./types";
 
 export type CareerSyncStatus =
-  | "loading"
-  | "synced"
-  | "saving"
-  | "offline-cache"
-  | "save-error"
-  | "local-conflict";
+  "loading" | "synced" | "saving" | "offline-cache" | "save-error" | "local-conflict";
 
 interface StoreValue {
   data: CareerOsData;
@@ -189,47 +184,50 @@ export function CareerOsProvider({
     }
   }, [localConflict, resolvingConflict, userId]);
 
-  const update = useCallback((fn: (draft: CareerOsData) => CareerOsData) => {
-    if (!canEditRef.current) {
-      toast.error("Cloud data is unavailable. Changes are disabled until sync returns.");
-      return;
-    }
+  const update = useCallback(
+    (fn: (draft: CareerOsData) => CareerOsData) => {
+      if (!canEditRef.current) {
+        toast.error("Cloud data is unavailable. Changes are disabled until sync returns.");
+        return;
+      }
 
-    const queue = queueRef.current;
-    if (!queue) return;
+      const queue = queueRef.current;
+      if (!queue) return;
 
-    const next = fn(structuredClone(dataRef.current));
-    const epoch = saveEpochRef.current;
-    dataRef.current = next;
-    pendingWritesRef.current += 1;
-    setData(next);
-    setSyncStatus("saving");
-    setSyncMessage("Saving to cloud...");
+      const next = fn(structuredClone(dataRef.current));
+      const epoch = saveEpochRef.current;
+      dataRef.current = next;
+      pendingWritesRef.current += 1;
+      setData(next);
+      setSyncStatus("saving");
+      setSyncMessage("Saving to cloud...");
 
-    void queue.enqueue(next).then(
-      () => {
-        if (epoch !== saveEpochRef.current) return;
-        pendingWritesRef.current -= 1;
-        confirmedRef.current = next;
-        writeCareerOsCache(window.localStorage, next);
-        markCareerOsCacheCloudConfirmed(window.localStorage, userId);
-        if (pendingWritesRef.current === 0) {
-          setSyncStatus("synced");
-          setSyncMessage("Cloud synced");
-        }
-      },
-      () => {
-        if (epoch !== saveEpochRef.current) return;
-        saveEpochRef.current += 1;
-        pendingWritesRef.current = 0;
-        queue.reset();
-        dataRef.current = confirmedRef.current;
-        setData(confirmedRef.current);
-        setSyncStatus("save-error");
-        setSyncMessage("The last change could not be saved and was restored.");
-      },
-    );
-  }, [userId]);
+      void queue.enqueue(next).then(
+        () => {
+          if (epoch !== saveEpochRef.current) return;
+          pendingWritesRef.current -= 1;
+          confirmedRef.current = next;
+          writeCareerOsCache(window.localStorage, next);
+          markCareerOsCacheCloudConfirmed(window.localStorage, userId);
+          if (pendingWritesRef.current === 0) {
+            setSyncStatus("synced");
+            setSyncMessage("Cloud synced");
+          }
+        },
+        () => {
+          if (epoch !== saveEpochRef.current) return;
+          saveEpochRef.current += 1;
+          pendingWritesRef.current = 0;
+          queue.reset();
+          dataRef.current = confirmedRef.current;
+          setData(confirmedRef.current);
+          setSyncStatus("save-error");
+          setSyncMessage("The last change could not be saved and was restored.");
+        },
+      );
+    },
+    [userId],
+  );
 
   const logActivity = useCallback(
     (text: string) => {
