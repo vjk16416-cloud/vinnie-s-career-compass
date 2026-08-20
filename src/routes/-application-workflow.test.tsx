@@ -113,7 +113,10 @@ describe("application workspace workflow", () => {
     expect(screen.queryByRole("tab", { name: "Notes" })).not.toBeInTheDocument();
     expect(screen.queryByRole("tab", { name: "Interview Prep" })).not.toBeInTheDocument();
 
-    fireEvent.click(screen.getByRole("tab", { name: "Apply" }));
+    fireEvent.mouseDown(screen.getByRole("tab", { name: "Apply" }), {
+      button: 0,
+      ctrlKey: false,
+    });
     expect(screen.getByRole("heading", { name: "Application tracking" })).toBeInTheDocument();
     expect(screen.getByRole("heading", { name: "Interview prep" })).toBeInTheDocument();
   });
