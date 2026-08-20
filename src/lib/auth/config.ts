@@ -22,5 +22,5 @@ export function resolveSupabaseConfig(env: SupabaseEnv): SupabaseConfig {
 }
 
 export function getSupabaseConfig(): SupabaseConfig {
-  return resolveSupabaseConfig(import.meta.env);
+  return resolveSupabaseConfig(import.meta.env as SupabaseEnv);
 }
