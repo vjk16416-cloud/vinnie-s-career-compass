@@ -3,6 +3,7 @@ import { useMemo, useState } from "react";
 import { toast } from "sonner";
 import { AppShell } from "@/components/careeros/app-shell";
 import { CvHealthCheckPanel } from "@/components/careeros/cv-health-check-panel";
+import { FinalReviewPanel } from "@/components/careeros/final-review-panel";
 import { EmptyState, Panel, StatusPill } from "@/components/careeros/ui-bits";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -24,6 +25,7 @@ import {
 import {
   applicationGateState,
   approvalEligibility,
+  latestApplicationReview,
   reviewApplicationPack,
   scanMatchesSavedJob,
 } from "@/lib/careeros/review";
@@ -110,6 +112,33 @@ function ApplicationWorkspace() {
     ? approvalEligibility(reviewContext)
     : { allowed: false as const, reason: "Application data is incomplete." };
   const gateState = reviewContext ? applicationGateState(reviewContext) : "NOT REVIEWED";
+  const latestReview = reviewContext ? latestApplicationReview(reviewContext) : undefined;
+  const scanCurrent = Boolean(
+    job && scan && jdDraft === job.description && scanMatchesSavedJob(job, scan),
+  );
+  const reviewedCvVersion =
+    latestReview && cv
+      ? cv.versions.find((version) => version.id === latestReview.cvVersionId)
+      : undefined;
+  const reviewedLetterIndex = latestReview
+    ? coverLetterVersions.findIndex((letter) => letter.id === latestReview.coverLetterId)
+    : -1;
+  const currentCvLabel = latestCvVersion ? `CV v${latestCvVersion.version}` : undefined;
+  const currentCoverLetterLabel = latestLetter ? `Cover letter v${latestLetterVersion}` : undefined;
+  const reviewedCvLabel = reviewedCvVersion ? `CV v${reviewedCvVersion.version}` : undefined;
+  const reviewedCoverLetterLabel =
+    reviewedLetterIndex >= 0 ? `Cover letter v${reviewedLetterIndex + 1}` : undefined;
+  const canRunReview = Boolean(job && scanCurrent && cv && latestCvVersion && latestLetter);
+  const reviewDisabledReason =
+    job && jdDraft !== job.description
+      ? "Save the job description and re-run the role scan before final review."
+      : !job || !scan || !scanMatchesSavedJob(job, scan)
+        ? "Re-run the role scan for the current saved job description."
+        : !cv || !latestCvVersion
+          ? "Create a tailored CV before final review."
+          : !latestLetter
+            ? "Create a cover letter before final review."
+            : undefined;
 
   if (!app) {
     return (
@@ -752,16 +781,20 @@ function ApplicationWorkspace() {
                 tone={gateState === "READY TO APPLY" ? "success" : "warning"}
               />
             </div>
-            <div className="mt-3 flex flex-wrap items-center gap-3">
-              <Button size="sm" onClick={runFinalReview}>
-                Run final review
-              </Button>
-              <p className="text-xs text-muted-foreground">
-                The reviewer never approves documents. A passing review unlocks your explicit CV and
-                cover-letter approval controls.
-              </p>
-            </div>
           </Panel>
+
+          <FinalReviewPanel
+            gateState={gateState}
+            latestReview={latestReview}
+            scanCurrent={scanCurrent}
+            currentCvLabel={currentCvLabel}
+            currentCoverLetterLabel={currentCoverLetterLabel}
+            reviewedCvLabel={reviewedCvLabel}
+            reviewedCoverLetterLabel={reviewedCoverLetterLabel}
+            canRunReview={canRunReview}
+            reviewDisabledReason={reviewDisabledReason}
+            onRunReview={runFinalReview}
+          />
 
           <Panel title="Application tracking">
             <div className="mb-4 flex flex-wrap gap-2">
