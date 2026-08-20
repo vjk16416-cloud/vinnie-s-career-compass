@@ -9,7 +9,12 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { cvExportFileName, downloadWordCompatibleCv, printCv } from "@/lib/careeros/cv-export";
+import {
+  coverLetterExportFileName,
+  cvExportFileName,
+  downloadWordCompatibleCv,
+  printCv,
+} from "@/lib/careeros/cv-export";
 import {
   buildCoverLetter,
   buildTailoredCv,
@@ -46,10 +51,10 @@ function ApplicationWorkspace() {
   const job = data.jobs.find((candidate) => candidate.id === app?.jobId);
   const scan = data.scans.find((candidate) => candidate.jobId === app?.jobId);
   const cv = data.cvs.find((candidate) => candidate.applicationId === id);
-  const letter = data.coverLetters.find((candidate) => candidate.applicationId === id);
   const [jdDraft, setJdDraft] = useState(job?.description ?? "");
   const [healthOpen, setHealthOpen] = useState(false);
   const [selectedCvVersionId, setSelectedCvVersionId] = useState<string | undefined>(undefined);
+  const [selectedCoverLetterId, setSelectedCoverLetterId] = useState<string | undefined>(undefined);
 
   const verified = useMemo(
     () => data.evidence.filter((record) => record.status === "Verified"),
@@ -62,6 +67,24 @@ function ApplicationWorkspace() {
   const selectedCvBody = selectedCvVersion?.body ?? "";
   const comparingOlderCvVersion = Boolean(
     selectedCvVersion && latestCvVersion && selectedCvVersion.id !== latestCvVersion.id,
+  );
+  const coverLetterVersions = useMemo(
+    () =>
+      data.coverLetters
+        .filter((candidate) => candidate.applicationId === id)
+        .slice()
+        .sort((a, b) => a.createdAt.localeCompare(b.createdAt)),
+    [data.coverLetters, id],
+  );
+  const latestLetter = coverLetterVersions[coverLetterVersions.length - 1];
+  const selectedLetter =
+    coverLetterVersions.find((candidate) => candidate.id === selectedCoverLetterId) ?? latestLetter;
+  const selectedLetterVersion = selectedLetter
+    ? coverLetterVersions.findIndex((candidate) => candidate.id === selectedLetter.id) + 1
+    : 0;
+  const latestLetterVersion = coverLetterVersions.length;
+  const comparingOlderLetter = Boolean(
+    selectedLetter && latestLetter && selectedLetter.id !== latestLetter.id,
   );
   const health = useMemo(
     () => (latestCvBody ? runCvHealthCheck(latestCvBody, data, job, scan) : null),
@@ -215,12 +238,52 @@ function ApplicationWorkspace() {
           evidenceIds: built.evidenceIds,
           createdAt: new Date().toISOString(),
         },
-        ...draft.coverLetters.filter((candidate) => candidate.applicationId !== app.id),
+        ...draft.coverLetters,
       ];
       return draft;
     });
+    setSelectedCoverLetterId(undefined);
     logActivity(`Cover letter draft created for ${app.title}.`);
     toast.success("Cover letter draft created from verified evidence.");
+  }
+
+  function approveLatestLetter() {
+    if (!latestLetter) return;
+    update((draft) => {
+      const target = draft.coverLetters.find((candidate) => candidate.id === latestLetter.id);
+      if (target) target.status = "Approved";
+      return draft;
+    });
+    toast.success("Latest cover letter approved.");
+  }
+
+  function downloadSelectedLetter() {
+    if (!selectedLetter) return;
+    const title = `${app.title} at ${app.company} | Cover letter version ${selectedLetterVersion}`;
+    downloadWordCompatibleCv(
+      selectedLetter.body,
+      title,
+      coverLetterExportFileName(app.title, app.company, selectedLetterVersion),
+    );
+    toast.success(`Cover letter version ${selectedLetterVersion} downloaded as a Word-compatible .doc.`);
+  }
+
+  function printSelectedLetter() {
+    if (!selectedLetter) return;
+    const title = `${app.title} at ${app.company} | Cover letter version ${selectedLetterVersion}`;
+    if (!printCv(selectedLetter.body, title)) {
+      toast.error("Your browser blocked the print window. Allow pop-ups and try again.");
+    }
+  }
+
+  async function copySelectedEmail() {
+    if (!selectedLetter) return;
+    try {
+      await navigator.clipboard.writeText(selectedLetter.emailVersion);
+      toast.success("Application email copied.");
+    } catch {
+      toast.error("Could not copy the application email. Select the text and copy it manually.");
+    }
   }
 
   return (
@@ -439,27 +502,118 @@ function ApplicationWorkspace() {
             description="Plain English, evidence-led, honest about gaps."
             actions={
               <Button size="sm" onClick={generateLetter}>
-                {letter ? "Regenerate draft" : "Create cover letter"}
+                {latestLetter ? "New cover letter draft" : "Create cover letter"}
               </Button>
             }
           >
-            {letter ? (
+            {selectedLetter && latestLetter ? (
               <div className="space-y-4">
-                <StatusPill label={`Status: ${letter.status}`} tone="warning" />
+                <div className="flex flex-wrap items-center gap-2">
+                  <StatusPill
+                    label={`Status: ${selectedLetter.status}`}
+                    tone={selectedLetter.status === "Approved" ? "success" : "warning"}
+                  />
+                  <StatusPill label={`Preview: v${selectedLetterVersion}`} />
+                  {comparingOlderLetter ? (
+                    <StatusPill label={`Latest: v${latestLetterVersion}`} tone="warning" />
+                  ) : null}
+                  <Button
+                    size="sm"
+                    variant="ghost"
+                    onClick={approveLatestLetter}
+                    disabled={comparingOlderLetter || latestLetter.status === "Approved"}
+                  >
+                    Approve latest cover letter
+                  </Button>
+                </div>
+
+                <div className="grid gap-3 md:grid-cols-[minmax(0,1fr)_auto] md:items-end">
+                  <div>
+                    <Label htmlFor="cover-letter-preview-version">Preview cover letter version</Label>
+                    <select
+                      id="cover-letter-preview-version"
+                      className="mt-1.5 h-9 w-full rounded-md border border-input bg-background px-3 text-sm shadow-sm outline-none focus-visible:ring-1 focus-visible:ring-ring"
+                      value={selectedLetter.id}
+                      onChange={(event) => setSelectedCoverLetterId(event.target.value)}
+                    >
+                      {coverLetterVersions
+                        .slice()
+                        .reverse()
+                        .map((version) => {
+                          const versionNumber =
+                            coverLetterVersions.findIndex((candidate) => candidate.id === version.id) + 1;
+                          return (
+                            <option key={version.id} value={version.id}>
+                              Version {versionNumber} · {version.status} ·{" "}
+                              {new Date(version.createdAt).toLocaleDateString("en-GB")}
+                            </option>
+                          );
+                        })}
+                    </select>
+                  </div>
+                  <div className="flex flex-wrap gap-2">
+                    <Button size="sm" variant="secondary" onClick={downloadSelectedLetter}>
+                      Download cover letter .doc
+                    </Button>
+                    <Button size="sm" variant="secondary" onClick={printSelectedLetter}>
+                      Print / Save cover letter as PDF
+                    </Button>
+                  </div>
+                </div>
+
                 <pre className="whitespace-pre-wrap rounded-md border border-border bg-surface-2/40 p-4 text-sm">
-                  {letter.body}
+                  {selectedLetter.body}
                 </pre>
+
                 <div>
-                  <h3 className="text-xs font-semibold text-muted-foreground">
-                    Concise application email
-                  </h3>
+                  <div className="flex flex-wrap items-center justify-between gap-2">
+                    <h3 className="text-xs font-semibold text-muted-foreground">
+                      Concise application email
+                    </h3>
+                    <Button size="sm" variant="secondary" onClick={() => void copySelectedEmail()}>
+                      Copy application email
+                    </Button>
+                  </div>
                   <pre className="mt-1.5 whitespace-pre-wrap rounded-md border border-border bg-surface-2/40 p-4 text-sm">
-                    {letter.emailVersion}
+                    {selectedLetter.emailVersion}
                   </pre>
                 </div>
+
                 <p className="text-xs text-muted-foreground">
-                  Evidence used: {letter.evidenceIds.join(", ") || "none"}
+                  Evidence used: {selectedLetter.evidenceIds.join(", ") || "none"}
                 </p>
+
+                {comparingOlderLetter ? (
+                  <div>
+                    <h3 className="text-sm font-semibold">Compare with latest cover letter</h3>
+                    <p className="mt-1 text-xs text-muted-foreground">
+                      You are previewing version {selectedLetterVersion}. The current latest draft
+                      is version {latestLetterVersion}.
+                    </p>
+                    <pre className="mt-2 whitespace-pre-wrap rounded-md border border-border bg-surface-2/40 p-4 text-sm">
+                      {latestLetter.body}
+                    </pre>
+                  </div>
+                ) : null}
+
+                <div>
+                  <h3 className="text-xs font-semibold text-muted-foreground">Version history</h3>
+                  <ul className="mt-1.5 space-y-1 text-xs text-muted-foreground">
+                    {coverLetterVersions
+                      .slice()
+                      .reverse()
+                      .map((version) => {
+                        const versionNumber =
+                          coverLetterVersions.findIndex((candidate) => candidate.id === version.id) + 1;
+                        return (
+                          <li key={version.id}>
+                            v{versionNumber} · {new Date(version.createdAt).toLocaleString("en-GB")} ·{" "}
+                            {version.status}
+                          </li>
+                        );
+                      })}
+                  </ul>
+                </div>
               </div>
             ) : (
               <EmptyState
@@ -471,25 +625,45 @@ function ApplicationWorkspace() {
         </TabsContent>
 
         <TabsContent value="apply" className="mt-4 space-y-4">
+          <Panel
+            title="Application pack"
+            description="Core materials for this role. Automated reviewer checks remain a separate future gate."
+          >
+            <div className="flex flex-wrap gap-2">
+              <StatusPill
+                label={`Job: ${job?.description.trim() ? "Ready" : "Needs input"}`}
+                tone={job?.description.trim() ? "success" : "warning"}
+              />
+              <StatusPill
+                label={`Match: ${scan ? "Ready" : "Not run"}`}
+                tone={scan ? "success" : "warning"}
+              />
+              <StatusPill
+                label={`Evidence: ${scan?.evidenceMap?.length ? "Ready" : "Not mapped"}`}
+                tone={scan?.evidenceMap?.length ? "success" : "warning"}
+              />
+              <StatusPill
+                label={`CV: ${cv?.status ?? "Not started"}`}
+                tone={cv?.status === "Approved" ? "success" : "warning"}
+              />
+              <StatusPill
+                label={`Cover letter: ${latestLetter?.status ?? "Not started"}`}
+                tone={latestLetter?.status === "Approved" ? "success" : "warning"}
+              />
+            </div>
+            <p className="mt-3 text-xs text-muted-foreground">
+              This checkpoint shows whether the core application materials exist and which versions
+              are approved. It does not mark an application Ready to Apply until the separate review
+              gate is implemented.
+            </p>
+          </Panel>
+
           <Panel title="Application tracking">
             <div className="mb-4 flex flex-wrap gap-2">
               <StatusPill label={`Stage: ${app.stage}`} />
               {app.compatibilityScore !== undefined ? (
                 <StatusPill label={`Match: ${app.compatibilityScore}%`} />
               ) : null}
-              {cv ? (
-                <StatusPill
-                  label={`CV: ${cv.status}`}
-                  tone={cv.status === "Approved" ? "success" : "warning"}
-                />
-              ) : (
-                <StatusPill label="CV: Not started" tone="warning" />
-              )}
-              {letter ? (
-                <StatusPill label={`Cover letter: ${letter.status}`} tone="warning" />
-              ) : (
-                <StatusPill label="Cover letter: Not started" tone="warning" />
-              )}
             </div>
             <div className="grid gap-3 sm:grid-cols-2">
               <div>
