@@ -104,9 +104,11 @@ function ApplicationWorkspace() {
     );
   }
 
+  const currentApp = app;
+
   function saveJd() {
     update((draft) => {
-      const target = draft.jobs.find((candidate) => candidate.id === app.jobId);
+      const target = draft.jobs.find((candidate) => candidate.id === currentApp.jobId);
       if (target) target.description = jdDraft;
       return draft;
     });
@@ -126,7 +128,7 @@ function ApplicationWorkspace() {
       const targetJob = draft.jobs.find((candidate) => candidate.id === job.id);
       if (targetJob) targetJob.description = jdDraft;
       draft.scans = [result, ...draft.scans.filter((candidate) => candidate.jobId !== job.id)];
-      const targetApplication = draft.applications.find((candidate) => candidate.id === app.id);
+      const targetApplication = draft.applications.find((candidate) => candidate.id === currentApp.id);
       if (targetApplication) {
         targetApplication.compatibilityScore = result.overall;
         targetApplication.history = [
@@ -139,7 +141,7 @@ function ApplicationWorkspace() {
       }
       return draft;
     });
-    logActivity(`Re-scanned ${app.title} at ${app.company}: ${result.overall}% fit.`);
+    logActivity(`Re-scanned ${currentApp.title} at ${currentApp.company}: ${result.overall}% fit.`);
   }
 
   function generateCv() {
@@ -147,7 +149,7 @@ function ApplicationWorkspace() {
     const built = buildTailoredCv(data, { ...job, description: jdDraft || job.description }, scan);
 
     update((draft) => {
-      const existing = draft.cvs.find((candidate) => candidate.applicationId === app.id);
+      const existing = draft.cvs.find((candidate) => candidate.applicationId === currentApp.id);
       if (existing) {
         existing.versions.push({
           id: uid("cvv"),
@@ -164,10 +166,10 @@ function ApplicationWorkspace() {
         draft.cvs = [
           {
             id: cvId,
-            name: `${app.title} | ${app.company}`,
+            name: `${currentApp.title} | ${currentApp.company}`,
             category: suggestCvCategory(job),
             status: "Draft",
-            applicationId: app.id,
+            applicationId: currentApp.id,
             jobId: job.id,
             updatedAt: new Date().toISOString(),
             versions: [
@@ -183,14 +185,14 @@ function ApplicationWorkspace() {
           },
           ...draft.cvs,
         ];
-        const targetApplication = draft.applications.find((candidate) => candidate.id === app.id);
+        const targetApplication = draft.applications.find((candidate) => candidate.id === currentApp.id);
         if (targetApplication) targetApplication.linkedCvId = cvId;
       }
       return draft;
     });
 
     setSelectedCvVersionId(undefined);
-    logActivity(`Tailored CV draft created for ${app.title} at ${app.company}.`);
+    logActivity(`Tailored CV draft created for ${currentApp.title} at ${currentApp.company}.`);
     toast.success("Draft CV created. It stays a draft until you approve it.");
   }
 
@@ -206,18 +208,18 @@ function ApplicationWorkspace() {
 
   function downloadSelectedCv() {
     if (!selectedCvVersion) return;
-    const title = `${app.title} at ${app.company} | CV version ${selectedCvVersion.version}`;
+    const title = `${currentApp.title} at ${currentApp.company} | CV version ${selectedCvVersion.version}`;
     downloadWordCompatibleCv(
       selectedCvVersion.body,
       title,
-      cvExportFileName(app.title, app.company, selectedCvVersion.version),
+      cvExportFileName(currentApp.title, currentApp.company, selectedCvVersion.version),
     );
     toast.success(`CV version ${selectedCvVersion.version} downloaded as a Word-compatible .doc.`);
   }
 
   function printSelectedCv() {
     if (!selectedCvVersion) return;
-    const title = `${app.title} at ${app.company} | CV version ${selectedCvVersion.version}`;
+    const title = `${currentApp.title} at ${currentApp.company} | CV version ${selectedCvVersion.version}`;
     if (!printCv(selectedCvVersion.body, title)) {
       toast.error("Your browser blocked the print window. Allow pop-ups and try again.");
     }
@@ -230,7 +232,7 @@ function ApplicationWorkspace() {
       draft.coverLetters = [
         {
           id: uid("cl"),
-          applicationId: app.id,
+          applicationId: currentApp.id,
           jobId: job.id,
           status: "Draft",
           body: built.body,
@@ -243,7 +245,7 @@ function ApplicationWorkspace() {
       return draft;
     });
     setSelectedCoverLetterId(undefined);
-    logActivity(`Cover letter draft created for ${app.title}.`);
+    logActivity(`Cover letter draft created for ${currentApp.title}.`);
     toast.success("Cover letter draft created from verified evidence.");
   }
 
@@ -259,11 +261,11 @@ function ApplicationWorkspace() {
 
   function downloadSelectedLetter() {
     if (!selectedLetter) return;
-    const title = `${app.title} at ${app.company} | Cover letter version ${selectedLetterVersion}`;
+    const title = `${currentApp.title} at ${currentApp.company} | Cover letter version ${selectedLetterVersion}`;
     downloadWordCompatibleCv(
       selectedLetter.body,
       title,
-      coverLetterExportFileName(app.title, app.company, selectedLetterVersion),
+      coverLetterExportFileName(currentApp.title, currentApp.company, selectedLetterVersion),
     );
     toast.success(
       `Cover letter version ${selectedLetterVersion} downloaded as a Word-compatible .doc.`,
@@ -272,7 +274,7 @@ function ApplicationWorkspace() {
 
   function printSelectedLetter() {
     if (!selectedLetter) return;
-    const title = `${app.title} at ${app.company} | Cover letter version ${selectedLetterVersion}`;
+    const title = `${currentApp.title} at ${currentApp.company} | Cover letter version ${selectedLetterVersion}`;
     if (!printCv(selectedLetter.body, title)) {
       toast.error("Your browser blocked the print window. Allow pop-ups and try again.");
     }
@@ -290,8 +292,8 @@ function ApplicationWorkspace() {
 
   return (
     <AppShell
-      title={app.title}
-      subtitle={`${app.company} · ${app.location} · ${app.stage}`}
+      title={currentApp.title}
+      subtitle={`${currentApp.company} · ${currentApp.location} · ${currentApp.stage}`}
       actions={
         <Button asChild size="sm" variant="secondary">
           <Link to="/applications">All applications</Link>
@@ -668,9 +670,9 @@ function ApplicationWorkspace() {
 
           <Panel title="Application tracking">
             <div className="mb-4 flex flex-wrap gap-2">
-              <StatusPill label={`Stage: ${app.stage}`} />
-              {app.compatibilityScore !== undefined ? (
-                <StatusPill label={`Match: ${app.compatibilityScore}%`} />
+              <StatusPill label={`Stage: ${currentApp.stage}`} />
+              {currentApp.compatibilityScore !== undefined ? (
+                <StatusPill label={`Match: ${currentApp.compatibilityScore}%`} />
               ) : null}
             </div>
             <div className="grid gap-3 sm:grid-cols-2">
@@ -679,11 +681,11 @@ function ApplicationWorkspace() {
                 <Input
                   id="next-action"
                   className="mt-1.5"
-                  defaultValue={app.nextAction ?? ""}
+                  defaultValue={currentApp.nextAction ?? ""}
                   onBlur={(event) =>
                     update((draft) => {
                       const target = draft.applications.find(
-                        (candidate) => candidate.id === app.id,
+                        (candidate) => candidate.id === currentApp.id,
                       );
                       if (target) target.nextAction = event.target.value;
                       return draft;
@@ -697,11 +699,11 @@ function ApplicationWorkspace() {
                   id="deadline"
                   type="date"
                   className="mt-1.5"
-                  defaultValue={app.deadline ?? ""}
+                  defaultValue={currentApp.deadline ?? ""}
                   onBlur={(event) =>
                     update((draft) => {
                       const target = draft.applications.find(
-                        (candidate) => candidate.id === app.id,
+                        (candidate) => candidate.id === currentApp.id,
                       );
                       if (target) target.deadline = event.target.value;
                       return draft;
@@ -714,11 +716,11 @@ function ApplicationWorkspace() {
                 <Textarea
                   id="notes"
                   className="mt-1.5 min-h-32"
-                  defaultValue={app.notes}
+                  defaultValue={currentApp.notes}
                   onBlur={(event) =>
                     update((draft) => {
                       const target = draft.applications.find(
-                        (candidate) => candidate.id === app.id,
+                        (candidate) => candidate.id === currentApp.id,
                       );
                       if (target) target.notes = event.target.value;
                       return draft;
@@ -730,7 +732,7 @@ function ApplicationWorkspace() {
             <div className="mt-4">
               <h3 className="text-xs font-semibold text-muted-foreground">History</h3>
               <ol className="mt-1.5 space-y-1 text-xs text-muted-foreground">
-                {app.history.map((entry) => (
+                {currentApp.history.map((entry) => (
                   <li key={`${entry.at}-${entry.entry}`}>
                     {new Date(entry.at).toLocaleString("en-GB")} · {entry.entry}
                   </li>

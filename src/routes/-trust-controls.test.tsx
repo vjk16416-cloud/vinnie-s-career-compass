@@ -104,7 +104,7 @@ describe("CareerOS trust controls", () => {
     const repository = renderPrivateRoute(<EvidencePage />);
 
     await screen.findByRole("heading", { name: "Evidence Bank" });
-    const action = screen.getAllByRole("button", { name: `Mark ${status}` })[0];
+    const action = screen.getAllByRole("button", { name: `Mark ${status}` })[0]!;
     fireEvent.click(action);
 
     expect(screen.getByRole("alertdialog")).toBeInTheDocument();
