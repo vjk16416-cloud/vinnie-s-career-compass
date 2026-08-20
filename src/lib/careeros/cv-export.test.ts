@@ -1,10 +1,6 @@
 import { describe, expect, it } from "vitest";
 
-import {
-  buildWordCompatibleCv,
-  coverLetterExportFileName,
-  cvExportFileName,
-} from "./cv-export";
+import { buildWordCompatibleCv, coverLetterExportFileName, cvExportFileName } from "./cv-export";
 
 describe("CV export", () => {
   it("builds a Word-compatible document with safe Times New Roman content", () => {
