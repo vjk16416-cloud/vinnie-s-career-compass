@@ -293,12 +293,16 @@ describe("application workspace workflow", () => {
       ctrlKey: false,
     });
 
-    const selectorBefore = screen.getByLabelText("Preview cover letter version") as HTMLSelectElement;
+    const selectorBefore = screen.getByLabelText(
+      "Preview cover letter version",
+    ) as HTMLSelectElement;
     expect(selectorBefore.options).toHaveLength(2);
 
     fireEvent.click(screen.getByRole("button", { name: "New cover letter draft" }));
 
-    const selectorAfter = screen.getByLabelText("Preview cover letter version") as HTMLSelectElement;
+    const selectorAfter = screen.getByLabelText(
+      "Preview cover letter version",
+    ) as HTMLSelectElement;
     expect(selectorAfter.options).toHaveLength(3);
   });
 
