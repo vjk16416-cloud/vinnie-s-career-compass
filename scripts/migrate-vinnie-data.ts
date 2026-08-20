@@ -64,7 +64,7 @@ const ROLE_DEFINITIONS = [
     title: "Performance Marketing Manager",
     employment_type: "Contract",
     start_date: "2025-06-01",
-    end_date: "2025-11-01",
+    end_date: "2025-12-01",
     is_current: false,
   },
   {
