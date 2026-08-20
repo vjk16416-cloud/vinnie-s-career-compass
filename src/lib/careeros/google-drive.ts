@@ -1,4 +1,5 @@
 import type { SupabaseClient } from "@supabase/supabase-js";
+import { createClientOnlyFn } from "@tanstack/react-start";
 
 import { getBrowserSupabase } from "@/lib/auth/supabase.client";
 import { safeReturnTo } from "@/lib/auth/policy";
@@ -19,30 +20,32 @@ export type GoogleDriveFile = {
 type SupabaseFactory = () => SupabaseClient;
 type Fetcher = typeof fetch;
 
-export async function startGoogleDriveConnection(
-  returnTo = "/settings",
-  createSupabase: SupabaseFactory = getBrowserSupabase,
-  origin = typeof window === "undefined" ? "" : window.location.origin,
-): Promise<{ error: string | null }> {
-  try {
-    const supabase = createSupabase();
-    const { error } = await supabase.auth.signInWithOAuth({
-      provider: "google",
-      options: {
-        scopes: DRIVE_READONLY_SCOPE,
-        redirectTo: `${origin}/auth/callback?returnTo=${encodeURIComponent(safeReturnTo(returnTo))}`,
-        queryParams: {
-          access_type: "offline",
-          prompt: "consent",
+export const startGoogleDriveConnection = createClientOnlyFn(
+  async function startGoogleDriveConnection(
+    returnTo = "/settings",
+    createSupabase: SupabaseFactory = getBrowserSupabase,
+    origin = window.location.origin,
+  ): Promise<{ error: string | null }> {
+    try {
+      const supabase = createSupabase();
+      const { error } = await supabase.auth.signInWithOAuth({
+        provider: "google",
+        options: {
+          scopes: DRIVE_READONLY_SCOPE,
+          redirectTo: `${origin}/auth/callback?returnTo=${encodeURIComponent(safeReturnTo(returnTo))}`,
+          queryParams: {
+            access_type: "offline",
+            prompt: "consent",
+          },
         },
-      },
-    });
+      });
 
-    return { error: error ? DRIVE_CONNECTION_ERROR : null };
-  } catch {
-    return { error: DRIVE_CONNECTION_ERROR };
-  }
-}
+      return { error: error ? DRIVE_CONNECTION_ERROR : null };
+    } catch {
+      return { error: DRIVE_CONNECTION_ERROR };
+    }
+  },
+);
 
 export function extractDriveFolderId(input: string): string | null {
   const value = input.trim();
@@ -62,18 +65,20 @@ export function extractDriveFolderId(input: string): string | null {
   }
 }
 
-export async function getGoogleProviderToken(
-  createSupabase: SupabaseFactory = getBrowserSupabase,
-): Promise<string | null> {
-  try {
-    const supabase = createSupabase();
-    const { data, error } = await supabase.auth.getSession();
-    if (error) return null;
-    return data.session?.provider_token ?? null;
-  } catch {
-    return null;
-  }
-}
+export const getGoogleProviderToken = createClientOnlyFn(
+  async function getGoogleProviderToken(
+    createSupabase: SupabaseFactory = getBrowserSupabase,
+  ): Promise<string | null> {
+    try {
+      const supabase = createSupabase();
+      const { data, error } = await supabase.auth.getSession();
+      if (error) return null;
+      return data.session?.provider_token ?? null;
+    } catch {
+      return null;
+    }
+  },
+);
 
 export async function listDriveFolderFiles(
   folderReference: string,
