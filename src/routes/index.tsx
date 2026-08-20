@@ -2,6 +2,7 @@ import { createFileRoute, Link } from "@tanstack/react-router";
 import { AppShell } from "@/components/careeros/app-shell";
 import { EmptyState, Panel, StatusPill, evidenceTone } from "@/components/careeros/ui-bits";
 import { Button } from "@/components/ui/button";
+import { buildHomeAttention } from "@/lib/careeros/home-focus";
 import { useCareerOs } from "@/lib/careeros/store";
 
 export const Route = createFileRoute("/")({
@@ -25,6 +26,7 @@ export const Route = createFileRoute("/")({
 
 function HomePage() {
   const { data } = useCareerOs();
+  const attention = buildHomeAttention(data);
   const active = data.applications.filter(
     (a) => !["Rejected", "Withdrawn", "Accepted"].includes(a.stage),
   );
@@ -48,6 +50,41 @@ function HomePage() {
       }
     >
       <div className="space-y-4">
+        <Panel
+          title="Needs your attention"
+          description={attention.length ? `${attention.length} item${attention.length === 1 ? "" : "s"} to review` : "No workflow blockers right now"}
+        >
+          {attention.length === 0 ? (
+            <EmptyState
+              title="You're all caught up."
+              hint="CareerOS has no overdue actions, draft application documents, evidence gaps or unverified evidence to surface."
+            />
+          ) : (
+            <ul className="space-y-2">
+              {attention.map((item) => (
+                <li
+                  key={item.id}
+                  className="grid grid-cols-[minmax(0,1fr)_auto] items-center gap-3 rounded-md border border-border bg-surface-2/40 px-3 py-2.5"
+                >
+                  <div className="min-w-0">
+                    <p className="truncate text-sm font-medium">{item.label}</p>
+                    <p className="truncate text-xs text-muted-foreground">{item.detail}</p>
+                  </div>
+                  <Button asChild size="sm" variant="secondary">
+                    {item.applicationId ? (
+                      <Link to="/applications/$id" params={{ id: item.applicationId }}>
+                        Review
+                      </Link>
+                    ) : (
+                      <Link to="/evidence">Review</Link>
+                    )}
+                  </Button>
+                </li>
+              ))}
+            </ul>
+          )}
+        </Panel>
+
         <Panel title="Today's focus" description="Next actions pulled from your live applications">
           {active.length === 0 ? (
             <EmptyState title="Nothing active yet." hint="Start with a job scan." />
