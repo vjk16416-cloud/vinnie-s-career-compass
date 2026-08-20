@@ -8,7 +8,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { extractJobFromUrl } from "@/lib/careeros/job-extract.functions";
-import { runScan } from "@/lib/careeros/scoring";
+import { runCanonicalJobScan } from "@/lib/careeros/knowledge/scan-service";
 import { uid, useCareerOs } from "@/lib/careeros/store";
 import type { JobRecord, ScanResult } from "@/lib/careeros/types";
 
@@ -79,7 +79,7 @@ function DetailList({ title, items }: { title: string; items: string[] }) {
 }
 
 function JobScanPage() {
-  const { data, update, logActivity } = useCareerOs();
+  const { update, logActivity } = useCareerOs();
   const navigate = useNavigate();
   const resultsRef = useRef<HTMLDivElement | null>(null);
   const busy = useRef(false);
@@ -155,7 +155,7 @@ function JobScanPage() {
     }
   }
 
-  function handleScan() {
+  async function handleScan() {
     if (busy.current) return;
     setScanError(null);
     if (insufficient) {
@@ -175,7 +175,7 @@ function JobScanPage() {
         createdAt: new Date().toISOString(),
         sourceType: url.trim() ? "url" : "paste",
       };
-      const result = runScan(record, data);
+      const result = await runCanonicalJobScan(record);
       update((draft) => {
         draft.jobs = [record, ...(draft.jobs ?? [])];
         draft.scans = [result, ...(draft.scans ?? [])];
