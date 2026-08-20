@@ -88,4 +88,87 @@ describe("Agent 02 application-pack reviewer", () => {
     pack.data.evidence.find((item) => item.id === "ev-ab")!.status = "Needs Evidence";
     expect(reviewApplicationPack(pack).outcome).toBe("NEEDS INPUT");
   });
+
+  it("returns NEEDS INPUT for an unsupported metric", () => {
+    const pack = makePack();
+    pack.cvVersion.body += "\n- Increased conversion by 91%.";
+    const result = reviewApplicationPack(pack);
+    expect(result.outcome).toBe("NEEDS INPUT");
+    expect(result.checks.find((check) => check.key === "metrics")?.status).toBe("Fail");
+  });
+
+  it("returns NEEDS INPUT for a chronology conflict", () => {
+    const pack = makePack();
+    pack.cvVersion.body += "\nNortheastern University London | 2022-2025";
+    const result = reviewApplicationPack(pack);
+    expect(result.outcome).toBe("NEEDS INPUT");
+    expect(result.checks.find((check) => check.key === "chronology")?.status).toBe("Fail");
+  });
+
+  it("returns NEEDS REVISION for an em dash", () => {
+    const pack = makePack();
+    pack.coverLetter.body += "\nDelivery — analytics.";
+    expect(reviewApplicationPack(pack).outcome).toBe("NEEDS REVISION");
+  });
+
+  it("returns NEEDS REVISION for known US spelling", () => {
+    const pack = makePack();
+    pack.coverLetter.body += "\nI optimized campaign reporting.";
+    expect(reviewApplicationPack(pack).outcome).toBe("NEEDS REVISION");
+  });
+
+  it("keeps unsupported ATS keywords advisory", () => {
+    const result = reviewApplicationPack(makePack());
+    const ats = result.checks.find((check) => check.key === "ats")!;
+    expect(ats.status).toBe("Warning");
+    expect(ats.findings.length).toBeGreaterThan(0);
+    expect(result.outcome).toBe("READY FOR VINNIE APPROVAL");
+  });
+
+  it("flags weak bullets as advisory STAR findings", () => {
+    const pack = makePack();
+    pack.cvVersion.body += "\n- Helped.";
+    const result = reviewApplicationPack(pack);
+    const star = result.checks.find((check) => check.key === "star")!;
+    expect(star.status).toBe("Warning");
+    expect(star.findings.length).toBeGreaterThan(0);
+    expect(result.outcome).toBe("READY FOR VINNIE APPROVAL");
+  });
+
+  it("labels heuristic prose findings as AI-like language risk", () => {
+    const pack = makePack();
+    pack.coverLetter.body += "\nI am a results-driven professional.";
+    const result = reviewApplicationPack(pack);
+    const aiRisk = result.checks.find((check) => check.key === "ai-language-risk")!;
+    expect(aiRisk.label).toBe("AI-like language risk");
+    expect(aiRisk.status).toBe("Warning");
+    expect(aiRisk.findings.length).toBeGreaterThan(0);
+  });
+
+  it("blocks a cover letter that does not name the current role", () => {
+    const pack = makePack();
+    pack.coverLetter.body = pack.coverLetter.body.replace(pack.job.title, "another opportunity");
+    const result = reviewApplicationPack(pack);
+    expect(result.outcome).toBe("NEEDS REVISION");
+    expect(result.checks.find((check) => check.key === "cover-letter")?.status).toBe("Fail");
+  });
+
+  it("blocks non-Verified cover-letter evidence", () => {
+    const pack = makePack();
+    pack.data.evidence.find((item) => item.id === "ev-ab")!.status = "Archived";
+    expect(reviewApplicationPack(pack).outcome).toBe("NEEDS INPUT");
+  });
+
+  it("allows advisory warnings while remaining READY FOR VINNIE APPROVAL", () => {
+    const pack = makePack();
+    pack.coverLetter.body += "\nI am a results-driven professional.";
+    expect(reviewApplicationPack(pack).outcome).toBe("READY FOR VINNIE APPROVAL");
+  });
+
+  it("uses NEEDS INPUT before NEEDS REVISION when both exist", () => {
+    const pack = makePack();
+    pack.cvVersion.body += "\n- Increased conversion by 91%.";
+    pack.coverLetter.body += "\nDelivery — analytics.";
+    expect(reviewApplicationPack(pack).outcome).toBe("NEEDS INPUT");
+  });
 });
