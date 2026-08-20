@@ -350,4 +350,20 @@ describe("application workspace workflow", () => {
     openTab("Cover Letter");
     expect(screen.getByRole("button", { name: "Approve latest cover letter" })).toBeEnabled();
   });
+
+  it("renders the final review panel and shows the exact reviewed pack", async () => {
+    renderWorkspace();
+    await screen.findByRole("heading", { name: "Growth Marketing Manager" });
+
+    openTab("Apply");
+    expect(screen.getByRole("heading", { name: "Final review" })).toBeInTheDocument();
+    expect(screen.getByText("Reviewer status: NOT REVIEWED")).toBeInTheDocument();
+    expect(screen.getByText("Current pack: CV v2 · Cover letter v2")).toBeInTheDocument();
+
+    fireEvent.click(screen.getByRole("button", { name: "Run final review" }));
+
+    expect(screen.getByText("Reviewer status: READY FOR VINNIE APPROVAL")).toBeInTheDocument();
+    expect(screen.getByText("Reviewed pack: CV v2 · Cover letter v2")).toBeInTheDocument();
+    expect(screen.getByText("Evidence and unsupported claims: Pass")).toBeInTheDocument();
+  });
 });
