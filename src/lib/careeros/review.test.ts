@@ -1,6 +1,12 @@
 import { describe, expect, it } from "vitest";
 import { createCareerOsData } from "./profile-data";
-import { reviewApplicationPack, type ReviewPack } from "./review";
+import {
+  applicationGateState,
+  approvalEligibility,
+  reviewApplicationPack,
+  type ApplicationReviewContext,
+  type ReviewPack,
+} from "./review";
 import { runScan } from "./scoring";
 import type { Application, CoverLetter, CvDocument } from "./types";
 
@@ -75,6 +81,20 @@ function makePack(): ReviewPack {
     cv,
     cvVersion: cv.versions[0]!,
     coverLetter,
+  };
+}
+
+function reviewedContext(): ApplicationReviewContext {
+  const pack = makePack();
+  const review = reviewApplicationPack(pack);
+  pack.data.reviewRuns = [review];
+  pack.data.coverLetters = [pack.coverLetter];
+  return {
+    data: pack.data,
+    application: pack.application,
+    job: pack.job,
+    scan: pack.scan,
+    cv: pack.cv,
   };
 }
 
@@ -170,5 +190,101 @@ describe("Agent 02 application-pack reviewer", () => {
     pack.cvVersion.body += "\n- Increased conversion by 91%.";
     pack.coverLetter.body += "\nDelivery — analytics.";
     expect(reviewApplicationPack(pack).outcome).toBe("NEEDS INPUT");
+  });
+});
+
+describe("application review currency and approval gate", () => {
+  it("starts at READY FOR VINNIE APPROVAL after a current passing review", () => {
+    expect(applicationGateState(reviewedContext())).toBe("READY FOR VINNIE APPROVAL");
+  });
+
+  it("marks a review outdated after a new CV version", () => {
+    const context = reviewedContext();
+    const latest = context.cv!.versions.at(-1)!;
+    context.cv!.versions.push({ ...latest, id: "cvv-new", version: latest.version + 1 });
+    expect(applicationGateState(context)).toBe("REVIEW OUTDATED");
+  });
+
+  it("marks a review outdated after a new cover letter", () => {
+    const context = reviewedContext();
+    const currentLetter = context.data.coverLetters[0]!;
+    context.data.coverLetters.unshift({
+      ...currentLetter,
+      id: "cl-new",
+      createdAt: "2026-08-21T00:00:00.000Z",
+      status: "Draft",
+    });
+    expect(applicationGateState(context)).toBe("REVIEW OUTDATED");
+  });
+
+  it("marks a review outdated after the saved JD changes", () => {
+    const context = reviewedContext();
+    context.job.description += " Additional requirement.";
+    expect(applicationGateState(context)).toBe("REVIEW OUTDATED");
+  });
+
+  it("marks a review outdated after a new scan", () => {
+    const context = reviewedContext();
+    context.scan = { ...context.scan!, id: "scan-new" };
+    expect(applicationGateState(context)).toBe("REVIEW OUTDATED");
+  });
+
+  it("requires a fresh scan when a historical scan signature is absent", () => {
+    const context = reviewedContext();
+    context.scan!.jobDescriptionSignature = undefined;
+    expect(applicationGateState(context)).toBe("REVIEW OUTDATED");
+  });
+
+  it("becomes READY TO APPLY only after the exact reviewed documents are approved", () => {
+    const context = reviewedContext();
+    context.cv!.approvedVersionId = context.cv!.versions.at(-1)!.id;
+    context.cv!.status = "Approved";
+    context.data.coverLetters[0]!.status = "Approved";
+    expect(applicationGateState(context)).toBe("READY TO APPLY");
+  });
+
+  it("does not treat historical document-level CV approval as current version approval", () => {
+    const context = reviewedContext();
+    context.cv!.status = "Approved";
+    context.cv!.approvedVersionId = undefined;
+    context.data.coverLetters[0]!.status = "Approved";
+    expect(applicationGateState(context)).toBe("READY FOR VINNIE APPROVAL");
+  });
+
+  it("returns exact approval-block reasons for every non-approvable gate", () => {
+    const noReview = reviewedContext();
+    noReview.data.reviewRuns = [];
+    expect(approvalEligibility(noReview)).toEqual({
+      allowed: false,
+      reason: "Run final review before approving this document.",
+    });
+
+    const outdated = reviewedContext();
+    outdated.job.description += " Changed.";
+    expect(approvalEligibility(outdated)).toEqual({
+      allowed: false,
+      reason: "The final review is outdated. Re-run it for the current application pack.",
+    });
+
+    const needsInput = reviewedContext();
+    needsInput.data.reviewRuns![0] = { ...needsInput.data.reviewRuns![0]!, outcome: "NEEDS INPUT" };
+    expect(approvalEligibility(needsInput)).toEqual({
+      allowed: false,
+      reason: "Resolve the evidence or factual blockers before approval.",
+    });
+
+    const needsRevision = reviewedContext();
+    needsRevision.data.reviewRuns![0] = {
+      ...needsRevision.data.reviewRuns![0]!,
+      outcome: "NEEDS REVISION",
+    };
+    expect(approvalEligibility(needsRevision)).toEqual({
+      allowed: false,
+      reason: "Resolve the reviewer revisions before approval.",
+    });
+  });
+
+  it("allows explicit approval after a current passing review", () => {
+    expect(approvalEligibility(reviewedContext())).toEqual({ allowed: true });
   });
 });
