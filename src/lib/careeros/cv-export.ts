@@ -17,6 +17,10 @@ function safeFileToken(input: string): string {
     .replace(/_+/g, "_");
 }
 
+function safeVersionNumber(version: number): number {
+  return Number.isFinite(version) && version > 0 ? Math.floor(version) : 1;
+}
+
 export function buildWordCompatibleCv(body: string, title: string): string {
   const safeTitle = escapeHtml(title);
   const safeBody = escapeHtml(body).replace(/\r?\n/g, "<br>");
@@ -53,8 +57,13 @@ export function buildWordCompatibleCv(body: string, title: string): string {
 export function cvExportFileName(role: string, company: string, version: number): string {
   const companyToken = safeFileToken(company) || "Company";
   const roleToken = safeFileToken(role) || "CV";
-  const safeVersion = Number.isFinite(version) && version > 0 ? Math.floor(version) : 1;
-  return `Vinnie_Jegathees_${companyToken}_${roleToken}_v${safeVersion}.doc`;
+  return `Vinnie_Jegathees_${companyToken}_${roleToken}_v${safeVersionNumber(version)}.doc`;
+}
+
+export function coverLetterExportFileName(role: string, company: string, version: number): string {
+  const companyToken = safeFileToken(company) || "Company";
+  const roleToken = safeFileToken(role) || "Cover_Letter";
+  return `Vinnie_Jegathees_${companyToken}_${roleToken}_Cover_Letter_v${safeVersionNumber(version)}.doc`;
 }
 
 export function downloadWordCompatibleCv(body: string, title: string, fileName: string): void {
