@@ -289,10 +289,7 @@ export interface CoverLetter {
   createdAt: string;
 }
 
-export type ReviewOutcome =
-  | "NEEDS INPUT"
-  | "NEEDS REVISION"
-  | "READY FOR VINNIE APPROVAL";
+export type ReviewOutcome = "NEEDS INPUT" | "NEEDS REVISION" | "READY FOR VINNIE APPROVAL";
 
 export type ReviewCheckStatus = "Pass" | "Warning" | "Fail";
 export type ReviewFindingSeverity = "Blocking" | "Advisory";
