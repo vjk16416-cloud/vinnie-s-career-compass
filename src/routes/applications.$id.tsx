@@ -9,11 +9,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import {
-  cvExportFileName,
-  downloadWordCompatibleCv,
-  printCv,
-} from "@/lib/careeros/cv-export";
+import { cvExportFileName, downloadWordCompatibleCv, printCv } from "@/lib/careeros/cv-export";
 import {
   buildCoverLetter,
   buildTailoredCv,
@@ -395,8 +391,8 @@ function ApplicationWorkspace() {
                   <div className="mt-4">
                     <h3 className="text-sm font-semibold">Compare with latest</h3>
                     <p className="mt-1 text-xs text-muted-foreground">
-                      You are previewing version {selectedCvVersion.version}. The current latest draft is
-                      version {latestCvVersion.version}.
+                      You are previewing version {selectedCvVersion.version}. The current latest
+                      draft is version {latestCvVersion.version}.
                     </p>
                     <div className="mt-2 grid gap-3 lg:grid-cols-2">
                       <div>
@@ -404,7 +400,9 @@ function ApplicationWorkspace() {
                           Selected v{selectedCvVersion.version}
                         </p>
                         <div className="cv-sheet max-h-[24rem] overflow-auto rounded-md p-4">
-                          <pre className="whitespace-pre-wrap font-serif">{selectedCvVersion.body}</pre>
+                          <pre className="whitespace-pre-wrap font-serif">
+                            {selectedCvVersion.body}
+                          </pre>
                         </div>
                       </div>
                       <div>
@@ -412,7 +410,9 @@ function ApplicationWorkspace() {
                           Latest v{latestCvVersion.version}
                         </p>
                         <div className="cv-sheet max-h-[24rem] overflow-auto rounded-md p-4">
-                          <pre className="whitespace-pre-wrap font-serif">{latestCvVersion.body}</pre>
+                          <pre className="whitespace-pre-wrap font-serif">
+                            {latestCvVersion.body}
+                          </pre>
                         </div>
                       </div>
                     </div>
