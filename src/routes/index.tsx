@@ -44,6 +44,8 @@ function HomePage() {
   const recentCvs = [...data.cvs]
     .sort((a, b) => b.updatedAt.localeCompare(a.updatedAt))
     .slice(0, 4);
+  const attention = useMemo(() => computeHomeAttention(data, todayIso()), [data]);
+  const attentionSummary = summariseAttention(attention);
 
   return (
     <AppShell
@@ -56,6 +58,9 @@ function HomePage() {
       }
     >
       <div className="space-y-4">
+        <AttentionPanel items={attention} summary={attentionSummary} />
+
+
         <Panel title="Today's focus" description="Next actions pulled from your live applications">
           {active.length === 0 ? (
             <EmptyState title="Nothing active yet." hint="Start with a job scan." />
