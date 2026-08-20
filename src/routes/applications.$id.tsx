@@ -3,7 +3,7 @@ import { useMemo, useState } from "react";
 import { toast } from "sonner";
 import { AppShell } from "@/components/careeros/app-shell";
 import { CvHealthCheckPanel } from "@/components/careeros/cv-health-check-panel";
-import { EmptyState, Panel, StatusPill, evidenceTone } from "@/components/careeros/ui-bits";
+import { EmptyState, Panel, StatusPill } from "@/components/careeros/ui-bits";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -204,20 +204,19 @@ function ApplicationWorkspace() {
         </Button>
       }
     >
-      <Tabs defaultValue="jd" className="w-full">
+      <Tabs defaultValue="job" className="w-full">
         <div className="-mx-4 overflow-x-auto px-4 md:mx-0 md:px-0">
           <TabsList className="w-max">
-            <TabsTrigger value="jd">Job Description</TabsTrigger>
-            <TabsTrigger value="match">Match Analysis</TabsTrigger>
-            <TabsTrigger value="evidence">Evidence Map</TabsTrigger>
-            <TabsTrigger value="cv">Tailored CV</TabsTrigger>
+            <TabsTrigger value="job">Job</TabsTrigger>
+            <TabsTrigger value="match">Match</TabsTrigger>
+            <TabsTrigger value="evidence">Evidence</TabsTrigger>
+            <TabsTrigger value="cv">CV</TabsTrigger>
             <TabsTrigger value="letter">Cover Letter</TabsTrigger>
-            <TabsTrigger value="notes">Notes</TabsTrigger>
-            <TabsTrigger value="prep">Interview Prep</TabsTrigger>
+            <TabsTrigger value="apply">Apply</TabsTrigger>
           </TabsList>
         </div>
 
-        <TabsContent value="jd" className="mt-4">
+        <TabsContent value="job" className="mt-4">
           <Panel title="Job description" description="Paste or edit, then re-run the scan.">
             <Textarea
               className="min-h-64 font-mono text-xs"
@@ -249,25 +248,37 @@ function ApplicationWorkspace() {
 
         <TabsContent value="evidence" className="mt-4">
           <Panel
-            title="Evidence map"
-            description="Only Verified records may be asserted in generated documents."
+            title="Role evidence map"
+            description="Every requirement shown here comes from this job scan. Blocked or missing evidence does not become a CV claim."
           >
-            <ul className="space-y-2">
-              {data.evidence.map((record) => (
-                <li key={record.id} className="rounded-md border border-border bg-surface-2/40 p-3">
-                  <p className="text-sm">{record.claim}</p>
-                  <div className="mt-1.5 flex flex-wrap items-center gap-2">
-                    <StatusPill
-                      label={`Status: ${record.status}`}
-                      tone={evidenceTone(record.status)}
-                    />
-                    <span className="text-xs text-muted-foreground">
-                      {record.employer} · confidence {record.confidence} · ref {record.id}
-                    </span>
-                  </div>
-                </li>
-              ))}
-            </ul>
+            {scan?.evidenceMap?.length ? (
+              <ul className="space-y-2">
+                {scan.evidenceMap.map((item) => (
+                  <li key={item.id} className="rounded-md border border-border bg-surface-2/40 p-3">
+                    <div className="flex flex-wrap items-center gap-2">
+                      <p className="min-w-0 flex-1 text-sm font-medium text-foreground">
+                        {item.requirement}
+                      </p>
+                      <StatusPill label={item.status} />
+                      <StatusPill label={item.priority} />
+                    </div>
+                    <p className="mt-1.5 text-xs leading-relaxed text-muted-foreground">
+                      {item.explanation}
+                    </p>
+                    <div className="mt-2 flex flex-wrap gap-x-3 gap-y-1 text-[11px] text-muted-foreground">
+                      <span>Category: {item.category}</span>
+                      <span>Evidence: {item.evidenceIds.join(", ") || "none"}</span>
+                      <span>Sources: {item.sourceIds.join(", ") || "none"}</span>
+                    </div>
+                  </li>
+                ))}
+              </ul>
+            ) : (
+              <EmptyState
+                title="No role-specific evidence map yet."
+                hint="Run the role scan first so CareerOS can map this job to your approved evidence."
+              />
+            )}
           </Panel>
         </TabsContent>
 
@@ -373,8 +384,27 @@ function ApplicationWorkspace() {
           </Panel>
         </TabsContent>
 
-        <TabsContent value="notes" className="mt-4">
-          <Panel title="Notes and tracking">
+        <TabsContent value="apply" className="mt-4 space-y-4">
+          <Panel title="Application tracking">
+            <div className="mb-4 flex flex-wrap gap-2">
+              <StatusPill label={`Stage: ${app.stage}`} />
+              {app.compatibilityScore !== undefined ? (
+                <StatusPill label={`Match: ${app.compatibilityScore}%`} />
+              ) : null}
+              {cv ? (
+                <StatusPill
+                  label={`CV: ${cv.status}`}
+                  tone={cv.status === "Approved" ? "success" : "warning"}
+                />
+              ) : (
+                <StatusPill label="CV: Not started" tone="warning" />
+              )}
+              {letter ? (
+                <StatusPill label={`Cover letter: ${letter.status}`} tone="warning" />
+              ) : (
+                <StatusPill label="Cover letter: Not started" tone="warning" />
+              )}
+            </div>
             <div className="grid gap-3 sm:grid-cols-2">
               <div>
                 <Label htmlFor="next-action">Next action</Label>
@@ -440,9 +470,7 @@ function ApplicationWorkspace() {
               </ol>
             </div>
           </Panel>
-        </TabsContent>
 
-        <TabsContent value="prep" className="mt-4">
           <Panel
             title="Interview prep"
             description="Prompts built from your verified evidence only."
