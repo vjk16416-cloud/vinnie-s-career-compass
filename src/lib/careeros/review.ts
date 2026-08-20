@@ -356,7 +356,7 @@ export function reviewApplicationPack(pack: ReviewPack): ApplicationReviewRun {
 export function scanMatchesSavedJob(job: JobRecord, scan: ScanResult | undefined): boolean {
   return Boolean(
     scan?.jobDescriptionSignature &&
-      scan.jobDescriptionSignature === textSignature(job.description),
+    scan.jobDescriptionSignature === textSignature(job.description),
   );
 }
 
