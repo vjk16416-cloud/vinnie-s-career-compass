@@ -265,7 +265,9 @@ function ApplicationWorkspace() {
       title,
       coverLetterExportFileName(app.title, app.company, selectedLetterVersion),
     );
-    toast.success(`Cover letter version ${selectedLetterVersion} downloaded as a Word-compatible .doc.`);
+    toast.success(
+      `Cover letter version ${selectedLetterVersion} downloaded as a Word-compatible .doc.`,
+    );
   }
 
   function printSelectedLetter() {
@@ -529,7 +531,9 @@ function ApplicationWorkspace() {
 
                 <div className="grid gap-3 md:grid-cols-[minmax(0,1fr)_auto] md:items-end">
                   <div>
-                    <Label htmlFor="cover-letter-preview-version">Preview cover letter version</Label>
+                    <Label htmlFor="cover-letter-preview-version">
+                      Preview cover letter version
+                    </Label>
                     <select
                       id="cover-letter-preview-version"
                       className="mt-1.5 h-9 w-full rounded-md border border-input bg-background px-3 text-sm shadow-sm outline-none focus-visible:ring-1 focus-visible:ring-ring"
@@ -541,7 +545,9 @@ function ApplicationWorkspace() {
                         .reverse()
                         .map((version) => {
                           const versionNumber =
-                            coverLetterVersions.findIndex((candidate) => candidate.id === version.id) + 1;
+                            coverLetterVersions.findIndex(
+                              (candidate) => candidate.id === version.id,
+                            ) + 1;
                           return (
                             <option key={version.id} value={version.id}>
                               Version {versionNumber} · {version.status} ·{" "}
@@ -604,11 +610,13 @@ function ApplicationWorkspace() {
                       .reverse()
                       .map((version) => {
                         const versionNumber =
-                          coverLetterVersions.findIndex((candidate) => candidate.id === version.id) + 1;
+                          coverLetterVersions.findIndex(
+                            (candidate) => candidate.id === version.id,
+                          ) + 1;
                         return (
                           <li key={version.id}>
-                            v{versionNumber} · {new Date(version.createdAt).toLocaleString("en-GB")} ·{" "}
-                            {version.status}
+                            v{versionNumber} · {new Date(version.createdAt).toLocaleString("en-GB")}{" "}
+                            · {version.status}
                           </li>
                         );
                       })}
