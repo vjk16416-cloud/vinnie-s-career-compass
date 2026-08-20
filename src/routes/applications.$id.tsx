@@ -399,9 +399,7 @@ function ApplicationWorkspace() {
                         Latest v{latestCvVersion.version}
                       </p>
                       <div className="cv-sheet max-h-[24rem] overflow-auto rounded-md p-4">
-                        <pre className="whitespace-pre-wrap font-serif">
-                          {latestCvVersion.body}
-                        </pre>
+                        <pre className="whitespace-pre-wrap font-serif">{latestCvVersion.body}</pre>
                       </div>
                     </div>
                   </div>
