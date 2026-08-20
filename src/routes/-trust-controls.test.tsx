@@ -15,7 +15,7 @@ import { Route as SettingsRoute } from "@/routes/settings";
 const { createRepository, getGoogleProviderToken, listDriveFolderFiles, startGoogleDriveConnection } =
   vi.hoisted(() => ({
     createRepository: vi.fn(),
-    getGoogleProviderToken: vi.fn(),
+    getGoogleProviderToken: vi.fn().mockResolvedValue(null),
     listDriveFolderFiles: vi.fn(),
     startGoogleDriveConnection: vi.fn(),
   }));
