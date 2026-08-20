@@ -204,20 +204,19 @@ function ApplicationWorkspace() {
         </Button>
       }
     >
-      <Tabs defaultValue="jd" className="w-full">
+      <Tabs defaultValue="job" className="w-full">
         <div className="-mx-4 overflow-x-auto px-4 md:mx-0 md:px-0">
           <TabsList className="w-max">
-            <TabsTrigger value="jd">Job Description</TabsTrigger>
-            <TabsTrigger value="match">Match Analysis</TabsTrigger>
-            <TabsTrigger value="evidence">Evidence Map</TabsTrigger>
-            <TabsTrigger value="cv">Tailored CV</TabsTrigger>
+            <TabsTrigger value="job">Job</TabsTrigger>
+            <TabsTrigger value="match">Match</TabsTrigger>
+            <TabsTrigger value="evidence">Evidence</TabsTrigger>
+            <TabsTrigger value="cv">CV</TabsTrigger>
             <TabsTrigger value="letter">Cover Letter</TabsTrigger>
-            <TabsTrigger value="notes">Notes</TabsTrigger>
-            <TabsTrigger value="prep">Interview Prep</TabsTrigger>
+            <TabsTrigger value="apply">Apply</TabsTrigger>
           </TabsList>
         </div>
 
-        <TabsContent value="jd" className="mt-4">
+        <TabsContent value="job" className="mt-4">
           <Panel title="Job description" description="Paste or edit, then re-run the scan.">
             <Textarea
               className="min-h-64 font-mono text-xs"
@@ -373,8 +372,27 @@ function ApplicationWorkspace() {
           </Panel>
         </TabsContent>
 
-        <TabsContent value="notes" className="mt-4">
-          <Panel title="Notes and tracking">
+        <TabsContent value="apply" className="mt-4 space-y-4">
+          <Panel title="Application tracking">
+            <div className="mb-4 flex flex-wrap gap-2">
+              <StatusPill label={`Stage: ${app.stage}`} />
+              {app.compatibilityScore !== undefined ? (
+                <StatusPill label={`Match: ${app.compatibilityScore}%`} />
+              ) : null}
+              {cv ? (
+                <StatusPill
+                  label={`CV: ${cv.status}`}
+                  tone={cv.status === "Approved" ? "success" : "warning"}
+                />
+              ) : (
+                <StatusPill label="CV: Not started" tone="warning" />
+              )}
+              {letter ? (
+                <StatusPill label={`Cover letter: ${letter.status}`} tone="warning" />
+              ) : (
+                <StatusPill label="Cover letter: Not started" tone="warning" />
+              )}
+            </div>
             <div className="grid gap-3 sm:grid-cols-2">
               <div>
                 <Label htmlFor="next-action">Next action</Label>
@@ -440,9 +458,7 @@ function ApplicationWorkspace() {
               </ol>
             </div>
           </Panel>
-        </TabsContent>
 
-        <TabsContent value="prep" className="mt-4">
           <Panel
             title="Interview prep"
             description="Prompts built from your verified evidence only."
