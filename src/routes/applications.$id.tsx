@@ -9,6 +9,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { cvExportFileName, downloadWordCompatibleCv, printCv } from "@/lib/careeros/cv-export";
 import {
   buildCoverLetter,
   buildTailoredCv,
@@ -48,12 +49,20 @@ function ApplicationWorkspace() {
   const letter = data.coverLetters.find((candidate) => candidate.applicationId === id);
   const [jdDraft, setJdDraft] = useState(job?.description ?? "");
   const [healthOpen, setHealthOpen] = useState(false);
+  const [selectedCvVersionId, setSelectedCvVersionId] = useState<string | undefined>(undefined);
 
   const verified = useMemo(
     () => data.evidence.filter((record) => record.status === "Verified"),
     [data.evidence],
   );
-  const latestCvBody = cv?.versions[cv.versions.length - 1]?.body ?? "";
+  const latestCvVersion = cv?.versions[cv.versions.length - 1];
+  const selectedCvVersion =
+    cv?.versions.find((version) => version.id === selectedCvVersionId) ?? latestCvVersion;
+  const latestCvBody = latestCvVersion?.body ?? "";
+  const selectedCvBody = selectedCvVersion?.body ?? "";
+  const comparingOlderCvVersion = Boolean(
+    selectedCvVersion && latestCvVersion && selectedCvVersion.id !== latestCvVersion.id,
+  );
   const health = useMemo(
     () => (latestCvBody ? runCvHealthCheck(latestCvBody, data, job, scan) : null),
     [latestCvBody, data, job, scan],
@@ -157,6 +166,7 @@ function ApplicationWorkspace() {
       return draft;
     });
 
+    setSelectedCvVersionId(undefined);
     logActivity(`Tailored CV draft created for ${app.title} at ${app.company}.`);
     toast.success("Draft CV created. It stays a draft until you approve it.");
   }
@@ -168,7 +178,26 @@ function ApplicationWorkspace() {
       if (target) target.status = "Approved";
       return draft;
     });
-    toast.success("CV version approved.");
+    toast.success("Latest CV version approved.");
+  }
+
+  function downloadSelectedCv() {
+    if (!selectedCvVersion) return;
+    const title = `${app.title} at ${app.company} | CV version ${selectedCvVersion.version}`;
+    downloadWordCompatibleCv(
+      selectedCvVersion.body,
+      title,
+      cvExportFileName(app.title, app.company, selectedCvVersion.version),
+    );
+    toast.success(`CV version ${selectedCvVersion.version} downloaded as a Word-compatible .doc.`);
+  }
+
+  function printSelectedCv() {
+    if (!selectedCvVersion) return;
+    const title = `${app.title} at ${app.company} | CV version ${selectedCvVersion.version}`;
+    if (!printCv(selectedCvVersion.body, title)) {
+      toast.error("Your browser blocked the print window. Allow pop-ups and try again.");
+    }
   }
 
   function generateLetter() {
@@ -303,7 +332,7 @@ function ApplicationWorkspace() {
               </>
             }
           >
-            {cv ? (
+            {cv && selectedCvVersion && latestCvVersion ? (
               <>
                 <div className="mb-3 flex flex-wrap items-center gap-2">
                   <StatusPill
@@ -311,14 +340,71 @@ function ApplicationWorkspace() {
                     tone={cv.status === "Approved" ? "success" : "warning"}
                   />
                   <StatusPill label={`Category: ${cv.category}`} />
-                  <StatusPill label={`Version ${cv.versions.length}`} />
-                  <Button size="sm" variant="ghost" onClick={approveCv}>
-                    Approve this version
+                  <StatusPill label={`Preview: v${selectedCvVersion.version}`} />
+                  {comparingOlderCvVersion ? (
+                    <StatusPill label={`Latest: v${latestCvVersion.version}`} tone="warning" />
+                  ) : null}
+                  <Button
+                    size="sm"
+                    variant="ghost"
+                    onClick={approveCv}
+                    disabled={comparingOlderCvVersion}
+                  >
+                    Approve latest version
                   </Button>
                 </div>
-                <div className="cv-sheet max-h-[28rem] overflow-auto rounded-md p-5">
-                  <pre className="whitespace-pre-wrap font-serif">{latestCvBody}</pre>
+
+                <div className="mb-3 grid gap-3 md:grid-cols-[minmax(0,1fr)_auto] md:items-end">
+                  <div>
+                    <Label htmlFor="cv-preview-version">Preview version</Label>
+                    <select
+                      id="cv-preview-version"
+                      className="mt-1.5 h-9 w-full rounded-md border border-input bg-background px-3 text-sm shadow-sm outline-none focus-visible:ring-1 focus-visible:ring-ring"
+                      value={selectedCvVersion.id}
+                      onChange={(event) => setSelectedCvVersionId(event.target.value)}
+                    >
+                      {cv.versions
+                        .slice()
+                        .reverse()
+                        .map((version) => (
+                          <option key={version.id} value={version.id}>
+                            Version {version.version} · {version.note}
+                          </option>
+                        ))}
+                    </select>
+                  </div>
+                  <div className="flex flex-wrap gap-2">
+                    <Button size="sm" variant="secondary" onClick={downloadSelectedCv}>
+                      Download Word-compatible .doc
+                    </Button>
+                    <Button size="sm" variant="secondary" onClick={printSelectedCv}>
+                      Print / Save as PDF
+                    </Button>
+                  </div>
                 </div>
+
+                <div className="cv-sheet max-h-[28rem] overflow-auto rounded-md p-5">
+                  <pre className="whitespace-pre-wrap font-serif">{selectedCvBody}</pre>
+                </div>
+
+                {comparingOlderCvVersion ? (
+                  <div className="mt-4">
+                    <h3 className="text-sm font-semibold">Compare with latest</h3>
+                    <p className="mt-1 text-xs text-muted-foreground">
+                      You are previewing version {selectedCvVersion.version}. The current latest
+                      draft is version {latestCvVersion.version}.
+                    </p>
+                    <div className="mt-2">
+                      <p className="mb-1 text-xs font-semibold text-muted-foreground">
+                        Latest v{latestCvVersion.version}
+                      </p>
+                      <div className="cv-sheet max-h-[24rem] overflow-auto rounded-md p-4">
+                        <pre className="whitespace-pre-wrap font-serif">{latestCvVersion.body}</pre>
+                      </div>
+                    </div>
+                  </div>
+                ) : null}
+
                 <div className="mt-3">
                   <h3 className="text-xs font-semibold text-muted-foreground">Version history</h3>
                   <ul className="mt-1.5 space-y-1 text-xs text-muted-foreground">

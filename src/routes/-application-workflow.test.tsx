@@ -58,7 +58,37 @@ function makeRepository() {
       notes: "Founder note",
       nextAction: "Review tailored CV",
       compatibilityScore: 75,
+      linkedCvId: "cv-test",
       history: [],
+    },
+  ];
+  data.cvs = [
+    {
+      id: "cv-test",
+      name: "Growth Marketing Manager | Example Co",
+      category: "General",
+      status: "Draft",
+      applicationId: "app-test",
+      jobId: "job-test",
+      updatedAt: "2026-08-20T00:00:00.000Z",
+      versions: [
+        {
+          id: "cvv-1",
+          version: 1,
+          createdAt: "2026-08-19T00:00:00.000Z",
+          note: "First draft",
+          body: "VERSION ONE BODY",
+          evidenceIds: ["ev-budget"],
+        },
+        {
+          id: "cvv-2",
+          version: 2,
+          createdAt: "2026-08-20T00:00:00.000Z",
+          note: "Latest draft",
+          body: "VERSION TWO BODY",
+          evidenceIds: ["ev-budget"],
+        },
+      ],
     },
   ];
   data.evidence = [
@@ -179,5 +209,27 @@ describe("application workspace workflow", () => {
     expect(screen.getByText("ROLE-SPECIFIC REQUIREMENT")).toBeInTheDocument();
     expect(screen.getByText("ROLE-SPECIFIC EXPLANATION")).toBeInTheDocument();
     expect(screen.queryByText("UNRELATED EVIDENCE BANK MARKER")).not.toBeInTheDocument();
+  });
+
+  it("lets the user preview, compare and export saved CV versions", async () => {
+    renderWorkspace();
+
+    await screen.findByRole("heading", { name: "Growth Marketing Manager" });
+    fireEvent.mouseDown(screen.getByRole("tab", { name: "CV" }), {
+      button: 0,
+      ctrlKey: false,
+    });
+
+    expect(screen.getByText("VERSION TWO BODY")).toBeInTheDocument();
+    expect(
+      screen.getByRole("button", { name: "Download Word-compatible .doc" }),
+    ).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "Print / Save as PDF" })).toBeInTheDocument();
+
+    fireEvent.change(screen.getByLabelText("Preview version"), { target: { value: "cvv-1" } });
+    expect(screen.getByText("VERSION ONE BODY")).toBeInTheDocument();
+
+    expect(screen.getByRole("heading", { name: "Compare with latest" })).toBeInTheDocument();
+    expect(screen.getByText("VERSION TWO BODY")).toBeInTheDocument();
   });
 });
