@@ -3,7 +3,7 @@ import { useMemo, useState } from "react";
 import { toast } from "sonner";
 import { AppShell } from "@/components/careeros/app-shell";
 import { CvHealthCheckPanel } from "@/components/careeros/cv-health-check-panel";
-import { EmptyState, Panel, StatusPill, evidenceTone } from "@/components/careeros/ui-bits";
+import { EmptyState, Panel, StatusPill } from "@/components/careeros/ui-bits";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -248,25 +248,37 @@ function ApplicationWorkspace() {
 
         <TabsContent value="evidence" className="mt-4">
           <Panel
-            title="Evidence map"
-            description="Only Verified records may be asserted in generated documents."
+            title="Role evidence map"
+            description="Every requirement shown here comes from this job scan. Blocked or missing evidence does not become a CV claim."
           >
-            <ul className="space-y-2">
-              {data.evidence.map((record) => (
-                <li key={record.id} className="rounded-md border border-border bg-surface-2/40 p-3">
-                  <p className="text-sm">{record.claim}</p>
-                  <div className="mt-1.5 flex flex-wrap items-center gap-2">
-                    <StatusPill
-                      label={`Status: ${record.status}`}
-                      tone={evidenceTone(record.status)}
-                    />
-                    <span className="text-xs text-muted-foreground">
-                      {record.employer} · confidence {record.confidence} · ref {record.id}
-                    </span>
-                  </div>
-                </li>
-              ))}
-            </ul>
+            {scan?.evidenceMap?.length ? (
+              <ul className="space-y-2">
+                {scan.evidenceMap.map((item) => (
+                  <li key={item.id} className="rounded-md border border-border bg-surface-2/40 p-3">
+                    <div className="flex flex-wrap items-center gap-2">
+                      <p className="min-w-0 flex-1 text-sm font-medium text-foreground">
+                        {item.requirement}
+                      </p>
+                      <StatusPill label={item.status} />
+                      <StatusPill label={item.priority} />
+                    </div>
+                    <p className="mt-1.5 text-xs leading-relaxed text-muted-foreground">
+                      {item.explanation}
+                    </p>
+                    <div className="mt-2 flex flex-wrap gap-x-3 gap-y-1 text-[11px] text-muted-foreground">
+                      <span>Category: {item.category}</span>
+                      <span>Evidence: {item.evidenceIds.join(", ") || "none"}</span>
+                      <span>Sources: {item.sourceIds.join(", ") || "none"}</span>
+                    </div>
+                  </li>
+                ))}
+              </ul>
+            ) : (
+              <EmptyState
+                title="No role-specific evidence map yet."
+                hint="Run the role scan first so CareerOS can map this job to your approved evidence."
+              />
+            )}
           </Panel>
         </TabsContent>
 
@@ -315,8 +327,8 @@ function ApplicationWorkspace() {
                       .reverse()
                       .map((version) => (
                         <li key={version.id}>
-                          v{version.version} · {new Date(version.createdAt).toLocaleString("en-GB")}{" "}
-                          · {version.note}
+                          v{version.version} · {new Date(version.createdAt).toLocaleString("en-GB")} ·{" "}
+                          {version.note}
                         </li>
                       ))}
                   </ul>
