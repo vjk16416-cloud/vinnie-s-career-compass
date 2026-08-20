@@ -11,7 +11,6 @@ import {
 } from "@/lib/careeros/home-attention";
 import { useCareerOs } from "@/lib/careeros/store";
 
-
 export const Route = createFileRoute("/")({
   head: () => ({
     meta: [
@@ -59,7 +58,6 @@ function HomePage() {
     >
       <div className="space-y-4">
         <AttentionPanel items={attention} summary={attentionSummary} />
-
 
         <Panel title="Today's focus" description="Next actions pulled from your live applications">
           {active.length === 0 ? (

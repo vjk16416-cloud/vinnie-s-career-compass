@@ -120,7 +120,9 @@ describe("computeHomeAttention", () => {
     ];
     const items = computeHomeAttention(data, TODAY);
     expect(items.filter((i) => i.group === "cv-draft").map((i) => i.id)).toEqual(["cv-cv-1"]);
-    expect(items.filter((i) => i.group === "letter-draft").map((i) => i.id)).toEqual(["letter-cl-1"]);
+    expect(items.filter((i) => i.group === "letter-draft").map((i) => i.id)).toEqual([
+      "letter-cl-1",
+    ]);
   });
 
   it("flags scans holding blocked or gapped requirements and links to the application", () => {
