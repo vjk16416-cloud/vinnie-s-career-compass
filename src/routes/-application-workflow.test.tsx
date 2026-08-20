@@ -221,7 +221,9 @@ describe("application workspace workflow", () => {
     });
 
     expect(screen.getByText("VERSION TWO BODY")).toBeInTheDocument();
-    expect(screen.getByRole("button", { name: "Download Word-compatible .doc" })).toBeInTheDocument();
+    expect(
+      screen.getByRole("button", { name: "Download Word-compatible .doc" }),
+    ).toBeInTheDocument();
     expect(screen.getByRole("button", { name: "Print / Save as PDF" })).toBeInTheDocument();
 
     fireEvent.change(screen.getByLabelText("Preview version"), { target: { value: "cvv-1" } });
