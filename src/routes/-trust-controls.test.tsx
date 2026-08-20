@@ -12,13 +12,35 @@ import { getRouter } from "@/router";
 import { Route as EvidenceRoute } from "@/routes/evidence";
 import { Route as SettingsRoute } from "@/routes/settings";
 
-const { createRepository } = vi.hoisted(() => ({ createRepository: vi.fn() }));
+const {
+  createRepository,
+  getGoogleProviderToken,
+  listDriveFolderFiles,
+  startGoogleDriveConnection,
+} = vi.hoisted(() => ({
+  createRepository: vi.fn(),
+  getGoogleProviderToken: vi.fn().mockResolvedValue(null),
+  listDriveFolderFiles: vi.fn(),
+  startGoogleDriveConnection: vi.fn(),
+}));
 
 vi.mock("@/lib/careeros/cloud-state.repository", async () => {
   const actual = await vi.importActual<typeof import("@/lib/careeros/cloud-state.repository")>(
     "@/lib/careeros/cloud-state.repository",
   );
   return { ...actual, createSupabaseCareerStateRepository: createRepository };
+});
+
+vi.mock("@/lib/careeros/google-drive", async () => {
+  const actual = await vi.importActual<typeof import("@/lib/careeros/google-drive")>(
+    "@/lib/careeros/google-drive",
+  );
+  return {
+    ...actual,
+    getGoogleProviderToken,
+    listDriveFolderFiles,
+    startGoogleDriveConnection,
+  };
 });
 
 const authorisedUser = { id: "user-123", email: "vjk16416@gmail.com" };
@@ -65,6 +87,9 @@ afterEach(() => {
   cleanup();
   window.localStorage.clear();
   vi.clearAllMocks();
+  getGoogleProviderToken.mockResolvedValue(null);
+  listDriveFolderFiles.mockReset();
+  startGoogleDriveConnection.mockReset();
 });
 
 describe("CareerOS trust controls", () => {
@@ -76,6 +101,44 @@ describe("CareerOS trust controls", () => {
     expect(screen.getByText(/Supabase is the canonical CareerOS store/i)).toBeInTheDocument();
     expect(screen.getByText(/browser keeps a local cache/i)).toBeInTheDocument();
     expect(screen.queryByText(/Everything lives in this browser/i)).not.toBeInTheDocument();
+  });
+
+  it("does not claim Drive is connected until Google grants a provider token", async () => {
+    const SettingsPage = SettingsRoute.options.component!;
+    startGoogleDriveConnection.mockResolvedValue({ error: null });
+    renderPrivateRoute(<SettingsPage />);
+
+    await screen.findByRole("heading", { name: "Settings" });
+    expect(await screen.findByText("Status: Not connected")).toBeInTheDocument();
+
+    fireEvent.click(screen.getByRole("button", { name: "Connect Google Drive" }));
+    await waitFor(() => expect(startGoogleDriveConnection).toHaveBeenCalledWith("/settings"));
+  });
+
+  it("lists Drive files only after a real Google token exists", async () => {
+    const SettingsPage = SettingsRoute.options.component!;
+    getGoogleProviderToken.mockResolvedValue("provider-token");
+    listDriveFolderFiles.mockResolvedValue([
+      {
+        id: "drive-file-1",
+        name: "Master Career Profile",
+        mimeType: "application/vnd.google-apps.document",
+        modifiedTime: "2026-08-20T10:00:00Z",
+        webViewLink: "https://drive.google.com/open?id=drive-file-1",
+      },
+    ]);
+
+    renderPrivateRoute(<SettingsPage />);
+    await screen.findByRole("heading", { name: "Settings" });
+    expect(await screen.findByText("Status: Connected (read-only)")).toBeInTheDocument();
+
+    fireEvent.change(screen.getByLabelText("Drive folder URL or ID"), {
+      target: { value: "folder-123" },
+    });
+    fireEvent.click(screen.getByRole("button", { name: "Refresh Drive files" }));
+
+    expect(await screen.findByText("Master Career Profile")).toBeInTheDocument();
+    expect(listDriveFolderFiles).toHaveBeenCalledWith("folder-123", "provider-token");
   });
 
   it("does not reset cloud state until the user confirms the reset", async () => {
