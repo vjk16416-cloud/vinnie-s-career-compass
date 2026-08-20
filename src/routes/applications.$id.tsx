@@ -128,7 +128,9 @@ function ApplicationWorkspace() {
       const targetJob = draft.jobs.find((candidate) => candidate.id === job.id);
       if (targetJob) targetJob.description = jdDraft;
       draft.scans = [result, ...draft.scans.filter((candidate) => candidate.jobId !== job.id)];
-      const targetApplication = draft.applications.find((candidate) => candidate.id === currentApp.id);
+      const targetApplication = draft.applications.find(
+        (candidate) => candidate.id === currentApp.id,
+      );
       if (targetApplication) {
         targetApplication.compatibilityScore = result.overall;
         targetApplication.history = [
@@ -185,7 +187,9 @@ function ApplicationWorkspace() {
           },
           ...draft.cvs,
         ];
-        const targetApplication = draft.applications.find((candidate) => candidate.id === currentApp.id);
+        const targetApplication = draft.applications.find(
+          (candidate) => candidate.id === currentApp.id,
+        );
         if (targetApplication) targetApplication.linkedCvId = cvId;
       }
       return draft;
