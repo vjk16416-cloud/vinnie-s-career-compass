@@ -327,8 +327,8 @@ function ApplicationWorkspace() {
                       .reverse()
                       .map((version) => (
                         <li key={version.id}>
-                          v{version.version} · {new Date(version.createdAt).toLocaleString("en-GB")} ·{" "}
-                          {version.note}
+                          v{version.version} · {new Date(version.createdAt).toLocaleString("en-GB")}{" "}
+                          · {version.note}
                         </li>
                       ))}
                   </ul>
