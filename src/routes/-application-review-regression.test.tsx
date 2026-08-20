@@ -247,7 +247,9 @@ describe("Sprint 6 final-review regressions", () => {
 
     openTab("Job");
     fireEvent.change(screen.getByLabelText("Job description"), {
-      target: { value: `${screen.getByLabelText("Job description").getAttribute("value") ?? ""} Changed` },
+      target: {
+        value: `${screen.getByLabelText("Job description").getAttribute("value") ?? ""} Changed`,
+      },
     });
     openTab("Apply");
 
