@@ -91,6 +91,28 @@ function makeRepository() {
       ],
     },
   ];
+  data.coverLetters = [
+    {
+      id: "cl-2",
+      applicationId: "app-test",
+      jobId: "job-test",
+      status: "Draft",
+      body: "COVER LETTER VERSION TWO",
+      emailVersion: "EMAIL VERSION TWO",
+      evidenceIds: ["ev-budget"],
+      createdAt: "2026-08-20T00:00:00.000Z",
+    },
+    {
+      id: "cl-1",
+      applicationId: "app-test",
+      jobId: "job-test",
+      status: "Approved",
+      body: "COVER LETTER VERSION ONE",
+      emailVersion: "EMAIL VERSION ONE",
+      evidenceIds: ["ev-budget"],
+      createdAt: "2026-08-19T00:00:00.000Z",
+    },
+  ];
   data.evidence = [
     ...data.evidence,
     {
@@ -231,5 +253,69 @@ describe("application workspace workflow", () => {
 
     expect(screen.getByRole("heading", { name: "Compare with latest" })).toBeInTheDocument();
     expect(screen.getByText("VERSION TWO BODY")).toBeInTheDocument();
+  });
+
+  it("lets the user preview, compare, approve and export saved cover letter versions", async () => {
+    renderWorkspace();
+
+    await screen.findByRole("heading", { name: "Growth Marketing Manager" });
+    fireEvent.mouseDown(screen.getByRole("tab", { name: "Cover Letter" }), {
+      button: 0,
+      ctrlKey: false,
+    });
+
+    expect(screen.getByText("COVER LETTER VERSION TWO")).toBeInTheDocument();
+    expect(screen.getByText("EMAIL VERSION TWO")).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "Download cover letter .doc" })).toBeInTheDocument();
+    expect(
+      screen.getByRole("button", { name: "Print / Save cover letter as PDF" }),
+    ).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "Copy application email" })).toBeInTheDocument();
+
+    fireEvent.change(screen.getByLabelText("Preview cover letter version"), {
+      target: { value: "cl-1" },
+    });
+    expect(screen.getByText("COVER LETTER VERSION ONE")).toBeInTheDocument();
+    expect(screen.getByText("EMAIL VERSION ONE")).toBeInTheDocument();
+    expect(
+      screen.getByRole("heading", { name: "Compare with latest cover letter" }),
+    ).toBeInTheDocument();
+    expect(screen.getByText("COVER LETTER VERSION TWO")).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "Approve latest cover letter" })).toBeDisabled();
+  });
+
+  it("keeps previous cover letters when a new draft is generated", async () => {
+    renderWorkspace();
+
+    await screen.findByRole("heading", { name: "Growth Marketing Manager" });
+    fireEvent.mouseDown(screen.getByRole("tab", { name: "Cover Letter" }), {
+      button: 0,
+      ctrlKey: false,
+    });
+
+    const selectorBefore = screen.getByLabelText("Preview cover letter version") as HTMLSelectElement;
+    expect(selectorBefore.options).toHaveLength(2);
+
+    fireEvent.click(screen.getByRole("button", { name: "New cover letter draft" }));
+
+    const selectorAfter = screen.getByLabelText("Preview cover letter version") as HTMLSelectElement;
+    expect(selectorAfter.options).toHaveLength(3);
+  });
+
+  it("shows a clear application pack checkpoint in Apply", async () => {
+    renderWorkspace();
+
+    await screen.findByRole("heading", { name: "Growth Marketing Manager" });
+    fireEvent.mouseDown(screen.getByRole("tab", { name: "Apply" }), {
+      button: 0,
+      ctrlKey: false,
+    });
+
+    expect(screen.getByRole("heading", { name: "Application pack" })).toBeInTheDocument();
+    expect(screen.getByText("Job: Ready")).toBeInTheDocument();
+    expect(screen.getByText("Match: Ready")).toBeInTheDocument();
+    expect(screen.getByText("Evidence: Ready")).toBeInTheDocument();
+    expect(screen.getByText("CV: Draft")).toBeInTheDocument();
+    expect(screen.getByText("Cover letter: Draft")).toBeInTheDocument();
   });
 });
