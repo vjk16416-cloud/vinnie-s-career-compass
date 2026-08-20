@@ -16,12 +16,7 @@ export interface AttentionItem {
 }
 
 export type AttentionGroup =
-  | "next-action"
-  | "deadline"
-  | "cv-draft"
-  | "letter-draft"
-  | "scan-evidence"
-  | "evidence";
+  "next-action" | "deadline" | "cv-draft" | "letter-draft" | "scan-evidence" | "evidence";
 
 const CLOSED_STAGES = ["Rejected", "Withdrawn", "Accepted"];
 
