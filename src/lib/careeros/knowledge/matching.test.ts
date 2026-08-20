@@ -3,11 +3,11 @@ import { classifyKnowledgeForMatching, runCanonicalKnowledgeScan } from "./match
 import type { EmploymentRole, KnowledgeItem } from "./types";
 import type { JobRecord } from "../types";
 
-function item(id: string, status: KnowledgeItem["status"], title: string, content: string): KnowledgeItem {
+function item(id: string, status: KnowledgeItem["status"], title: string, content: string, employmentRoleId: string | null = null): KnowledgeItem {
   return {
     id,
     user_id: "user-1",
-    employment_role_id: null,
+    employment_role_id: employmentRoleId,
     category: "achievement",
     title,
     content,
@@ -21,6 +21,21 @@ function item(id: string, status: KnowledgeItem["status"], title: string, conten
     created_at: "2026-08-20T00:00:00.000Z",
     updated_at: "2026-08-20T00:00:00.000Z",
   };
+}
+
+function role(id: string, title: string, startDate: string, endDate: string): EmploymentRole {
+  return {
+    id,
+    user_id: "user-1",
+    employer: "Example",
+    title,
+    start_date: startDate,
+    end_date: endDate,
+    is_current: false,
+    summary: null,
+    created_at: "2026-08-20T00:00:00.000Z",
+    updated_at: "2026-08-20T00:00:00.000Z",
+  } as EmploymentRole;
 }
 
 describe("canonical Knowledge Bank matching", () => {
@@ -65,5 +80,32 @@ describe("canonical Knowledge Bank matching", () => {
     expect(result.strengths.some((strength) => strength.evidenceId === "excluded")).toBe(false);
     expect(result.partials.join(" ")).toContain("36% ROI improvement");
     expect(result.blockedEvidence.some((row) => row.id === "excluded")).toBe(true);
+  });
+
+  it("does not use unrelated career tenure to satisfy a domain-specific years requirement", () => {
+    const roles = [
+      role("marketing", "Senior Digital Marketing Executive", "2016-06-01", "2022-04-01"),
+      role("operations", "Marketing & Operations Executive", "2023-09-01", "2024-06-01"),
+      role("performance", "Performance Marketing Manager", "2025-06-01", "2025-12-01"),
+    ];
+    const knowledge = [
+      item("workflow", "user_confirmed", "Asana delivery workflow", "Introduced Agile-style project delivery practices and ownership sequencing.", "operations"),
+      item("product", "user_confirmed", "Founder-led MVP", "Product vision, MVP scope, roadmap and product development work."),
+    ];
+    const job: JobRecord = {
+      id: "job-product",
+      company: "Capital on Tap",
+      title: "Associate Product Manager",
+      location: "London",
+      description: "You need 2+ years of experience in product management or project management. Own end-to-end feature and project delivery, collaborate with stakeholders and improve customer outcomes.",
+      createdAt: "2026-08-20T00:00:00.000Z",
+      sourceType: "url",
+    };
+
+    const result = runCanonicalKnowledgeScan(job, knowledge, roles);
+    const experience = result.subScores.find((score) => score.key === "experience");
+
+    expect(experience?.score).toBeLessThan(100);
+    expect(experience?.reason).toContain("domain-relevant");
   });
 });
