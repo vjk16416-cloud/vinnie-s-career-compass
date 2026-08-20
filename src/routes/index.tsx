@@ -1,8 +1,16 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
+import { useMemo } from "react";
 import { AppShell } from "@/components/careeros/app-shell";
 import { EmptyState, Panel, StatusPill, evidenceTone } from "@/components/careeros/ui-bits";
 import { Button } from "@/components/ui/button";
+import {
+  computeHomeAttention,
+  summariseAttention,
+  todayIso,
+  type AttentionItem,
+} from "@/lib/careeros/home-attention";
 import { useCareerOs } from "@/lib/careeros/store";
+
 
 export const Route = createFileRoute("/")({
   head: () => ({
