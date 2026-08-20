@@ -1,6 +1,10 @@
 import { describe, expect, it } from "vitest";
 
-import { buildWordCompatibleCv, cvExportFileName } from "./cv-export";
+import {
+  buildWordCompatibleCv,
+  coverLetterExportFileName,
+  cvExportFileName,
+} from "./cv-export";
 
 describe("CV export", () => {
   it("builds a Word-compatible document with safe Times New Roman content", () => {
@@ -19,6 +23,12 @@ describe("CV export", () => {
   it("creates a safe job-specific Word filename", () => {
     expect(cvExportFileName("Growth / Marketing: Manager", "Example & Co", 3)).toBe(
       "Vinnie_Jegathees_Example_Co_Growth_Marketing_Manager_v3.doc",
+    );
+  });
+
+  it("creates a safe versioned cover-letter filename", () => {
+    expect(coverLetterExportFileName("Growth / Marketing: Manager", "Example & Co", 2)).toBe(
+      "Vinnie_Jegathees_Example_Co_Growth_Marketing_Manager_Cover_Letter_v2.doc",
     );
   });
 });
