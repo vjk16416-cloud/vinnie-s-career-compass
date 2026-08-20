@@ -90,12 +90,7 @@ function jdAlignmentFindings(pack: ReviewPack): ReviewFinding[] {
         item.priority === "Required" && (item.status === "Gap" || item.status === "Blocked"),
     )
     .map((item) =>
-      finding(
-        "jd-alignment",
-        "Advisory",
-        "Advisory",
-        `${item.requirement}: ${item.explanation}`,
-      ),
+      finding("jd-alignment", "Advisory", "Advisory", `${item.requirement}: ${item.explanation}`),
     );
 }
 
@@ -187,14 +182,16 @@ function chronologyFindings(pack: ReviewPack): ReviewFinding[] {
 
 function atsFindings(pack: ReviewPack): ReviewFinding[] {
   const health = runCvHealthCheck(pack.cvVersion.body, pack.data, pack.job, pack.scan);
-  return health.missingKeywords.slice(0, 8).map((keyword) =>
-    finding(
-      "ats",
-      "Advisory",
-      "Advisory",
-      `The JD term "${keyword}" is not present in the CV. Add it only when Verified evidence supports it.`,
-    ),
-  );
+  return health.missingKeywords
+    .slice(0, 8)
+    .map((keyword) =>
+      finding(
+        "ats",
+        "Advisory",
+        "Advisory",
+        `The JD term "${keyword}" is not present in the CV. Add it only when Verified evidence supports it.`,
+      ),
+    );
 }
 
 function starFindings(pack: ReviewPack): ReviewFinding[] {
@@ -309,11 +306,7 @@ export function reviewApplicationPack(pack: ReviewPack): ApplicationReviewRun {
     checkResult("chronology", "Chronology and factual consistency", chronologyFindings(pack)),
     checkResult("ats", "ATS and terminology", atsFindings(pack)),
     checkResult("star", "STAR and bullet strength", starFindings(pack)),
-    checkResult(
-      "british-english",
-      "British English and house style",
-      britishEnglishFindings(pack),
-    ),
+    checkResult("british-english", "British English and house style", britishEnglishFindings(pack)),
     checkResult("ai-language-risk", "AI-like language risk", aiLanguageFindings(pack)),
     checkResult("cover-letter", "Cover-letter quality", coverLetterFindings(pack)),
   ];
