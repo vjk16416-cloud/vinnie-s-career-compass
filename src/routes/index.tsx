@@ -210,3 +210,69 @@ function HomePage() {
     </AppShell>
   );
 }
+
+const GROUP_LABEL: Record<AttentionItem["group"], string> = {
+  "next-action": "Next action missing",
+  deadline: "Deadline",
+  "cv-draft": "CV draft",
+  "letter-draft": "Cover letter draft",
+  "scan-evidence": "Evidence blocked in scan",
+  evidence: "Needs evidence",
+};
+
+export function AttentionPanel({
+  items,
+  summary,
+}: {
+  items: AttentionItem[];
+  summary: { urgent: number; total: number };
+}) {
+  return (
+    <Panel
+      title="Needs your attention"
+      description={
+        summary.total === 0
+          ? "Nothing outstanding across applications, documents and evidence"
+          : `${summary.total} item${summary.total === 1 ? "" : "s"} outstanding · ${summary.urgent} urgent`
+      }
+    >
+      {items.length === 0 ? (
+        <EmptyState
+          title="All caught up."
+          hint="No missing next actions, due deadlines, draft documents or unverified evidence."
+        />
+      ) : (
+        <ul className="space-y-2">
+          {items.map((item) => (
+            <li
+              key={item.id}
+              className="grid grid-cols-[minmax(0,1fr)_auto] items-center gap-3 rounded-md border border-border bg-surface-2/40 px-3 py-2.5"
+            >
+              <div className="min-w-0">
+                <div className="flex flex-wrap items-center gap-2">
+                  <StatusPill
+                    label={GROUP_LABEL[item.group]}
+                    tone={item.severity === "urgent" ? "warning" : "neutral"}
+                  />
+                  <p className="min-w-0 truncate text-sm font-medium">{item.title}</p>
+                </div>
+                <p className="truncate text-xs text-muted-foreground">{item.detail}</p>
+              </div>
+              {item.link.kind === "application" ? (
+                <Button asChild size="sm" variant="secondary">
+                  <Link to="/applications/$id" params={{ id: item.link.applicationId }}>
+                    Open
+                  </Link>
+                </Button>
+              ) : (
+                <Button asChild size="sm" variant="secondary">
+                  <Link to={item.link.to}>Open</Link>
+                </Button>
+              )}
+            </li>
+          ))}
+        </ul>
+      )}
+    </Panel>
+  );
+}
