@@ -27,9 +27,9 @@ describe("Google Drive integration", () => {
   });
 
   it("extracts a folder id from either a Drive URL or a raw id", () => {
-    expect(extractDriveFolderId("https://drive.google.com/drive/folders/folder-123?usp=sharing")).toBe(
-      "folder-123",
-    );
+    expect(
+      extractDriveFolderId("https://drive.google.com/drive/folders/folder-123?usp=sharing"),
+    ).toBe("folder-123");
     expect(extractDriveFolderId("folder-456")).toBe("folder-456");
     expect(extractDriveFolderId("https://drive.google.com/file/d/file-123/view")).toBeNull();
   });
