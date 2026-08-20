@@ -74,6 +74,32 @@ function roleYears(roles: EmploymentRole[]) {
   return milliseconds / (365.25 * 24 * 60 * 60 * 1000);
 }
 
+function requestedExperienceDomains(description: string) {
+  const match = description
+    .toLowerCase()
+    .match(/\d+\+?\s*years(?:\s+of)?\s+experience\s+in\s+([^.;\n]+)/);
+  if (!match) return [];
+  const generic = new Set(["management", "professional", "relevant", "similar", "related"]);
+  return [...new Set(tokenise(match[1]).filter((token) => !generic.has(token)))];
+}
+
+function domainRelevantRoles(
+  roles: EmploymentRole[],
+  eligible: KnowledgeItem[],
+  domains: string[],
+) {
+  if (!domains.length) return roles;
+  return roles.filter((role) => {
+    const roleText = `${role.title} ${role.employer}`.toLowerCase();
+    if (domains.some((domain) => roleText.includes(domain))) return true;
+    return eligible.some(
+      (item) =>
+        item.employment_role_id === role.id &&
+        domains.some((domain) => itemText(item).toLowerCase().includes(domain)),
+    );
+  });
+}
+
 function toBlockedStatus(status: KnowledgeStatus): EvidenceStatus {
   if (status === "excluded") return "Excluded";
   if (status === "archived") return "Archived";
@@ -117,10 +143,13 @@ export function runCanonicalKnowledgeScan(
 
   const yearsWantedMatch = job.description.toLowerCase().match(/(\d+)\+?\s*years/);
   const yearsWanted = yearsWantedMatch ? Number(yearsWantedMatch[1]) : null;
-  const yearsHeld = roleYears(roles);
+  const domains = requestedExperienceDomains(job.description);
+  const relevantRoles = domainRelevantRoles(roles, eligible, domains);
+  const totalYearsHeld = roleYears(roles);
+  const yearsHeld = domains.length ? roleYears(relevantRoles) : totalYearsHeld;
   const experienceScore = yearsWanted
     ? pct(Math.min(1, yearsHeld / Math.max(1, yearsWanted)))
-    : yearsHeld > 0
+    : totalYearsHeld > 0
       ? 75
       : 50;
 
@@ -151,9 +180,11 @@ export function runCanonicalKnowledgeScan(
       key: "experience",
       label: "Experience Fit",
       score: experienceScore,
-      reason: yearsWanted
-        ? `The job asks for about ${yearsWanted} years. Canonical employment chronology contains about ${yearsHeld.toFixed(1)} years after overlapping roles are merged.`
-        : `No explicit years requirement was detected. Canonical employment chronology contains about ${yearsHeld.toFixed(1)} years after overlapping roles are merged.`,
+      reason: yearsWanted && domains.length
+        ? `The job asks for about ${yearsWanted} years in ${domains.join(" / ")}. Canonical evidence contains about ${yearsHeld.toFixed(1)} years of domain-relevant employment after overlapping roles are merged; total career tenure is ${totalYearsHeld.toFixed(1)} years.`
+        : yearsWanted
+          ? `The job asks for about ${yearsWanted} years. Canonical employment chronology contains about ${yearsHeld.toFixed(1)} years after overlapping roles are merged.`
+          : `No explicit years requirement was detected. Canonical employment chronology contains about ${totalYearsHeld.toFixed(1)} years after overlapping roles are merged.`,
     },
     {
       key: "qualifications",
