@@ -330,7 +330,9 @@ function ApplicationWorkspace() {
     });
 
     if (review.outcome === "READY FOR VINNIE APPROVAL") {
-      toast.success("Final review passed. The current CV and cover letter are ready for your approval.");
+      toast.success(
+        "Final review passed. The current CV and cover letter are ready for your approval.",
+      );
     } else {
       toast.error(`Final review: ${review.outcome}.`);
     }
@@ -607,7 +609,9 @@ function ApplicationWorkspace() {
                     variant="ghost"
                     onClick={approveLatestLetter}
                     disabled={
-                      comparingOlderLetter || latestLetter.status === "Approved" || !approval.allowed
+                      comparingOlderLetter ||
+                      latestLetter.status === "Approved" ||
+                      !approval.allowed
                     }
                   >
                     Approve latest cover letter
@@ -753,8 +757,8 @@ function ApplicationWorkspace() {
                 Run final review
               </Button>
               <p className="text-xs text-muted-foreground">
-                The reviewer never approves documents. A passing review unlocks your explicit CV
-                and cover-letter approval controls.
+                The reviewer never approves documents. A passing review unlocks your explicit CV and
+                cover-letter approval controls.
               </p>
             </div>
           </Panel>
