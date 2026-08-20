@@ -394,26 +394,14 @@ function ApplicationWorkspace() {
                       You are previewing version {selectedCvVersion.version}. The current latest
                       draft is version {latestCvVersion.version}.
                     </p>
-                    <div className="mt-2 grid gap-3 lg:grid-cols-2">
-                      <div>
-                        <p className="mb-1 text-xs font-semibold text-muted-foreground">
-                          Selected v{selectedCvVersion.version}
-                        </p>
-                        <div className="cv-sheet max-h-[24rem] overflow-auto rounded-md p-4">
-                          <pre className="whitespace-pre-wrap font-serif">
-                            {selectedCvVersion.body}
-                          </pre>
-                        </div>
-                      </div>
-                      <div>
-                        <p className="mb-1 text-xs font-semibold text-muted-foreground">
-                          Latest v{latestCvVersion.version}
-                        </p>
-                        <div className="cv-sheet max-h-[24rem] overflow-auto rounded-md p-4">
-                          <pre className="whitespace-pre-wrap font-serif">
-                            {latestCvVersion.body}
-                          </pre>
-                        </div>
+                    <div className="mt-2">
+                      <p className="mb-1 text-xs font-semibold text-muted-foreground">
+                        Latest v{latestCvVersion.version}
+                      </p>
+                      <div className="cv-sheet max-h-[24rem] overflow-auto rounded-md p-4">
+                        <pre className="whitespace-pre-wrap font-serif">
+                          {latestCvVersion.body}
+                        </pre>
                       </div>
                     </div>
                   </div>
