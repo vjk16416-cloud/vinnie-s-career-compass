@@ -273,6 +273,7 @@ export interface CvDocument {
   status: "Draft" | "Approved" | "Archived";
   applicationId?: string | undefined;
   jobId?: string | undefined;
+  approvedVersionId?: string | undefined;
   versions: CvVersion[];
   updatedAt: string;
 }
@@ -287,6 +288,67 @@ export interface CoverLetter {
   evidenceIds: string[];
   createdAt: string;
 }
+
+export type ReviewOutcome =
+  | "NEEDS INPUT"
+  | "NEEDS REVISION"
+  | "READY FOR VINNIE APPROVAL";
+
+export type ReviewCheckStatus = "Pass" | "Warning" | "Fail";
+export type ReviewFindingSeverity = "Blocking" | "Advisory";
+export type ReviewFindingResolution = "Input" | "Revision" | "Advisory";
+
+export type ReviewCheckKey =
+  | "jd-alignment"
+  | "evidence"
+  | "metrics"
+  | "chronology"
+  | "ats"
+  | "star"
+  | "british-english"
+  | "ai-language-risk"
+  | "cover-letter";
+
+export interface ReviewFinding {
+  id: string;
+  check: ReviewCheckKey;
+  severity: ReviewFindingSeverity;
+  resolution: ReviewFindingResolution;
+  message: string;
+  evidenceId?: string | undefined;
+  profileItemId?: string | undefined;
+}
+
+export interface ReviewCheckResult {
+  key: ReviewCheckKey;
+  label: string;
+  status: ReviewCheckStatus;
+  findings: ReviewFinding[];
+}
+
+export interface ApplicationReviewRun {
+  id: string;
+  applicationId: string;
+  jobId: string;
+  scanId: string;
+  cvId: string;
+  cvVersionId: string;
+  coverLetterId: string;
+  inputSignature: string;
+  createdAt: string;
+  outcome: ReviewOutcome;
+  checks: ReviewCheckResult[];
+  strengths: string[];
+  highPriorityFixes: string[];
+}
+
+export type ApplicationGateState =
+  | "NOT REVIEWED"
+  | "REVIEW OUTDATED"
+  | "NEEDS INPUT"
+  | "NEEDS REVISION"
+  | "READY FOR VINNIE APPROVAL"
+  | "READY TO APPLY";
 
 export interface ScanSubScore {
   key: string;
@@ -319,6 +381,7 @@ export interface ScanResult {
   id: string;
   jobId: string;
   createdAt: string;
+  jobDescriptionSignature?: string | undefined;
   overall: number;
   verdict: Verdict;
   subScores: ScanSubScore[];
@@ -359,6 +422,7 @@ export interface CareerOsData {
   cvs: CvDocument[];
   coverLetters: CoverLetter[];
   scans: ScanResult[];
+  reviewRuns?: ApplicationReviewRun[];
   activity: ActivityEntry[];
   settings: Settings;
 }
