@@ -61,6 +61,52 @@ function makeRepository() {
       history: [],
     },
   ];
+  data.evidence = [
+    ...data.evidence,
+    {
+      id: "ev-unrelated-test",
+      employer: "Unrelated Co",
+      category: "Delivery",
+      claim: "UNRELATED EVIDENCE BANK MARKER",
+      source: "Test fixture",
+      confidence: "High",
+      status: "Verified",
+      skills: ["Unrelated skill"],
+      updatedAt: "2026-08-20T00:00:00.000Z",
+    },
+  ];
+  data.scans = [
+    {
+      id: "scan-test",
+      jobId: "job-test",
+      createdAt: "2026-08-20T00:00:00.000Z",
+      overall: 75,
+      verdict: "Competitive",
+      subScores: [],
+      strengths: [],
+      partials: [],
+      gaps: [],
+      missingKeywords: [],
+      matchedKeywords: [],
+      blockedEvidence: [],
+      strategy: "Apply with tailored positioning",
+      reasons: ["Test scan"],
+      evidenceMap: [
+        {
+          id: "requirement-test",
+          requirement: "ROLE-SPECIFIC REQUIREMENT",
+          category: "Responsibility",
+          priority: "Required",
+          status: "Covered",
+          score: 100,
+          evidenceIds: ["ev-budget"],
+          profileItemIds: [],
+          sourceIds: ["source-test"],
+          explanation: "ROLE-SPECIFIC EXPLANATION",
+        },
+      ],
+    },
+  ];
 
   const row = {
     userId: authorisedUser.id,
@@ -119,5 +165,19 @@ describe("application workspace workflow", () => {
     });
     expect(screen.getByRole("heading", { name: "Application tracking" })).toBeInTheDocument();
     expect(screen.getByRole("heading", { name: "Interview prep" })).toBeInTheDocument();
+  });
+
+  it("shows the role-specific Evidence Map instead of the full evidence bank", async () => {
+    renderWorkspace();
+
+    await screen.findByRole("heading", { name: "Growth Marketing Manager" });
+    fireEvent.mouseDown(screen.getByRole("tab", { name: "Evidence" }), {
+      button: 0,
+      ctrlKey: false,
+    });
+
+    expect(screen.getByText("ROLE-SPECIFIC REQUIREMENT")).toBeInTheDocument();
+    expect(screen.getByText("ROLE-SPECIFIC EXPLANATION")).toBeInTheDocument();
+    expect(screen.queryByText("UNRELATED EVIDENCE BANK MARKER")).not.toBeInTheDocument();
   });
 });
