@@ -93,7 +93,10 @@ export function FinalReviewPanel({
             <ul className="mt-2 space-y-2">
               {latestReview.checks.map((check) => (
                 <li key={check.key} className="rounded-md border border-border p-3">
-                  <StatusPill label={`${check.label}: ${check.status}`} tone={checkTone(check.status)} />
+                  <StatusPill
+                    label={`${check.label}: ${check.status}`}
+                    tone={checkTone(check.status)}
+                  />
                   {check.findings.length ? (
                     <ul className="mt-2 space-y-1 text-xs text-muted-foreground">
                       {check.findings.map((item) => (
