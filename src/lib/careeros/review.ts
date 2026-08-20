@@ -355,7 +355,8 @@ export function reviewApplicationPack(pack: ReviewPack): ApplicationReviewRun {
 
 export function scanMatchesSavedJob(job: JobRecord, scan: ScanResult | undefined): boolean {
   return Boolean(
-    scan?.jobDescriptionSignature && scan.jobDescriptionSignature === textSignature(job.description),
+    scan?.jobDescriptionSignature &&
+      scan.jobDescriptionSignature === textSignature(job.description),
   );
 }
 
@@ -426,7 +427,10 @@ export function approvalEligibility(context: ApplicationReviewContext): Approval
     return { allowed: true };
   }
 
-  const reasons: Record<Exclude<ApplicationGateState, "READY FOR VINNIE APPROVAL" | "READY TO APPLY">, string> = {
+  const reasons: Record<
+    Exclude<ApplicationGateState, "READY FOR VINNIE APPROVAL" | "READY TO APPLY">,
+    string
+  > = {
     "NOT REVIEWED": "Run final review before approving this document.",
     "REVIEW OUTDATED": "The final review is outdated. Re-run it for the current application pack.",
     "NEEDS INPUT": "Resolve the evidence or factual blockers before approval.",
