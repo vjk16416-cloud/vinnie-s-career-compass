@@ -2,6 +2,7 @@ import { runCvHealthCheck } from "./generate";
 import { reviewInputSignature, textSignature } from "./review-signature";
 import type {
   Application,
+  ApplicationGateState,
   ApplicationReviewRun,
   CareerOsData,
   CoverLetter,
@@ -26,6 +27,16 @@ export type ReviewPack = {
   cvVersion: CvVersion;
   coverLetter: CoverLetter;
 };
+
+export type ApplicationReviewContext = {
+  data: CareerOsData;
+  application: Application;
+  job: JobRecord;
+  scan?: ScanResult | undefined;
+  cv?: CvDocument | undefined;
+};
+
+export type ApprovalEligibility = { allowed: true } | { allowed: false; reason: string };
 
 const METRIC_PATTERN =
   /[£$€]\s?\d[\d,.]*\s?[kKmMbB]?|\b\d+(?:\.\d+)?%|\b\d+(?:\.\d+)?\s?(?:x|times)\b/gi;
@@ -340,4 +351,87 @@ export function reviewApplicationPack(pack: ReviewPack): ApplicationReviewRun {
       .slice(0, 8)
       .map((item) => item.message),
   };
+}
+
+export function scanMatchesSavedJob(job: JobRecord, scan: ScanResult | undefined): boolean {
+  return Boolean(
+    scan?.jobDescriptionSignature && scan.jobDescriptionSignature === textSignature(job.description),
+  );
+}
+
+export function latestApplicationCoverLetter(
+  context: ApplicationReviewContext,
+): CoverLetter | undefined {
+  return context.data.coverLetters
+    .filter((letter) => letter.applicationId === context.application.id)
+    .slice()
+    .sort((left, right) => left.createdAt.localeCompare(right.createdAt))
+    .at(-1);
+}
+
+export function currentReviewInputSignature(context: ApplicationReviewContext): string | null {
+  if (!context.scan || !scanMatchesSavedJob(context.job, context.scan) || !context.cv) return null;
+  const cvVersion = context.cv.versions.at(-1);
+  const coverLetter = latestApplicationCoverLetter(context);
+  if (!cvVersion || !coverLetter || !context.scan.jobDescriptionSignature) return null;
+
+  return reviewInputSignature({
+    applicationId: context.application.id,
+    jobId: context.job.id,
+    jobDescriptionSignature: textSignature(context.job.description),
+    scanId: context.scan.id,
+    scanJobDescriptionSignature: context.scan.jobDescriptionSignature,
+    cvId: context.cv.id,
+    cvVersionId: cvVersion.id,
+    coverLetterId: coverLetter.id,
+  });
+}
+
+export function latestApplicationReview(
+  context: ApplicationReviewContext,
+): ApplicationReviewRun | undefined {
+  return (context.data.reviewRuns ?? [])
+    .filter((review) => review.applicationId === context.application.id)
+    .slice()
+    .sort((left, right) => left.createdAt.localeCompare(right.createdAt))
+    .at(-1);
+}
+
+export function applicationGateState(context: ApplicationReviewContext): ApplicationGateState {
+  const review = latestApplicationReview(context);
+  if (!review) return "NOT REVIEWED";
+
+  const currentSignature = currentReviewInputSignature(context);
+  if (!currentSignature || review.inputSignature !== currentSignature) return "REVIEW OUTDATED";
+
+  if (review.outcome === "NEEDS INPUT") return "NEEDS INPUT";
+  if (review.outcome === "NEEDS REVISION") return "NEEDS REVISION";
+
+  const cvVersion = context.cv?.versions.at(-1);
+  const coverLetter = latestApplicationCoverLetter(context);
+  if (
+    cvVersion &&
+    context.cv?.approvedVersionId === cvVersion.id &&
+    coverLetter?.status === "Approved"
+  ) {
+    return "READY TO APPLY";
+  }
+
+  return "READY FOR VINNIE APPROVAL";
+}
+
+export function approvalEligibility(context: ApplicationReviewContext): ApprovalEligibility {
+  const gateState = applicationGateState(context);
+  if (gateState === "READY FOR VINNIE APPROVAL" || gateState === "READY TO APPLY") {
+    return { allowed: true };
+  }
+
+  const reasons: Record<Exclude<ApplicationGateState, "READY FOR VINNIE APPROVAL" | "READY TO APPLY">, string> = {
+    "NOT REVIEWED": "Run final review before approving this document.",
+    "REVIEW OUTDATED": "The final review is outdated. Re-run it for the current application pack.",
+    "NEEDS INPUT": "Resolve the evidence or factual blockers before approval.",
+    "NEEDS REVISION": "Resolve the reviewer revisions before approval.",
+  };
+
+  return { allowed: false, reason: reasons[gateState] };
 }
