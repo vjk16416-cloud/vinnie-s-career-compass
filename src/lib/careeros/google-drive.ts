@@ -65,20 +65,18 @@ export function extractDriveFolderId(input: string): string | null {
   }
 }
 
-export const getGoogleProviderToken = createClientOnlyFn(
-  async function getGoogleProviderToken(
-    createSupabase: SupabaseFactory = getBrowserSupabase,
-  ): Promise<string | null> {
-    try {
-      const supabase = createSupabase();
-      const { data, error } = await supabase.auth.getSession();
-      if (error) return null;
-      return data.session?.provider_token ?? null;
-    } catch {
-      return null;
-    }
-  },
-);
+export const getGoogleProviderToken = createClientOnlyFn(async function getGoogleProviderToken(
+  createSupabase: SupabaseFactory = getBrowserSupabase,
+): Promise<string | null> {
+  try {
+    const supabase = createSupabase();
+    const { data, error } = await supabase.auth.getSession();
+    if (error) return null;
+    return data.session?.provider_token ?? null;
+  } catch {
+    return null;
+  }
+});
 
 export async function listDriveFolderFiles(
   folderReference: string,
