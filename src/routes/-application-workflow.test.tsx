@@ -167,7 +167,7 @@ describe("application workspace workflow", () => {
     expect(screen.getByRole("heading", { name: "Interview prep" })).toBeInTheDocument();
   });
 
-  it("shows the role-specific Evidence Map instead of the full evidence bank", async () => {
+  it("shows only the role-specific Evidence Map, not the full evidence bank", async () => {
     renderWorkspace();
 
     await screen.findByRole("heading", { name: "Growth Marketing Manager" });
