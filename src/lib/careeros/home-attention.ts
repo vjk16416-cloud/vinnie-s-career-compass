@@ -42,7 +42,6 @@ export function computeHomeAttention(data: CareerOsData, today: string): Attenti
   const items: AttentionItem[] = [];
   const active = activeApplications(data);
   const activeIds = new Set(active.map((a) => a.id));
-  const activeJobIds = new Set(active.map((a) => a.jobId));
 
   for (const app of active) {
     if (isBlank(app.nextAction)) {
@@ -104,9 +103,6 @@ export function computeHomeAttention(data: CareerOsData, today: string): Attenti
     );
     if (flagged.length === 0) continue;
     const app = active.find((a) => a.jobId === scan.jobId);
-    if (!app && activeJobIds.size > 0 && !activeJobIds.has(scan.jobId)) {
-      // Still surface: an unlinked scan can hold blocked requirements.
-    }
     items.push({
       id: `scan-${scan.id}`,
       group: "scan-evidence",
