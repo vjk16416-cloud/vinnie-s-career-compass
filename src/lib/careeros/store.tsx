@@ -246,7 +246,13 @@ export function CareerOsProvider({
       status: Extract<CareerProfileItemStatus, "Approved" | "Needs Evidence" | "Excluded">,
       note?: string,
     ) => {
-      update((draft) => setProfileItemDecision(draft, { profileItemId, status, note }));
+      update((draft) =>
+        setProfileItemDecision(draft, {
+          profileItemId,
+          status,
+          ...(note === undefined ? {} : { note }),
+        }),
+      );
     },
     [update],
   );
@@ -257,8 +263,8 @@ export function CareerOsProvider({
         resolveClaimVariant(draft, {
           canonicalKey,
           selectedVariantId,
-          safeWording,
-          note,
+          ...(safeWording === undefined ? {} : { safeWording }),
+          ...(note === undefined ? {} : { note }),
         }),
       );
     },
