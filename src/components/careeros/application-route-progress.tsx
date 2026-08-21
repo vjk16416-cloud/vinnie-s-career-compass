@@ -10,6 +10,12 @@ function stageToTab(label: string): ApplicationWorkspaceTab {
   return label.toLowerCase() as ApplicationWorkspaceTab;
 }
 
+function activateExistingTab(stageLabel: string) {
+  const tabs = Array.from(document.querySelectorAll<HTMLElement>('[role="tab"]'));
+  const target = tabs.find((tab) => tab.textContent?.trim() === stageLabel);
+  target?.dispatchEvent(new MouseEvent("mousedown", { bubbles: true, button: 0 }));
+}
+
 export function ApplicationRouteProgress({
   pathname,
   data,
@@ -55,11 +61,19 @@ export function ApplicationRouteProgress({
   });
   const currentStage = progress.stages.find((stage) => stage.state === "current")?.label ?? "Apply";
 
+  function handleNextAction() {
+    if (onNavigate) {
+      onNavigate(stageToTab(currentStage));
+      return;
+    }
+    activateExistingTab(currentStage);
+  }
+
   return (
     <ApplicationWorkflowProgress
       stages={progress.stages}
       nextAction={progress.nextAction}
-      onNextAction={onNavigate ? () => onNavigate(stageToTab(currentStage)) : undefined}
+      onNextAction={handleNextAction}
     />
   );
 }
