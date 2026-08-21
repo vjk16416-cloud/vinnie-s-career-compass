@@ -39,7 +39,7 @@ export function ApplicationRouteProgress({
   const progress = deriveApplicationProgress({
     hasSavedJob: Boolean(job.description.trim()),
     scanCurrent: Boolean(scan && scanMatchesSavedJob(job, scan)),
-    hasEvidenceMap: Boolean(scan?.evidenceMap),
+    hasEvidenceMap: Boolean(scan?.evidenceMap?.length),
     hasCv: Boolean(cv?.versions.length),
     hasCoverLetter: Boolean(latestCoverLetter),
     gateState,
