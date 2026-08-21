@@ -1,8 +1,8 @@
 import "@/test/dom";
 import "@/test/setup";
 
-import { cleanup, render, screen } from "@testing-library/react";
-import { afterEach, describe, expect, it } from "vitest";
+import { cleanup, fireEvent, render, screen } from "@testing-library/react";
+import { afterEach, describe, expect, it, vi } from "vitest";
 import { ApplicationWorkflowProgress } from "./application-workflow-progress";
 
 afterEach(cleanup);
@@ -32,5 +32,26 @@ describe("ApplicationWorkflowProgress", () => {
     expect(screen.getByText("CV")).toBeInTheDocument();
     expect(screen.getByText("Cover Letter")).toBeInTheDocument();
     expect(screen.getByText("Apply")).toBeInTheDocument();
+  });
+
+  it("makes the next action clickable", () => {
+    const onNextAction = vi.fn();
+    render(
+      <ApplicationWorkflowProgress
+        stages={[
+          { label: "Job", state: "complete" },
+          { label: "Match", state: "complete" },
+          { label: "Evidence", state: "complete" },
+          { label: "CV", state: "current" },
+          { label: "Cover Letter", state: "upcoming" },
+          { label: "Apply", state: "upcoming" },
+        ]}
+        nextAction="Create the tailored CV"
+        onNextAction={onNextAction}
+      />,
+    );
+
+    fireEvent.click(screen.getByRole("button", { name: "Next: Create the tailored CV" }));
+    expect(onNextAction).toHaveBeenCalledOnce();
   });
 });
