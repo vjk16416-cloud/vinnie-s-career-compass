@@ -1,5 +1,7 @@
 import type { EmploymentRole, KnowledgeItem } from "@/lib/careeros/knowledge/types";
 import type { CareerOsData, EmploymentRecord, JobRecord, ScanResult } from "@/lib/careeros/types";
+import { rankEvidenceForJob } from "./evidence-ranker";
+import { selectMasterCvFamily } from "./master-selector";
 import { buildRoleBulletPlan, MIN_ROLE_BULLETS, MAX_ROLE_BULLETS } from "./role-bullet-policy";
 
 export interface TailoredCvKnowledgeContext {
@@ -24,6 +26,15 @@ export interface TailoredCvStrengtheningPrompt {
   reason: string;
 }
 
+export interface TailoredCvClaim {
+  id: string;
+  section: "summary" | "skill" | "experience" | "project";
+  profileRoleId: string | null;
+  original: string | null;
+  proposed: string;
+  evidenceIds: string[];
+}
+
 export interface TailoredCvBuildResult {
   body: string;
   evidenceIds: string[];
@@ -31,6 +42,8 @@ export interface TailoredCvBuildResult {
   roleGaps: TailoredCvRoleGap[];
   strengthening: TailoredCvStrengtheningPrompt[];
   ready: boolean;
+  masterFamily: string;
+  claims: TailoredCvClaim[];
 }
 
 function normalise(value: string | null | undefined) {
@@ -61,6 +74,18 @@ function focusFromScan(scan: ScanResult | undefined) {
     .join(", ");
 }
 
+function relevantSkills(skills: string[], job: JobRecord) {
+  const jobText = `${job.title} ${job.description}`.toLowerCase();
+  return skills
+    .slice()
+    .sort((left, right) => {
+      const leftMatch = jobText.includes(left.toLowerCase()) ? 1 : 0;
+      const rightMatch = jobText.includes(right.toLowerCase()) ? 1 : 0;
+      return rightMatch - leftMatch;
+    })
+    .slice(0, 14);
+}
+
 export function buildTailoredCvFromKnowledge(
   data: CareerOsData,
   job: JobRecord,
@@ -72,6 +97,13 @@ export function buildTailoredCvFromKnowledge(
   const roleGaps: TailoredCvRoleGap[] = [];
   const strengthening: TailoredCvStrengtheningPrompt[] = [];
   const evidenceIds: string[] = [];
+  const claims: TailoredCvClaim[] = [];
+  const masterFamily = selectMasterCvFamily(job);
+  const rankedEvidence = rankEvidenceForJob(
+    knowledge.knowledgeItems,
+    `${job.title} ${job.description}`,
+  );
+  const rankedIds = rankedEvidence.map((row) => row.item.id);
   const rolePlans = new Map<
     string,
     {
@@ -97,11 +129,31 @@ export function buildTailoredCvFromKnowledge(
       continue;
     }
 
-    const plan = buildRoleBulletPlan(knowledge.knowledgeItems, knowledgeRole.id);
+    const roleRankedIds = rankedIds.filter((id) =>
+      knowledge.knowledgeItems.some(
+        (item) => item.id === id && item.employment_role_id === knowledgeRole.id,
+      ),
+    );
+    const plan = buildRoleBulletPlan(
+      knowledge.knowledgeItems,
+      knowledgeRole.id,
+      roleRankedIds,
+    );
     const mappedIds = plan.bullets.map((bullet) => bullet.evidenceId);
     roleEvidenceMap[profileRole.id] = mappedIds;
     evidenceIds.push(...mappedIds);
     rolePlans.set(profileRole.id, { knowledgeRole, bullets: plan.bullets });
+
+    plan.bullets.forEach((bullet, index) => {
+      claims.push({
+        id: `experience:${profileRole.id}:${bullet.evidenceId}`,
+        section: "experience",
+        profileRoleId: profileRole.id,
+        original: profileRole.highlights[index] ?? null,
+        proposed: bullet.text,
+        evidenceIds: [bullet.evidenceId],
+      });
+    });
 
     strengthening.push(
       ...plan.strengthening.map((prompt) => ({
@@ -125,17 +177,60 @@ export function buildTailoredCvFromKnowledge(
     }
   }
 
+  const summaryEvidenceIds = rankedEvidence.slice(0, 3).map((row) => row.item.id);
+  const summary = `${profile.summary} Applying for ${job.title} at ${job.company}, with emphasis on ${focusFromScan(scan).toLowerCase()}.`;
+  claims.unshift({
+    id: "summary:professional",
+    section: "summary",
+    profileRoleId: null,
+    original: profile.summary,
+    proposed: summary,
+    evidenceIds: summaryEvidenceIds,
+  });
+  evidenceIds.push(...summaryEvidenceIds);
+
+  const skills = relevantSkills(profile.skills, job);
+  skills.forEach((skill) => {
+    const supporting = rankedEvidence
+      .filter((row) =>
+        `${row.item.title} ${row.item.content}`.toLowerCase().includes(skill.toLowerCase()),
+      )
+      .slice(0, 2)
+      .map((row) => row.item.id);
+    claims.push({
+      id: `skill:${skill.toLowerCase().replace(/[^a-z0-9]+/g, "-")}`,
+      section: "skill",
+      profileRoleId: null,
+      original: skill,
+      proposed: skill,
+      evidenceIds: supporting,
+    });
+  });
+
+  const projectRows = rankedEvidence
+    .filter((row) => row.item.category.toLowerCase() === "project")
+    .slice(0, 4);
+  projectRows.forEach((row) => {
+    claims.push({
+      id: `project:${row.item.id}`,
+      section: "project",
+      profileRoleId: null,
+      original: null,
+      proposed: `${row.item.title}: ${row.item.content}`,
+      evidenceIds: [row.item.id],
+    });
+    evidenceIds.push(row.item.id);
+  });
+
   const lines: string[] = [];
   lines.push(`# ${profile.name}`);
   lines.push(`${profile.location} | ${profile.headline}`);
   lines.push("");
   lines.push("## Professional Summary");
-  lines.push(
-    `${profile.summary} Applying for ${job.title} at ${job.company}, with emphasis on ${focusFromScan(scan).toLowerCase()}.`,
-  );
+  lines.push(summary);
   lines.push("");
   lines.push("## Core Skills");
-  lines.push(profile.skills.slice(0, 14).join(" | "));
+  lines.push(skills.join(" | "));
   lines.push("");
   lines.push("## Tools and Platforms");
   lines.push(profile.tools.join(" | "));
@@ -163,7 +258,7 @@ export function buildTailoredCvFromKnowledge(
   );
   lines.push("");
   lines.push("## Selected Projects");
-  profile.projects.forEach((project) => lines.push(`- ${project.name}: ${project.summary}`));
+  projectRows.forEach((row) => lines.push(`- ${row.item.title}: ${row.item.content}`));
 
   return {
     body: lines.join("\n"),
@@ -172,5 +267,7 @@ export function buildTailoredCvFromKnowledge(
     roleGaps,
     strengthening,
     ready: roleGaps.length === 0,
+    masterFamily,
+    claims,
   };
 }
