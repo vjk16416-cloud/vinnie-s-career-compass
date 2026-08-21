@@ -9,3 +9,5 @@ The proposed change adds a compact application progress summary above the applic
 The progress guidance does not change evidence rules, reviewer outcomes, approval rules, data models or application state. It is presentation plus deterministic guidance over existing CareerOS state.
 
 Verification boundary: repository GitHub Actions is configured to run the full test, lint and build suite on pushes to agent/** branches and pull requests targeting main. This integration cannot currently read push-triggered workflow runs, so the PR remains unmerged until a trustworthy verification result is visible.
+
+The branch name retains the original `-red` suffix from the TDD checkpoint even though implementation commits now follow it. The suffix is historical only and does not describe the current branch state.
