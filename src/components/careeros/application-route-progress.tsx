@@ -3,12 +3,21 @@ import { deriveApplicationProgress } from "@/lib/careeros/application-progress";
 import { applicationGateState, scanMatchesSavedJob } from "@/lib/careeros/review";
 import { ApplicationWorkflowProgress } from "./application-workflow-progress";
 
+export type ApplicationWorkspaceTab = "job" | "match" | "evidence" | "cv" | "letter" | "apply";
+
+function stageToTab(label: string): ApplicationWorkspaceTab {
+  if (label === "Cover Letter") return "letter";
+  return label.toLowerCase() as ApplicationWorkspaceTab;
+}
+
 export function ApplicationRouteProgress({
   pathname,
   data,
+  onNavigate,
 }: {
   pathname: string;
   data: CareerOsData;
+  onNavigate?: (tab: ApplicationWorkspaceTab) => void;
 }) {
   const match = pathname.match(/^\/applications\/([^/]+)$/);
   if (!match) return null;
@@ -44,6 +53,13 @@ export function ApplicationRouteProgress({
     hasCoverLetter: Boolean(latestCoverLetter),
     gateState,
   });
+  const currentStage = progress.stages.find((stage) => stage.state === "current")?.label ?? "Apply";
 
-  return <ApplicationWorkflowProgress stages={progress.stages} nextAction={progress.nextAction} />;
+  return (
+    <ApplicationWorkflowProgress
+      stages={progress.stages}
+      nextAction={progress.nextAction}
+      onNextAction={onNavigate ? () => onNavigate(stageToTab(currentStage)) : undefined}
+    />
+  );
 }
