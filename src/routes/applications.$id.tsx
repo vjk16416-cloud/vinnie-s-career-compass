@@ -2,6 +2,7 @@ import { createFileRoute, Link } from "@tanstack/react-router";
 import { useMemo, useState } from "react";
 import { toast } from "sonner";
 import { AppShell } from "@/components/careeros/app-shell";
+import { TailoredCvReview } from "@/components/careeros/tailored-cv-review";
 import { ScanResultView } from "./job-scan";
 import {
   EmptyState,
@@ -20,7 +21,10 @@ import {
   runCvHealthCheck,
   suggestCvCategory,
 } from "@/lib/careeros/generate";
+import type { KnowledgeItem } from "@/lib/careeros/knowledge/types";
+import { listKnowledgeItems } from "@/lib/careeros/repositories/knowledge-repository";
 import { buildTailoredCvForCurrentUser } from "@/lib/careeros/resume/generate-workflow";
+import type { TailoredCvBuildResult } from "@/lib/careeros/resume/tailored-cv";
 import { runScan } from "@/lib/careeros/scoring";
 import { uid, useCareerOs } from "@/lib/careeros/store";
 
@@ -52,6 +56,8 @@ function ApplicationWorkspace() {
   const letter = data.coverLetters.find((c) => c.applicationId === id);
   const [jdDraft, setJdDraft] = useState(job?.description ?? "");
   const [healthOpen, setHealthOpen] = useState(false);
+  const [tailoredProposal, setTailoredProposal] = useState<TailoredCvBuildResult | null>(null);
+  const [proposalKnowledge, setProposalKnowledge] = useState<KnowledgeItem[]>([]);
 
   const verified = useMemo(() => data.evidence.filter((e) => e.status === "Verified"), [data.evidence]);
   const latestCvBody = cv?.versions[cv.versions.length - 1]?.body ?? "";
@@ -131,6 +137,10 @@ function ApplicationWorkspace() {
         return;
       }
 
+      const currentKnowledge = await listKnowledgeItems();
+      setTailoredProposal(built);
+      setProposalKnowledge(currentKnowledge);
+
       update((d) => {
         const existing = d.cvs.find((c) => c.applicationId === app.id);
         if (existing) {
@@ -138,7 +148,7 @@ function ApplicationWorkspace() {
             id: uid("cvv"),
             version: existing.versions.length + 1,
             createdAt: new Date().toISOString(),
-            note: "Regenerated draft from supported Knowledge Bank evidence.",
+            note: `Regenerated ${built.masterFamily} draft from supported Knowledge Bank evidence.`,
             body: built.body,
             evidenceIds: built.evidenceIds,
           });
@@ -160,7 +170,7 @@ function ApplicationWorkspace() {
                   id: uid("cvv"),
                   version: 1,
                   createdAt: new Date().toISOString(),
-                  note: "Initial tailored draft from supported Knowledge Bank evidence.",
+                  note: `Initial ${built.masterFamily} tailored draft from supported Knowledge Bank evidence.`,
                   body: built.body,
                   evidenceIds: built.evidenceIds,
                 },
@@ -174,7 +184,7 @@ function ApplicationWorkspace() {
         return d;
       });
       logActivity(`Tailored CV draft created for ${app.title} at ${app.company}.`);
-      toast.success("Draft CV created from supported Knowledge Bank evidence. It stays a draft until you approve it.");
+      toast.success("Draft CV created from supported Knowledge Bank evidence. Review the proposed claims and evidence before approval.");
     } catch (caught) {
       toast.error(caught instanceof Error ? caught.message : "Could not generate the tailored CV.");
     }
@@ -336,9 +346,11 @@ function ApplicationWorkspace() {
                   />
                   <StatusPill label={`Category: ${cv.category}`} />
                   <StatusPill label={`Version ${cv.versions.length}`} />
-                  <Button size="sm" variant="ghost" onClick={approveCv}>
-                    Approve this version
-                  </Button>
+                  {!tailoredProposal ? (
+                    <Button size="sm" variant="ghost" onClick={approveCv}>
+                      Approve this version
+                    </Button>
+                  ) : null}
                 </div>
                 <div className="cv-sheet max-h-[28rem] overflow-auto rounded-md p-5">
                   <pre className="whitespace-pre-wrap font-serif">{latestCvBody}</pre>
@@ -364,6 +376,15 @@ function ApplicationWorkspace() {
               />
             )}
           </Panel>
+
+          {cv && tailoredProposal ? (
+            <TailoredCvReview
+              claims={tailoredProposal.claims}
+              knowledgeItems={proposalKnowledge}
+              status={cv.status === "Approved" ? "Approved" : "Draft"}
+              onApprove={approveCv}
+            />
+          ) : null}
 
           {cv && healthOpen && health ? (
             <Panel title="CV scan / health check" description="Review before export.">
