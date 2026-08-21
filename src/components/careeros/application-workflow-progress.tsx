@@ -1,12 +1,6 @@
 import { Check, Circle, CircleDot } from "lucide-react";
+import type { ApplicationWorkflowStage } from "@/lib/careeros/application-progress";
 import { cn } from "@/lib/utils";
-
-export type ApplicationWorkflowStageState = "complete" | "current" | "upcoming";
-
-export interface ApplicationWorkflowStage {
-  label: string;
-  state: ApplicationWorkflowStageState;
-}
 
 export function ApplicationWorkflowProgress({
   stages,
