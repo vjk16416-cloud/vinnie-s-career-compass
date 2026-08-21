@@ -1,1 +1,0 @@
-RED checkpoint: the workflow progress test intentionally references a component that does not yet exist. This branch exists to verify the expected failing test before implementation.
