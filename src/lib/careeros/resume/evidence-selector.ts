@@ -3,8 +3,12 @@ import type { KnowledgeItem } from "@/lib/careeros/knowledge/types";
 const SUPPORTED_STATUSES = new Set<KnowledgeItem["status"]>([
   "verified",
   "user_confirmed",
+]);
+
+const CONTEXT_STATUSES = new Set<KnowledgeItem["status"]>([
   "imported_cv",
   "imported_linkedin",
+  "needs_verification",
 ]);
 
 const BLOCKED_STATUSES = new Set<KnowledgeItem["status"]>(["archived", "excluded"]);
@@ -38,12 +42,21 @@ function provenanceStrength(status: KnowledgeItem["status"]) {
       return 4;
     case "user_confirmed":
       return 3;
-    case "imported_cv":
-      return 2;
-    case "imported_linkedin":
-      return 2;
     default:
       return 0;
+  }
+}
+
+function strengtheningReason(status: KnowledgeItem["status"]) {
+  switch (status) {
+    case "imported_cv":
+      return "This information was imported from a CV and needs user confirmation before CareerOS can use it as a factual resume bullet.";
+    case "imported_linkedin":
+      return "This information was imported from LinkedIn and needs user confirmation before CareerOS can use it as a factual resume bullet.";
+    case "needs_verification":
+      return "This information needs verification before CareerOS can use it as a factual resume bullet.";
+    default:
+      return "This information is not eligible for factual resume reuse yet.";
   }
 }
 
@@ -54,7 +67,7 @@ export function selectRoleEvidence(
   const roleItems = items.filter((item) => item.employment_role_id === employmentRoleId);
 
   const blocked = roleItems.filter((item) => BLOCKED_STATUSES.has(item.status));
-  const needsVerification = roleItems.filter((item) => item.status === "needs_verification");
+  const contextOnly = roleItems.filter((item) => CONTEXT_STATUSES.has(item.status));
   const supported = roleItems
     .filter((item) => SUPPORTED_STATUSES.has(item.status))
     .sort((left, right) => {
@@ -67,11 +80,11 @@ export function selectRoleEvidence(
 
   return {
     supported,
-    needsStrengthening: needsVerification.map((item) => ({
+    needsStrengthening: contextOnly.map((item) => ({
       evidenceId: item.id,
       title: item.title,
       status: item.status,
-      reason: "This information needs verification before CareerOS can use it as a factual resume bullet.",
+      reason: strengtheningReason(item.status),
     })),
     blocked,
   };
