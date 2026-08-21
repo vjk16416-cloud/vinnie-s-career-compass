@@ -115,28 +115,24 @@ describe("CareerOS role bullet policy", () => {
     );
   });
 
-  it("prefers items with a supported action and result while retaining provenance", () => {
-    const plan = buildRoleBulletPlan(
+  it("uses only verified and user-confirmed evidence as factual CV support", () => {
+    const selection = selectRoleEvidence(
       [
-        item("weak", {
-          star_action: null,
-          star_result: null,
-          status: "imported_cv",
-          source_type: "cv",
-        }),
-        item("strong", {
-          status: "imported_linkedin",
-          source_type: "linkedin",
-        }),
+        item("verified", { status: "verified" }),
+        item("confirmed", { status: "user_confirmed" }),
+        item("cv", { status: "imported_cv", source_type: "cv" }),
+        item("linkedin", { status: "imported_linkedin", source_type: "linkedin" }),
+        item("verify", { status: "needs_verification" }),
+        item("excluded", { status: "excluded" }),
       ],
       "role-a",
     );
 
-    expect(plan.bullets[0]).toMatchObject({
-      evidenceId: "strong",
-      status: "imported_linkedin",
-      sourceType: "linkedin",
-    });
+    expect(selection.supported.map((entry) => entry.id)).toEqual(["verified", "confirmed"]);
+    expect(selection.needsStrengthening.map((entry) => entry.evidenceId)).toEqual(
+      expect.arrayContaining(["cv", "linkedin", "verify"]),
+    );
+    expect(selection.blocked.map((entry) => entry.id)).toContain("excluded");
   });
 
   it("reports the 3 to 5 target consistently", () => {
