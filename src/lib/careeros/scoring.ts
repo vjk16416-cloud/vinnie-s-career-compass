@@ -1,5 +1,6 @@
 import { buildEvidenceMap, evidenceMapScore } from "./evidence-map";
 import { addUnmappedRequirementGaps } from "./generic-requirements";
+import { textSignature } from "./review-signature";
 import type {
   CareerOsData,
   EvidenceMapItem,
@@ -212,6 +213,7 @@ export function runScan(job: JobRecord, input: CareerOsData): ScanResult {
     id: `scan-${Date.now()}`,
     jobId: job.id,
     createdAt: new Date().toISOString(),
+    jobDescriptionSignature: textSignature(job.description),
     overall,
     verdict: verdictFor(overall),
     subScores,

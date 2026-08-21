@@ -3,6 +3,7 @@ import { useMemo, useState } from "react";
 import { toast } from "sonner";
 import { AppShell } from "@/components/careeros/app-shell";
 import { CvHealthCheckPanel } from "@/components/careeros/cv-health-check-panel";
+import { FinalReviewPanel } from "@/components/careeros/final-review-panel";
 import { EmptyState, Panel, StatusPill } from "@/components/careeros/ui-bits";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -21,6 +22,13 @@ import {
   runCvHealthCheck,
   suggestCvCategory,
 } from "@/lib/careeros/generate";
+import {
+  applicationGateState,
+  approvalEligibility,
+  latestApplicationReview,
+  reviewApplicationPack,
+  scanMatchesSavedJob,
+} from "@/lib/careeros/review";
 import { runScan } from "@/lib/careeros/scoring";
 import { uid, useCareerOs } from "@/lib/careeros/store";
 import { ScanResultView } from "./job-scan";
@@ -90,6 +98,47 @@ function ApplicationWorkspace() {
     () => (latestCvBody ? runCvHealthCheck(latestCvBody, data, job, scan) : null),
     [latestCvBody, data, job, scan],
   );
+  const reviewContext =
+    app && job
+      ? {
+          data,
+          application: app,
+          job,
+          scan,
+          cv,
+        }
+      : null;
+  const approval = reviewContext
+    ? approvalEligibility(reviewContext)
+    : { allowed: false as const, reason: "Application data is incomplete." };
+  const gateState = reviewContext ? applicationGateState(reviewContext) : "NOT REVIEWED";
+  const latestReview = reviewContext ? latestApplicationReview(reviewContext) : undefined;
+  const scanCurrent = Boolean(
+    job && scan && jdDraft === job.description && scanMatchesSavedJob(job, scan),
+  );
+  const reviewedCvVersion =
+    latestReview && cv
+      ? cv.versions.find((version) => version.id === latestReview.cvVersionId)
+      : undefined;
+  const reviewedLetterIndex = latestReview
+    ? coverLetterVersions.findIndex((letter) => letter.id === latestReview.coverLetterId)
+    : -1;
+  const currentCvLabel = latestCvVersion ? `CV v${latestCvVersion.version}` : undefined;
+  const currentCoverLetterLabel = latestLetter ? `Cover letter v${latestLetterVersion}` : undefined;
+  const reviewedCvLabel = reviewedCvVersion ? `CV v${reviewedCvVersion.version}` : undefined;
+  const reviewedCoverLetterLabel =
+    reviewedLetterIndex >= 0 ? `Cover letter v${reviewedLetterIndex + 1}` : undefined;
+  const canRunReview = Boolean(job && scanCurrent && cv && latestCvVersion && latestLetter);
+  const reviewDisabledReason =
+    job && jdDraft !== job.description
+      ? "Save the job description and re-run the role scan before final review."
+      : !job || !scan || !scanMatchesSavedJob(job, scan)
+        ? "Re-run the role scan for the current saved job description."
+        : !cv || !latestCvVersion
+          ? "Create a tailored CV before final review."
+          : !latestLetter
+            ? "Create a cover letter before final review."
+            : undefined;
 
   if (!app) {
     return (
@@ -162,6 +211,7 @@ function ApplicationWorkspace() {
           evidenceIds: built.evidenceIds,
         });
         existing.status = "Draft";
+        existing.approvedVersionId = undefined;
         existing.updatedAt = new Date().toISOString();
       } else {
         const cvId = uid("cv");
@@ -201,13 +251,20 @@ function ApplicationWorkspace() {
   }
 
   function approveCv() {
-    if (!cv) return;
+    if (!cv || !latestCvVersion) return;
+    if (!approval.allowed) {
+      toast.error(approval.reason);
+      return;
+    }
     update((draft) => {
       const target = draft.cvs.find((candidate) => candidate.id === cv.id);
-      if (target) target.status = "Approved";
+      if (target) {
+        target.status = "Approved";
+        target.approvedVersionId = latestCvVersion.id;
+      }
       return draft;
     });
-    toast.success("Latest CV version approved.");
+    toast.success(`CV version ${latestCvVersion.version} approved.`);
   }
 
   function downloadSelectedCv() {
@@ -255,12 +312,65 @@ function ApplicationWorkspace() {
 
   function approveLatestLetter() {
     if (!latestLetter) return;
+    if (!approval.allowed) {
+      toast.error(approval.reason);
+      return;
+    }
     update((draft) => {
       const target = draft.coverLetters.find((candidate) => candidate.id === latestLetter.id);
       if (target) target.status = "Approved";
       return draft;
     });
     toast.success("Latest cover letter approved.");
+  }
+
+  function runFinalReview() {
+    if (!job || !scan || !cv || !latestCvVersion || !latestLetter) {
+      toast.error("Complete the saved job, role scan, CV and cover letter before final review.");
+      return;
+    }
+    if (jdDraft !== job.description) {
+      toast.error("Save the job description and re-run the role scan before final review.");
+      return;
+    }
+    if (!scanMatchesSavedJob(job, scan)) {
+      toast.error("Re-run the role scan for the current saved job description.");
+      return;
+    }
+
+    const review = reviewApplicationPack({
+      data,
+      application: app,
+      job,
+      scan,
+      cv,
+      cvVersion: latestCvVersion,
+      coverLetter: latestLetter,
+    });
+    const at = new Date().toISOString();
+    update((draft) => {
+      draft.reviewRuns = [review, ...(draft.reviewRuns ?? [])];
+      const targetApplication = draft.applications.find((candidate) => candidate.id === app.id);
+      if (targetApplication) {
+        targetApplication.history = [
+          { at, entry: `Final review: ${review.outcome}.` },
+          ...targetApplication.history,
+        ];
+      }
+      draft.activity = [
+        { id: uid("act"), at, text: `Final review for ${app.title}: ${review.outcome}.` },
+        ...draft.activity,
+      ].slice(0, 40);
+      return draft;
+    });
+
+    if (review.outcome === "READY FOR VINNIE APPROVAL") {
+      toast.success(
+        "Final review passed. The current CV and cover letter are ready for your approval.",
+      );
+    } else {
+      toast.error(`Final review: ${review.outcome}.`);
+    }
   }
 
   function downloadSelectedLetter() {
@@ -419,7 +529,11 @@ function ApplicationWorkspace() {
                     size="sm"
                     variant="ghost"
                     onClick={approveCv}
-                    disabled={comparingOlderCvVersion}
+                    disabled={
+                      comparingOlderCvVersion ||
+                      !approval.allowed ||
+                      (cv.status === "Approved" && cv.approvedVersionId === latestCvVersion.id)
+                    }
                   >
                     Approve latest version
                   </Button>
@@ -529,7 +643,11 @@ function ApplicationWorkspace() {
                     size="sm"
                     variant="ghost"
                     onClick={approveLatestLetter}
-                    disabled={comparingOlderLetter || latestLetter.status === "Approved"}
+                    disabled={
+                      comparingOlderLetter ||
+                      latestLetter.status === "Approved" ||
+                      !approval.allowed
+                    }
                   >
                     Approve latest cover letter
                   </Button>
@@ -641,7 +759,7 @@ function ApplicationWorkspace() {
         <TabsContent value="apply" className="mt-4 space-y-4">
           <Panel
             title="Application pack"
-            description="Core materials for this role. Automated reviewer checks remain a separate future gate."
+            description="Core materials for this role, with the final reviewer as the approval gate."
           >
             <div className="flex flex-wrap gap-2">
               <StatusPill
@@ -664,13 +782,25 @@ function ApplicationWorkspace() {
                 label={`Cover letter: ${latestLetter?.status ?? "Not started"}`}
                 tone={latestLetter?.status === "Approved" ? "success" : "warning"}
               />
+              <StatusPill
+                label={`Reviewer: ${gateState}`}
+                tone={gateState === "READY TO APPLY" ? "success" : "warning"}
+              />
             </div>
-            <p className="mt-3 text-xs text-muted-foreground">
-              This checkpoint shows whether the core application materials exist and which versions
-              are approved. It does not mark an application Ready to Apply until the separate review
-              gate is implemented.
-            </p>
           </Panel>
+
+          <FinalReviewPanel
+            gateState={gateState}
+            latestReview={latestReview}
+            scanCurrent={scanCurrent}
+            currentCvLabel={currentCvLabel}
+            currentCoverLetterLabel={currentCoverLetterLabel}
+            reviewedCvLabel={reviewedCvLabel}
+            reviewedCoverLetterLabel={reviewedCoverLetterLabel}
+            canRunReview={canRunReview}
+            reviewDisabledReason={reviewDisabledReason}
+            onRunReview={runFinalReview}
+          />
 
           <Panel title="Application tracking">
             <div className="mb-4 flex flex-wrap gap-2">

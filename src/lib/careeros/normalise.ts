@@ -44,9 +44,14 @@ export function normaliseData(raw: unknown): CareerOsData {
       ...a,
       history: list(a?.history, []),
     })),
-    cvs: list(saved.cvs, seed.cvs).map((c) => ({ ...c, versions: list(c?.versions, []) })),
+    cvs: list(saved.cvs, seed.cvs).map((c) => ({
+      ...c,
+      versions: list(c?.versions, []),
+      approvedVersionId: c?.approvedVersionId,
+    })),
     coverLetters: list(saved.coverLetters, seed.coverLetters),
-    scans: list(saved.scans, []),
+    scans: list(saved.scans, []).map((scan) => ({ ...scan })),
+    reviewRuns: list(saved.reviewRuns, []),
     activity: list(saved.activity, seed.activity),
     settings: { ...seed.settings, ...(saved.settings ?? {}) },
   };

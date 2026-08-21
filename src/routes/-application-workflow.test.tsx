@@ -8,6 +8,7 @@ import { afterEach, describe, expect, it, vi } from "vitest";
 
 import { PrivateCareerOsProvider } from "@/lib/auth/auth-context";
 import { createCareerOsData } from "@/lib/careeros/profile-data";
+import { textSignature } from "@/lib/careeros/review-signature";
 import { getRouter } from "@/router";
 import { Route as ApplicationRoute } from "@/routes/applications.$id";
 
@@ -85,7 +86,10 @@ function makeRepository() {
           version: 2,
           createdAt: "2026-08-20T00:00:00.000Z",
           note: "Latest draft",
-          body: "VERSION TWO BODY",
+          body: [
+            "VERSION TWO BODY",
+            "- Delivered landing-page and A/B testing work with website and stakeholder teams.",
+          ].join("\n"),
           evidenceIds: ["ev-budget"],
         },
       ],
@@ -97,7 +101,16 @@ function makeRepository() {
       applicationId: "app-test",
       jobId: "job-test",
       status: "Draft",
-      body: "COVER LETTER VERSION TWO",
+      body: [
+        "COVER LETTER VERSION TWO",
+        "Dear Hiring Team,",
+        "",
+        "I am applying for the Growth Marketing Manager role at Example Co.",
+        "My verified experience includes paid acquisition, stakeholder reporting and A/B testing.",
+        "",
+        "Yours sincerely,",
+        "Vinnie Jegathees",
+      ].join("\n"),
       emailVersion: "EMAIL VERSION TWO",
       evidenceIds: ["ev-budget"],
       createdAt: "2026-08-20T00:00:00.000Z",
@@ -132,6 +145,7 @@ function makeRepository() {
       id: "scan-test",
       jobId: "job-test",
       createdAt: "2026-08-20T00:00:00.000Z",
+      jobDescriptionSignature: textSignature(data.jobs[0]!.description),
       overall: 75,
       verdict: "Competitive",
       subScores: [],
@@ -193,6 +207,13 @@ function renderWorkspace() {
   );
 }
 
+function openTab(name: "Job" | "Match" | "Evidence" | "CV" | "Cover Letter" | "Apply") {
+  fireEvent.mouseDown(screen.getByRole("tab", { name }), {
+    button: 0,
+    ctrlKey: false,
+  });
+}
+
 afterEach(() => {
   cleanup();
   window.localStorage.clear();
@@ -211,10 +232,7 @@ describe("application workspace workflow", () => {
     expect(screen.queryByRole("tab", { name: "Notes" })).not.toBeInTheDocument();
     expect(screen.queryByRole("tab", { name: "Interview Prep" })).not.toBeInTheDocument();
 
-    fireEvent.mouseDown(screen.getByRole("tab", { name: "Apply" }), {
-      button: 0,
-      ctrlKey: false,
-    });
+    openTab("Apply");
     expect(screen.getByRole("heading", { name: "Application tracking" })).toBeInTheDocument();
     expect(screen.getByRole("heading", { name: "Interview prep" })).toBeInTheDocument();
   });
@@ -223,10 +241,7 @@ describe("application workspace workflow", () => {
     renderWorkspace();
 
     await screen.findByRole("heading", { name: "Growth Marketing Manager" });
-    fireEvent.mouseDown(screen.getByRole("tab", { name: "Evidence" }), {
-      button: 0,
-      ctrlKey: false,
-    });
+    openTab("Evidence");
 
     expect(screen.getByText("ROLE-SPECIFIC REQUIREMENT")).toBeInTheDocument();
     expect(screen.getByText("ROLE-SPECIFIC EXPLANATION")).toBeInTheDocument();
@@ -237,12 +252,9 @@ describe("application workspace workflow", () => {
     renderWorkspace();
 
     await screen.findByRole("heading", { name: "Growth Marketing Manager" });
-    fireEvent.mouseDown(screen.getByRole("tab", { name: "CV" }), {
-      button: 0,
-      ctrlKey: false,
-    });
+    openTab("CV");
 
-    expect(screen.getByText("VERSION TWO BODY")).toBeInTheDocument();
+    expect(screen.getByText(/VERSION TWO BODY/)).toBeInTheDocument();
     expect(
       screen.getByRole("button", { name: "Download Word-compatible .doc" }),
     ).toBeInTheDocument();
@@ -252,19 +264,16 @@ describe("application workspace workflow", () => {
     expect(screen.getByText("VERSION ONE BODY")).toBeInTheDocument();
 
     expect(screen.getByRole("heading", { name: "Compare with latest" })).toBeInTheDocument();
-    expect(screen.getByText("VERSION TWO BODY")).toBeInTheDocument();
+    expect(screen.getByText(/VERSION TWO BODY/)).toBeInTheDocument();
   });
 
   it("lets the user preview, compare, approve and export saved cover letter versions", async () => {
     renderWorkspace();
 
     await screen.findByRole("heading", { name: "Growth Marketing Manager" });
-    fireEvent.mouseDown(screen.getByRole("tab", { name: "Cover Letter" }), {
-      button: 0,
-      ctrlKey: false,
-    });
+    openTab("Cover Letter");
 
-    expect(screen.getByText("COVER LETTER VERSION TWO")).toBeInTheDocument();
+    expect(screen.getByText(/COVER LETTER VERSION TWO/)).toBeInTheDocument();
     expect(screen.getByText("EMAIL VERSION TWO")).toBeInTheDocument();
     expect(screen.getByRole("button", { name: "Download cover letter .doc" })).toBeInTheDocument();
     expect(
@@ -280,7 +289,7 @@ describe("application workspace workflow", () => {
     expect(
       screen.getByRole("heading", { name: "Compare with latest cover letter" }),
     ).toBeInTheDocument();
-    expect(screen.getByText("COVER LETTER VERSION TWO")).toBeInTheDocument();
+    expect(screen.getByText(/COVER LETTER VERSION TWO/)).toBeInTheDocument();
     expect(screen.getByRole("button", { name: "Approve latest cover letter" })).toBeDisabled();
   });
 
@@ -288,10 +297,7 @@ describe("application workspace workflow", () => {
     renderWorkspace();
 
     await screen.findByRole("heading", { name: "Growth Marketing Manager" });
-    fireEvent.mouseDown(screen.getByRole("tab", { name: "Cover Letter" }), {
-      button: 0,
-      ctrlKey: false,
-    });
+    openTab("Cover Letter");
 
     const selectorBefore = screen.getByLabelText(
       "Preview cover letter version",
@@ -310,10 +316,7 @@ describe("application workspace workflow", () => {
     renderWorkspace();
 
     await screen.findByRole("heading", { name: "Growth Marketing Manager" });
-    fireEvent.mouseDown(screen.getByRole("tab", { name: "Apply" }), {
-      button: 0,
-      ctrlKey: false,
-    });
+    openTab("Apply");
 
     expect(screen.getByRole("heading", { name: "Application pack" })).toBeInTheDocument();
     expect(screen.getByText("Job: Ready")).toBeInTheDocument();
@@ -321,5 +324,46 @@ describe("application workspace workflow", () => {
     expect(screen.getByText("Evidence: Ready")).toBeInTheDocument();
     expect(screen.getByText("CV: Draft")).toBeInTheDocument();
     expect(screen.getByText("Cover letter: Draft")).toBeInTheDocument();
+  });
+
+  it("blocks document approval before a current passing final review", async () => {
+    renderWorkspace();
+    await screen.findByRole("heading", { name: "Growth Marketing Manager" });
+
+    openTab("CV");
+    expect(screen.getByRole("button", { name: "Approve latest version" })).toBeDisabled();
+
+    openTab("Cover Letter");
+    expect(screen.getByRole("button", { name: "Approve latest cover letter" })).toBeDisabled();
+  });
+
+  it("unlocks explicit document approval only after a current passing final review", async () => {
+    renderWorkspace();
+    await screen.findByRole("heading", { name: "Growth Marketing Manager" });
+
+    openTab("Apply");
+    fireEvent.click(screen.getByRole("button", { name: "Run final review" }));
+
+    openTab("CV");
+    expect(screen.getByRole("button", { name: "Approve latest version" })).toBeEnabled();
+
+    openTab("Cover Letter");
+    expect(screen.getByRole("button", { name: "Approve latest cover letter" })).toBeEnabled();
+  });
+
+  it("renders the final review panel and shows the exact reviewed pack", async () => {
+    renderWorkspace();
+    await screen.findByRole("heading", { name: "Growth Marketing Manager" });
+
+    openTab("Apply");
+    expect(screen.getByRole("heading", { name: "Final review" })).toBeInTheDocument();
+    expect(screen.getByText("Reviewer status: NOT REVIEWED")).toBeInTheDocument();
+    expect(screen.getByText("Current pack: CV v2 · Cover letter v2")).toBeInTheDocument();
+
+    fireEvent.click(screen.getByRole("button", { name: "Run final review" }));
+
+    expect(screen.getByText("Reviewer status: READY FOR VINNIE APPROVAL")).toBeInTheDocument();
+    expect(screen.getByText("Reviewed pack: CV v2 · Cover letter v2")).toBeInTheDocument();
+    expect(screen.getByText("Evidence and unsupported claims: Pass")).toBeInTheDocument();
   });
 });
