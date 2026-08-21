@@ -1,5 +1,11 @@
 import type { ApplicationGateState } from "./types";
-import type { ApplicationWorkflowStage } from "@/components/careeros/application-workflow-progress";
+
+export type ApplicationWorkflowStageState = "complete" | "current" | "upcoming";
+
+export interface ApplicationWorkflowStage {
+  label: string;
+  state: ApplicationWorkflowStageState;
+}
 
 export interface ApplicationProgressInput {
   hasSavedJob: boolean;
