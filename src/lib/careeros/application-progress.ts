@@ -45,11 +45,7 @@ export function deriveApplicationProgress({
 
   const stages: ApplicationWorkflowStage[] = labels.map((label, index) => ({
     label,
-    state: completion[index]
-      ? "complete"
-      : index === firstIncomplete
-        ? "current"
-        : "upcoming",
+    state: completion[index] ? "complete" : index === firstIncomplete ? "current" : "upcoming",
   }));
 
   if (!hasSavedJob) return { stages, nextAction: "Add and save the job description" };
@@ -62,7 +58,9 @@ export function deriveApplicationProgress({
     stages[5] = { label: "Apply", state: "current" };
     return { stages, nextAction: "Approve the current CV and cover letter" };
   }
-  if (gateState === "NEEDS INPUT") return { stages, nextAction: "Resolve missing evidence or input" };
+  if (gateState === "NEEDS INPUT") {
+    return { stages, nextAction: "Resolve missing evidence or input" };
+  }
   if (gateState === "NEEDS REVISION") return { stages, nextAction: "Revise the application pack" };
   if (gateState === "REVIEW OUTDATED") return { stages, nextAction: "Re-run final review" };
 
