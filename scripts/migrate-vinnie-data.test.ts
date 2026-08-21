@@ -15,19 +15,37 @@ describe("Vinnie canonical Drive migration", () => {
       title: "Performance Marketing Manager",
       employment_type: "Contract",
       start_date: "2025-06-01",
-      end_date: "2025-11-01",
+      end_date: "2025-12-01",
       is_current: false,
     });
   });
 
-  it("keeps disputed metrics out of usable evidence states", () => {
+  it("locks user-confirmed metrics as verified while keeping contradictory metrics excluded", () => {
     const rows = buildVinnieMigrationRows(USER_ID);
-    const budget = rows.knowledgeItems.find((item) => item.title.includes("£140k+"));
+    const verifiedTitles = [
+      "£140k+ annual digital media budget",
+      "40%+ uplift in qualified leads",
+      "CPL variation £3 to £646",
+      "35% efficiency improvement",
+      "28% ROI improvement / 20% conversion uplift",
+      "30+ campaign landing pages",
+      "27% conversion increase from landing-page/A-B activity",
+      "15% conversion uplift / 36% ROI improvement",
+      "32% response-rate improvement / 15% conversion uplift from prospecting",
+      "62% engagement increase / 23% marketing-cost reduction",
+      "30% collateral/case-study engagement uplift",
+      "30% click increase / 60% impression increase",
+      "440% ROAS on 100K Running Challenge",
+      "800+ ticket sales per event",
+    ];
+
+    for (const title of verifiedTitles) {
+      expect(rows.knowledgeItems.find((item) => item.title === title)?.status).toBe("verified");
+    }
+
     const projectCompletion = rows.knowledgeItems.find((item) =>
       item.title.includes("25% project-completion"),
     );
-
-    expect(budget?.status).toBe("needs_verification");
     expect(projectCompletion?.status).toBe("excluded");
   });
 
