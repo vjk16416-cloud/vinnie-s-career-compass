@@ -18,7 +18,10 @@ export function ApplicationWorkflowProgress({
   const completeCount = stages.filter((stage) => stage.state === "complete").length;
 
   return (
-    <section className="rounded-lg border border-border bg-card p-4" aria-label="Application progress">
+    <section
+      className="mb-4 rounded-lg border border-border bg-card p-4"
+      aria-label="Application progress"
+    >
       <div className="flex flex-wrap items-start justify-between gap-3">
         <div>
           <h2 className="text-sm font-semibold text-foreground">Application progress</h2>
@@ -31,7 +34,8 @@ export function ApplicationWorkflowProgress({
 
       <ol className="mt-4 grid gap-2 sm:grid-cols-3 xl:grid-cols-6">
         {stages.map((stage, index) => {
-          const Icon = stage.state === "complete" ? Check : stage.state === "current" ? CircleDot : Circle;
+          const Icon =
+            stage.state === "complete" ? Check : stage.state === "current" ? CircleDot : Circle;
           return (
             <li
               key={stage.label}
@@ -55,7 +59,12 @@ export function ApplicationWorkflowProgress({
                 <span className="text-xs font-medium text-foreground">{stage.label}</span>
               </div>
               <p className="mt-1 pl-5.5 text-[11px] text-muted-foreground">
-                {index + 1}. {stage.state === "complete" ? "Complete" : stage.state === "current" ? "Current" : "Upcoming"}
+                {index + 1}.{" "}
+                {stage.state === "complete"
+                  ? "Complete"
+                  : stage.state === "current"
+                    ? "Current"
+                    : "Upcoming"}
               </p>
             </li>
           );
