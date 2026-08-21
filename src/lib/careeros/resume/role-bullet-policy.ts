@@ -52,9 +52,19 @@ function bulletText(item: KnowledgeItem) {
 export function buildRoleBulletPlan(
   items: KnowledgeItem[],
   employmentRoleId: string,
+  preferredEvidenceIds: string[] = [],
 ): RoleBulletPlan {
   const selection = selectRoleEvidence(items, employmentRoleId);
-  const chosen = selection.supported.slice(0, MAX_ROLE_BULLETS);
+  const preferredIndex = new Map(preferredEvidenceIds.map((id, index) => [id, index]));
+  const supported = selection.supported.slice().sort((left, right) => {
+    const leftRank = preferredIndex.get(left.id);
+    const rightRank = preferredIndex.get(right.id);
+    if (leftRank !== undefined && rightRank !== undefined) return leftRank - rightRank;
+    if (leftRank !== undefined) return -1;
+    if (rightRank !== undefined) return 1;
+    return 0;
+  });
+  const chosen = supported.slice(0, MAX_ROLE_BULLETS);
   const bullets = chosen.map<RoleBullet>((item) => ({
     text: bulletText(item),
     evidenceId: item.id,
