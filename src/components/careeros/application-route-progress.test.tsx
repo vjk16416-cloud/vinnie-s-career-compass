@@ -9,31 +9,36 @@ import { ApplicationRouteProgress } from "./application-route-progress";
 
 afterEach(cleanup);
 
+function dataWithCurrentScan() {
+  const data = createCareerOsData();
+  const app = data.applications[0]!;
+  const job = data.jobs.find((candidate) => candidate.id === app.jobId)!;
+  data.scans = [
+    {
+      id: "scan-progress",
+      jobId: job.id,
+      createdAt: "2026-08-21T08:00:00.000Z",
+      jobDescriptionSignature: textSignature(job.description),
+      overall: 75,
+      verdict: "Competitive",
+      subScores: [],
+      strengths: [],
+      partials: [],
+      gaps: [],
+      missingKeywords: [],
+      matchedKeywords: [],
+      blockedEvidence: [],
+      evidenceMap: [],
+      strategy: "Apply with tailored positioning",
+      reasons: [],
+    },
+  ];
+  return { data, app };
+}
+
 describe("ApplicationRouteProgress", () => {
   it("renders guided progress only on an application detail route", () => {
-    const data = createCareerOsData();
-    const app = data.applications[0]!;
-    const job = data.jobs.find((candidate) => candidate.id === app.jobId)!;
-    data.scans = [
-      {
-        id: "scan-progress",
-        jobId: job.id,
-        createdAt: "2026-08-21T08:00:00.000Z",
-        jobDescriptionSignature: textSignature(job.description),
-        overall: 75,
-        verdict: "Competitive",
-        subScores: [],
-        strengths: [],
-        partials: [],
-        gaps: [],
-        missingKeywords: [],
-        matchedKeywords: [],
-        blockedEvidence: [],
-        evidenceMap: [],
-        strategy: "Apply with tailored positioning",
-        reasons: [],
-      },
-    ];
+    const { data, app } = dataWithCurrentScan();
 
     const { rerender } = render(
       <ApplicationRouteProgress pathname={`/applications/${app.id}`} data={data} />,
@@ -47,29 +52,7 @@ describe("ApplicationRouteProgress", () => {
   });
 
   it("routes the next action to the current workflow stage", () => {
-    const data = createCareerOsData();
-    const app = data.applications[0]!;
-    const job = data.jobs.find((candidate) => candidate.id === app.jobId)!;
-    data.scans = [
-      {
-        id: "scan-progress",
-        jobId: job.id,
-        createdAt: "2026-08-21T08:00:00.000Z",
-        jobDescriptionSignature: textSignature(job.description),
-        overall: 75,
-        verdict: "Competitive",
-        subScores: [],
-        strengths: [],
-        partials: [],
-        gaps: [],
-        missingKeywords: [],
-        matchedKeywords: [],
-        blockedEvidence: [],
-        evidenceMap: [],
-        strategy: "Apply with tailored positioning",
-        reasons: [],
-      },
-    ];
+    const { data, app } = dataWithCurrentScan();
     const onNavigate = vi.fn();
 
     render(
@@ -82,5 +65,22 @@ describe("ApplicationRouteProgress", () => {
 
     fireEvent.click(screen.getByRole("button", { name: "Next: Review the evidence map" }));
     expect(onNavigate).toHaveBeenCalledWith("evidence");
+  });
+
+  it("activates the matching existing tab when no navigation callback is supplied", () => {
+    const { data, app } = dataWithCurrentScan();
+    const onMouseDown = vi.fn();
+
+    render(
+      <>
+        <button type="button" role="tab" onMouseDown={onMouseDown}>
+          Evidence
+        </button>
+        <ApplicationRouteProgress pathname={`/applications/${app.id}`} data={data} />
+      </>,
+    );
+
+    fireEvent.click(screen.getByRole("button", { name: "Next: Review the evidence map" }));
+    expect(onMouseDown).toHaveBeenCalledOnce();
   });
 });
