@@ -5,9 +5,11 @@ import { cn } from "@/lib/utils";
 export function ApplicationWorkflowProgress({
   stages,
   nextAction,
+  onNextAction,
 }: {
   stages: ApplicationWorkflowStage[];
   nextAction: string;
+  onNextAction?: () => void;
 }) {
   const completeCount = stages.filter((stage) => stage.state === "complete").length;
 
@@ -23,7 +25,17 @@ export function ApplicationWorkflowProgress({
             {completeCount} of {stages.length} complete
           </p>
         </div>
-        <p className="max-w-md text-xs font-medium text-foreground">Next: {nextAction}</p>
+        {onNextAction ? (
+          <button
+            type="button"
+            onClick={onNextAction}
+            className="max-w-md rounded-md px-2 py-1 text-left text-xs font-medium text-primary hover:bg-primary/5 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+          >
+            Next: {nextAction}
+          </button>
+        ) : (
+          <p className="max-w-md text-xs font-medium text-foreground">Next: {nextAction}</p>
+        )}
       </div>
 
       <ol className="mt-4 grid gap-2 sm:grid-cols-3 xl:grid-cols-6">
