@@ -43,7 +43,7 @@ jobs:
           grep -q "Private career workspace" /tmp/login.html
           grep -q "Sign in with Google" /tmp/login.html
           grep -q "Access is limited to vjk16416@gmail.com" /tmp/login.html
-          if grep -Eqi 'type=["'"']password["'"']|magic link|sign up' /tmp/login.html; then
+          if grep -Eqi 'type=.password.|magic link|sign up' /tmp/login.html; then
             echo "Unexpected non-Google authentication control found"
             exit 1
           fi
