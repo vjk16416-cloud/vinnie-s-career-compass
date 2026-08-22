@@ -5,10 +5,7 @@ import type {
   JobWorkplaceType,
 } from "./job-discovery.types";
 
-export type DiscoveryFetch = (
-  input: RequestInfo | URL,
-  init?: RequestInit,
-) => Promise<Response>;
+export type DiscoveryFetch = (input: RequestInfo | URL, init?: RequestInit) => Promise<Response>;
 
 export interface DiscoveryEnv {
   ADZUNA_APP_ID?: string;
