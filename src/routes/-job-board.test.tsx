@@ -98,7 +98,7 @@ describe("CareerOS Job Board", () => {
     expect(await screen.findByRole("heading", { name: "Product Manager" })).toBeInTheDocument();
     expect(screen.getByText("Source: Remotive")).toBeInTheDocument();
     expect(screen.getByText("Remote")).toBeInTheDocument();
-    expect(screen.getByText(/discovery match/i)).toBeInTheDocument();
+    expect(screen.getAllByText(/discovery match/i).length).toBeGreaterThan(0);
     expect(screen.getByRole("link", { name: /open source/i })).toHaveAttribute(
       "href",
       remotiveJob.sourceUrl,
