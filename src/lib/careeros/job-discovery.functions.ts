@@ -72,10 +72,13 @@ export const getJobBoard = createServerFn({ method: "GET" }).handler(async () =>
   const preferences = mergePreferenceOverrides(derived, stored);
   const persisted = stored ? preferences : await repository.savePreferences(preferences);
   const [jobs, runs] = await Promise.all([repository.listJobs(), repository.listRuns()]);
+  const visibleJobs = jobs.filter(
+    (job) => job.ukEligibility !== "excluded" || job.status === "expired",
+  );
 
   return {
     preferences: persisted,
-    jobs,
+    jobs: visibleJobs,
     runs,
     lastRefreshedAt: runs[0]?.completedAt ?? null,
   };
