@@ -17,7 +17,14 @@ function listText(values: string[]) {
 }
 
 function parseList(value: string) {
-  return [...new Set(value.split(",").map((item) => item.trim()).filter(Boolean))];
+  return [
+    ...new Set(
+      value
+        .split(",")
+        .map((item) => item.trim())
+        .filter(Boolean),
+    ),
+  ];
 }
 
 function toggleValue<T extends string>(values: T[], value: T, checked: boolean) {
@@ -50,14 +57,18 @@ export function JobSearchPreferencesPanel({
   }
 
   return (
-    <section className="rounded-lg border border-border bg-card p-4" aria-labelledby="job-preferences-heading">
+    <section
+      className="rounded-lg border border-border bg-card p-4"
+      aria-labelledby="job-preferences-heading"
+    >
       <div className="flex flex-col gap-2 sm:flex-row sm:items-start sm:justify-between">
         <div>
           <h2 id="job-preferences-heading" className="text-base font-semibold">
             Job Search Preferences
           </h2>
           <p className="mt-1 text-sm text-muted-foreground">
-            CareerOS starts from your Career Profile. Anything you edit here becomes your explicit override.
+            CareerOS starts from your Career Profile. Anything you edit here becomes your explicit
+            override.
           </p>
         </div>
         {onSave ? (
@@ -180,9 +191,7 @@ export function JobSearchPreferencesPanel({
               <input
                 type="checkbox"
                 checked={draft.includeGlobalUkHireable}
-                onChange={(event) =>
-                  markOverride("includeGlobalUkHireable", event.target.checked)
-                }
+                onChange={(event) => markOverride("includeGlobalUkHireable", event.target.checked)}
               />
               Global roles hireable from the UK
             </label>

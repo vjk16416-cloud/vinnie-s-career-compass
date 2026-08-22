@@ -96,9 +96,17 @@ export function JobBoardFilters({
             {(["exact", "adjacent", "other"] satisfies JobMatchType[]).map((value) => (
               <Check
                 key={value}
-                label={value === "exact" ? "Exact title" : value === "adjacent" ? "Adjacent role" : "Other plausible"}
+                label={
+                  value === "exact"
+                    ? "Exact title"
+                    : value === "adjacent"
+                      ? "Adjacent role"
+                      : "Other plausible"
+                }
                 checked={filters.matchTypes.includes(value)}
-                onChange={(checked) => set("matchTypes", toggle(filters.matchTypes, value, checked))}
+                onChange={(checked) =>
+                  set("matchTypes", toggle(filters.matchTypes, value, checked))
+                }
               />
             ))}
           </FilterGroup>
@@ -130,16 +138,18 @@ export function JobBoardFilters({
           </FilterGroup>
 
           <FilterGroup label="Employment type">
-            {(["Permanent", "Contract", "Fixed-term"] satisfies JobEmploymentType[]).map((value) => (
-              <Check
-                key={value}
-                label={value}
-                checked={filters.employmentTypes.includes(value)}
-                onChange={(checked) =>
-                  set("employmentTypes", toggle(filters.employmentTypes, value, checked))
-                }
-              />
-            ))}
+            {(["Permanent", "Contract", "Fixed-term"] satisfies JobEmploymentType[]).map(
+              (value) => (
+                <Check
+                  key={value}
+                  label={value}
+                  checked={filters.employmentTypes.includes(value)}
+                  onChange={(checked) =>
+                    set("employmentTypes", toggle(filters.employmentTypes, value, checked))
+                  }
+                />
+              ),
+            )}
           </FilterGroup>
 
           <SelectFilter
@@ -174,7 +184,9 @@ export function JobBoardFilters({
               type="number"
               min={0}
               value={filters.minSalary ?? ""}
-              onChange={(event) => set("minSalary", event.target.value ? Number(event.target.value) : null)}
+              onChange={(event) =>
+                set("minSalary", event.target.value ? Number(event.target.value) : null)
+              }
             />
           </label>
 
@@ -199,7 +211,9 @@ export function JobBoardFilters({
             <Check
               label="UK eligibility confirmed"
               checked={filters.ukScopes.includes("confirmed")}
-              onChange={(checked) => set("ukScopes", toggle(filters.ukScopes, "confirmed", checked))}
+              onChange={(checked) =>
+                set("ukScopes", toggle(filters.ukScopes, "confirmed", checked))
+              }
             />
             <Check
               label="UK eligibility likely"
@@ -275,7 +289,11 @@ function Check({
 }) {
   return (
     <label className="flex items-center gap-2 text-sm capitalize">
-      <input type="checkbox" checked={checked} onChange={(event) => onChange(event.target.checked)} />
+      <input
+        type="checkbox"
+        checked={checked}
+        onChange={(event) => onChange(event.target.checked)}
+      />
       {label}
     </label>
   );

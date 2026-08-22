@@ -82,7 +82,8 @@ export async function checkDirectJobStatus(
 
     return {
       status: "uncertain",
-      reason: "The page loaded, but CareerOS found no reliable signal proving the vacancy is still active.",
+      reason:
+        "The page loaded, but CareerOS found no reliable signal proving the vacancy is still active.",
     };
   } catch {
     return {

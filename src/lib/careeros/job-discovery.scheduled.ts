@@ -18,7 +18,10 @@ import { checkDirectJobStatus } from "./job-status.server";
 
 export interface ScheduledCoreDependencies {
   listPreferences(): Promise<JobSearchPreferences[]>;
-  findExistingRun(userId: string, runDay: string): Promise<{ id: string; emailSentAt: string | null } | null>;
+  findExistingRun(
+    userId: string,
+    runDay: string,
+  ): Promise<{ id: string; emailSentAt: string | null } | null>;
   runForUser(preferences: JobSearchPreferences): Promise<{
     runId: string;
     jobs: DiscoveredJob[];
@@ -94,10 +97,7 @@ async function verifyUncertainJobs(jobs: DiscoveredJob[], now: Date) {
   return checked;
 }
 
-export async function runScheduledJobDiscovery(
-  env: JobDiscoveryServerEnv,
-  now = new Date(),
-) {
+export async function runScheduledJobDiscovery(env: JobDiscoveryServerEnv, now = new Date()) {
   const service = createJobDiscoveryServiceClient(env);
 
   return runScheduledJobDiscoveryCore(now, {
@@ -117,7 +117,8 @@ export async function runScheduledJobDiscovery(
       });
       try {
         const careerState = await loadCareerStateForUser(service, preferences.userId);
-        if (!careerState) throw new Error("CareerOS career state is unavailable for scheduled discovery.");
+        if (!careerState)
+          throw new Error("CareerOS career state is unavailable for scheduled discovery.");
         const repository = createServiceRefreshRepository(service, preferences.userId);
         const before = await repository.listExistingJobs();
         const result = await runJobDiscoveryRefresh({

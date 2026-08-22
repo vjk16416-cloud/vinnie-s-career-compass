@@ -87,7 +87,8 @@ export function JobCaptureContent({
       <section className="rounded-lg border border-border bg-card p-4">
         <h2 className="text-base font-semibold">Save a job you are viewing</h2>
         <p className="mt-1 text-sm text-muted-foreground">
-          CareerOS only reads the page you explicitly send here. It does not crawl or bypass protected job sites.
+          CareerOS only reads the page you explicitly send here. It does not crawl or bypass
+          protected job sites.
         </p>
         <div className="mt-4">
           <Label htmlFor="capture-url">Job URL</Label>
@@ -99,7 +100,12 @@ export function JobCaptureContent({
               onChange={(event) => setUrl(event.target.value)}
               placeholder="https://…"
             />
-            <Button type="button" variant="secondary" disabled={extracting} onClick={() => void handleExtract()}>
+            <Button
+              type="button"
+              variant="secondary"
+              disabled={extracting}
+              onClick={() => void handleExtract()}
+            >
               {extracting ? "Extracting…" : "Extract job details"}
             </Button>
           </div>
@@ -117,15 +123,27 @@ export function JobCaptureContent({
         <div className="grid gap-3 md:grid-cols-2">
           <label className="text-sm">
             <span className="font-medium">Role title</span>
-            <Input className="mt-1.5" value={title} onChange={(event) => setTitle(event.target.value)} />
+            <Input
+              className="mt-1.5"
+              value={title}
+              onChange={(event) => setTitle(event.target.value)}
+            />
           </label>
           <label className="text-sm">
             <span className="font-medium">Company</span>
-            <Input className="mt-1.5" value={company} onChange={(event) => setCompany(event.target.value)} />
+            <Input
+              className="mt-1.5"
+              value={company}
+              onChange={(event) => setCompany(event.target.value)}
+            />
           </label>
           <label className="text-sm md:col-span-2">
             <span className="font-medium">Location</span>
-            <Input className="mt-1.5" value={location} onChange={(event) => setLocation(event.target.value)} />
+            <Input
+              className="mt-1.5"
+              value={location}
+              onChange={(event) => setLocation(event.target.value)}
+            />
           </label>
         </div>
 
@@ -140,7 +158,8 @@ export function JobCaptureContent({
             placeholder="Paste the full job description here if extraction is blocked."
           />
           <p className="mt-1.5 text-xs text-muted-foreground">
-            {wordCount} words. {ready ? "Ready for explicit analysis." : "Add at least 40 words before analysis."}
+            {wordCount} words.{" "}
+            {ready ? "Ready for explicit analysis." : "Add at least 40 words before analysis."}
           </p>
         </div>
 
@@ -217,7 +236,9 @@ function JobCapturePage() {
       current.scans = [scan, ...(current.scans ?? [])];
       return current;
     });
-    logActivity(`Analysed captured role ${record.title} at ${record.company}: ${scan.overall}% fit.`);
+    logActivity(
+      `Analysed captured role ${record.title} at ${record.company}: ${scan.overall}% fit.`,
+    );
     toast.success(`Role analysed: ${scan.overall}% compatibility.`);
   }
 
@@ -227,7 +248,9 @@ function JobCapturePage() {
       await navigator.clipboard.writeText(bookmarklet);
       toast.success("Save to CareerOS bookmarklet copied.");
     } catch {
-      toast.error("Copy was blocked by the browser. Select and copy the bookmarklet text manually.");
+      toast.error(
+        "Copy was blocked by the browser. Select and copy the bookmarklet text manually.",
+      );
     }
   }
 
@@ -239,11 +262,17 @@ function JobCapturePage() {
         <section className="rounded-lg border border-border bg-card p-4">
           <h2 className="text-base font-semibold">One-click capture from your browser</h2>
           <p className="mt-1 text-sm text-muted-foreground">
-            Save this bookmarklet to your bookmarks bar. When you are viewing a job, click it to open that exact URL in CareerOS.
+            Save this bookmarklet to your bookmarks bar. When you are viewing a job, click it to
+            open that exact URL in CareerOS.
           </p>
           <div className="mt-3 flex flex-col gap-2 sm:flex-row">
             <Input readOnly aria-label={bookmarkletLabel} value={bookmarklet} />
-            <Button type="button" variant="secondary" disabled={!bookmarklet} onClick={() => void copyBookmarklet()}>
+            <Button
+              type="button"
+              variant="secondary"
+              disabled={!bookmarklet}
+              onClick={() => void copyBookmarklet()}
+            >
               Copy Save to CareerOS
             </Button>
           </div>
