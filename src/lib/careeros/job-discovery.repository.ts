@@ -8,7 +8,14 @@ import type {
 } from "./job-discovery.types";
 
 export class JobDiscoveryPersistenceError extends Error {
-  constructor(readonly operation: "preferences-read" | "preferences-save" | "jobs-read" | "job-save" | "runs-read") {
+  constructor(
+    readonly operation:
+      | "preferences-read"
+      | "preferences-save"
+      | "jobs-read"
+      | "job-save"
+      | "runs-read",
+  ) {
     super(`CareerOS job discovery ${operation} failed`);
     this.name = "JobDiscoveryPersistenceError";
   }
