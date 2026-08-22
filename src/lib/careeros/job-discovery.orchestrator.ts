@@ -191,7 +191,11 @@ export async function runJobDiscoveryRefresh(
   const existingByKey = new Map(existing.map((job) => [job.dedupeKey, job]));
   const jobs = [...incomingByKey.values()].map((incoming) => {
     const prior = existingByKey.get(incoming.dedupeKey);
-    return scoreReliableJob(prior ? mergeExistingJob(prior, incoming) : incoming, input.careerState, now);
+    return scoreReliableJob(
+      prior ? mergeExistingJob(prior, incoming) : incoming,
+      input.careerState,
+      now,
+    );
   });
 
   await input.repository.upsertJobs(input.userId, jobs);
