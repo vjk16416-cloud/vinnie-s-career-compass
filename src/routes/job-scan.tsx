@@ -1,4 +1,4 @@
-import { createFileRoute, useNavigate, useSearch } from "@tanstack/react-router";
+import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useEffect, useRef, useState } from "react";
 import { toast } from "sonner";
 import { AppShell } from "@/components/careeros/app-shell";
@@ -87,6 +87,10 @@ function words(text: string) {
   return text.trim().split(/\s+/).filter(Boolean).length;
 }
 
+function discoveredHandoffKey(search = window.location.search): string {
+  return new URLSearchParams(search).get("discovered") ?? "";
+}
+
 function Chips({ items, tone = "neutral" }: { items: string[]; tone?: "neutral" | "info" }) {
   if (!items.length) return null;
   return (
@@ -117,7 +121,6 @@ function DetailList({ title, items }: { title: string; items: string[] }) {
 function JobScanPage() {
   const { data, update, logActivity } = useCareerOs();
   const navigate = useNavigate();
-  const search = useSearch({ strict: false }) as { discovered?: string };
   const resultsRef = useRef<HTMLDivElement | null>(null);
   const busy = useRef(false);
 
@@ -136,7 +139,7 @@ function JobScanPage() {
   const [job, setJob] = useState<JobRecord | null>(null);
 
   useEffect(() => {
-    const key = search.discovered;
+    const key = discoveredHandoffKey();
     if (!key) return;
     const discoveredJob = consumeDiscoveredJobForAnalysis(key);
     if (!discoveredJob) return;
@@ -167,7 +170,7 @@ function JobScanPage() {
       applyUrl: discoveredJob.sourceUrl,
     });
     toast.success("Job Board role loaded. Review it before analysing.");
-  }, [search.discovered]);
+  }, []);
 
   const jdWords = words(description);
   const insufficient = jdWords < 40;
