@@ -24,6 +24,10 @@ const preferences: JobSearchPreferences = {
   updatedAt: "2026-08-22T11:00:00.000Z",
 };
 
+function readableUrl(value: string) {
+  return decodeURIComponent(value).replace(/\+/g, " ").toLowerCase();
+}
+
 describe("external job search destinations", () => {
   it("builds one user-initiated HTTPS search for every approved major job site", () => {
     const links = buildExternalSearchLinks(preferences);
@@ -44,7 +48,7 @@ describe("external job search destinations", () => {
   it("includes the preferred role and location terms without embedding secrets", () => {
     const links = buildExternalSearchLinks(preferences);
     for (const link of links) {
-      const decoded = decodeURIComponent(link.url).toLowerCase();
+      const decoded = readableUrl(link.url);
       expect(decoded).toContain("senior product manager");
       expect(decoded).toContain("london");
       expect(decoded).not.toContain("api_key");
@@ -61,7 +65,7 @@ describe("external job search destinations", () => {
     });
     expect(links).toHaveLength(5);
     for (const link of links) {
-      expect(decodeURIComponent(link.url).toLowerCase()).toContain("delivery manager");
+      expect(readableUrl(link.url)).toContain("delivery manager");
     }
   });
 
@@ -70,7 +74,7 @@ describe("external job search destinations", () => {
     for (const link of links) {
       const url = new URL(link.url);
       expect(url.protocol).toBe("https:");
-      expect(decodeURIComponent(link.url).toLowerCase()).toContain("senior product manager");
+      expect(readableUrl(link.url)).toContain("senior product manager");
     }
   });
 });
