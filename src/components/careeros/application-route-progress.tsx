@@ -1,0 +1,79 @@
+import type { CareerOsData } from "@/lib/careeros/types";
+import { deriveApplicationProgress } from "@/lib/careeros/application-progress";
+import { applicationGateState, scanMatchesSavedJob } from "@/lib/careeros/review";
+import { ApplicationWorkflowProgress } from "./application-workflow-progress";
+
+export type ApplicationWorkspaceTab = "job" | "match" | "evidence" | "cv" | "letter" | "apply";
+
+function stageToTab(label: string): ApplicationWorkspaceTab {
+  if (label === "Cover Letter") return "letter";
+  return label.toLowerCase() as ApplicationWorkspaceTab;
+}
+
+function activateExistingTab(stageLabel: string) {
+  const tabs = Array.from(document.querySelectorAll<HTMLElement>('[role="tab"]'));
+  const target = tabs.find((tab) => tab.textContent?.trim() === stageLabel);
+  target?.dispatchEvent(new MouseEvent("mousedown", { bubbles: true, button: 0 }));
+}
+
+export function ApplicationRouteProgress({
+  pathname,
+  data,
+  onNavigate,
+}: {
+  pathname: string;
+  data: CareerOsData;
+  onNavigate?: (tab: ApplicationWorkspaceTab) => void;
+}) {
+  const match = pathname.match(/^\/applications\/([^/]+)$/);
+  if (!match) return null;
+
+  const applicationId = match[1];
+  const application = data.applications.find((candidate) => candidate.id === applicationId);
+  if (!application) return null;
+
+  const job = data.jobs.find((candidate) => candidate.id === application.jobId);
+  if (!job) return null;
+
+  const scan = data.scans.find((candidate) => candidate.jobId === application.jobId);
+  const cv = data.cvs.find((candidate) => candidate.applicationId === application.id);
+  const latestCoverLetter = data.coverLetters
+    .filter((candidate) => candidate.applicationId === application.id)
+    .slice()
+    .sort((a, b) => a.createdAt.localeCompare(b.createdAt))
+    .at(-1);
+
+  const gateState = applicationGateState({
+    data,
+    application,
+    job,
+    scan,
+    cv,
+  });
+
+  const progress = deriveApplicationProgress({
+    hasSavedJob: Boolean(job.description.trim()),
+    scanCurrent: Boolean(scan && scanMatchesSavedJob(job, scan)),
+    hasEvidenceMap: Boolean(scan?.evidenceMap?.length),
+    hasCv: Boolean(cv?.versions.length),
+    hasCoverLetter: Boolean(latestCoverLetter),
+    gateState,
+  });
+  const currentStage = progress.stages.find((stage) => stage.state === "current")?.label ?? "Apply";
+
+  function handleNextAction() {
+    if (onNavigate) {
+      onNavigate(stageToTab(currentStage));
+      return;
+    }
+    activateExistingTab(currentStage);
+  }
+
+  return (
+    <ApplicationWorkflowProgress
+      stages={progress.stages}
+      nextAction={progress.nextAction}
+      onNextAction={handleNextAction}
+    />
+  );
+}

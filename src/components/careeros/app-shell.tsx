@@ -12,6 +12,7 @@ import {
 } from "lucide-react";
 import type { ReactNode } from "react";
 import { AccountMenu } from "@/components/auth/account-menu";
+import { ApplicationRouteProgress } from "@/components/careeros/application-route-progress";
 import {
   Sheet,
   SheetClose,
@@ -55,7 +56,7 @@ export function AppShell({
   children: ReactNode;
 }) {
   const pathname = useRouterState({ select: (s) => s.location.pathname });
-  const { syncStatus, syncMessage } = useCareerOs();
+  const { data, syncStatus, syncMessage } = useCareerOs();
   const degraded = syncStatus === "offline-cache" || syncStatus === "save-error";
   const syncLabel =
     syncStatus === "saving"
@@ -137,6 +138,7 @@ export function AppShell({
               {syncMessage}
             </div>
           ) : null}
+          <ApplicationRouteProgress pathname={pathname} data={data} />
           {children}
         </main>
       </div>
