@@ -87,7 +87,7 @@ GitHub and Google Drive must not carry contradictory current-status information.
 
 Merged implementation evidence includes the P0 trust foundation and Sprints 1 through 8, including evidence-first Job Scan, simplified application workflow, CV versioning and export, cover-letter versioning and export, final reviewer and approval gate, documentation truth cleanup and read-only Google Drive integration.
 
-GitHub `main` at the time of this reconciliation was commit `4b930a6cd07c833c8039569ee8c820036b5942c3`.
+The application implementation baseline reviewed immediately before this documentation reconciliation was commit `4b930a6cd07c833c8039569ee8c820036b5942c3`. Subsequent documentation-only reconciliation commits do not change application behaviour.
 
 This status record was reconciled on 22 August 2026.
 
