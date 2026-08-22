@@ -26,7 +26,7 @@ Treat the supplied audit, master CV and Vinnie's direct confirmation as sufficie
 V0.1 INFORMATION ARCHITECTURE
 Desktop: persistent left sidebar, dark charcoal/navy surfaces, compact workspace feel, subtle borders, restrained purple/indigo accent, small green/amber/red semantic status colours, top search/command area, optional right-side context drawer for evidence/job-fit detail.
 Mobile: bottom navigation or compact drawer, large touch targets, stacked cards, no horizontal page scroll, quick add action.
-Primary navigation: Home, Applications, Job Scan, CVs, Career Profile, Evidence, Job Market Intelligence, Settings.
+Primary navigation: Home, Applications, Job Board, Job Scan, CVs, Career Profile, Evidence, Job Market Intelligence, Settings.
 
 HOME DASHBOARD
 Show: Today’s Focus, Active Applications, Upcoming Deadlines, Recent CVs, Evidence Needing Verification, Recent Activity, and quick actions such as Scan a Job, Add Application, Tailor CV, Create Cover Letter.
@@ -156,3 +156,46 @@ npm run deploy:production
 
 The staging and production Worker names are `careeros-staging` and `careeros`.
 Wrangler observability is enabled for runtime logs and errors.
+
+## Job Discovery configuration
+
+The personalised Job Board is deliberately hybrid. LinkedIn, Indeed, Reed,
+Totaljobs and Glassdoor are external search destinations generated from the
+user's Job Search Preferences. CareerOS does not scrape those protected job
+boards or bypass anti-bot controls. Automatic discovery uses permitted provider
+adapters. Remotive is the zero-key baseline source; Adzuna is an optional
+additional source when credentials are configured.
+
+The Supabase migration `20260822120500_create_job_discovery.sql` creates the
+user-owned `job_search_preferences`, `discovered_jobs` and
+`job_discovery_runs` tables. Row Level Security is enabled on all three tables.
+The browser can read its own discovery records and change only the `saved`
+flag on discovered jobs. Discovery ingestion remains server-side.
+
+Configure these values as **server-only Cloudflare Worker secrets or runtime
+variables**. Never prefix them with `VITE_` and never commit their values:
+
+```sh
+SUPABASE_SERVICE_ROLE_KEY=<server-only-supabase-service-role-key>
+ADZUNA_APP_ID=<adzuna-application-id>
+ADZUNA_APP_KEY=<adzuna-application-key>
+RESEND_API_KEY=<resend-api-key>
+JOB_DISCOVERY_FROM_EMAIL=<verified-resend-from-address>
+PUBLIC_APP_URL=<canonical-careeros-origin>
+```
+
+The Worker has a daily cron trigger at `0 7 * * *` UTC. The scheduled run is
+idempotent per user and UTC day. It refreshes configured permitted feeds,
+normalises and deduplicates jobs, conservatively checks direct vacancy status,
+archives expired roles, and creates a fresh shortlist. Protected job-board
+pages are not status-crawled. A 403 or 429 is treated as `uncertain`, not as a
+signal to retry around the site's protection.
+
+Remotive requires no private API key and provides the baseline automatic feed.
+CareerOS keeps Remotive attribution and links each listing back to its Remotive
+source. If Adzuna credentials are absent, CareerOS reports Adzuna as not
+configured while Remotive and the external LinkedIn/Indeed/Reed/Totaljobs/
+Glassdoor search buttons continue to work. If Resend is absent, the daily email
+is reported as unavailable and no successful delivery is claimed. Missing
+provider metadata, including salary or work eligibility, remains unknown rather
+than being invented.

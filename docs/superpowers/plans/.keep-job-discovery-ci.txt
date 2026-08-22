@@ -1,0 +1,1 @@
+Job Discovery Board v1 implementation branch. This file exists only to ensure the implementation PR has a code-adjacent commit after the approved design and plan.

@@ -123,11 +123,13 @@ describe("authorised account shell", () => {
     );
 
     expect(await screen.findByText("Private workspace")).toBeInTheDocument();
+    expect(screen.getByRole("navigation", { name: "Main" })).toHaveTextContent("Job Board");
     const mobileNav = screen.getByRole("navigation", { name: "Primary mobile" });
     expect(within(mobileNav).queryByText("Add")).not.toBeInTheDocument();
 
     fireEvent.click(within(mobileNav).getByRole("button", { name: "More" }));
 
+    expect(screen.getByRole("link", { name: "Job Board" })).toHaveAttribute("href", "/job-board");
     expect(screen.getByRole("link", { name: "Career Profile" })).toHaveAttribute(
       "href",
       "/profile",
