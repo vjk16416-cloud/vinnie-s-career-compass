@@ -1,0 +1,92 @@
+name: QA Browser Smoke
+
+on:
+  push:
+    branches:
+      - agent/release-candidate-qa-2026-08-22
+  pull_request:
+    branches:
+      - main
+
+permissions:
+  contents: read
+
+jobs:
+  browser-smoke:
+    runs-on: ubuntu-latest
+    timeout-minutes: 12
+    env:
+      BASE_URL: https://agent-release-candidate-qa-2026-08-22-vinnie-s-career-compass.vjk16416.workers.dev
+    steps:
+      - name: Install Playwright in temporary workspace
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p /tmp/careeros-playwright
+          cd /tmp/careeros-playwright
+          npm init -y >/dev/null 2>&1
+          npm install playwright@1.55.0 >/dev/null
+          npx playwright install --with-deps chromium
+
+      - name: Run responsive and OAuth-initiation browser checks
+        shell: bash
+        run: |
+          set -euo pipefail
+          cd /tmp/careeros-playwright
+          cat > smoke.mjs <<'EOF'
+          import { chromium } from 'playwright';
+
+          const base = process.env.BASE_URL;
+          const browser = await chromium.launch({ headless: true });
+          const page = await browser.newPage();
+
+          async function assert(condition, message) {
+            if (!condition) throw new Error(message);
+          }
+
+          async function loadLogin(path = '/') {
+            const response = await page.goto(`${base}${path}`, { waitUntil: 'networkidle', timeout: 30000 });
+            await assert(response && response.status() < 500, `${path} returned a server error`);
+            await page.getByRole('heading', { name: 'CareerOS' }).waitFor({ state: 'visible' });
+            await page.getByRole('button', { name: 'Sign in with Google' }).waitFor({ state: 'visible' });
+          }
+
+          for (const viewport of [
+            { width: 1440, height: 900, label: 'desktop' },
+            { width: 768, height: 1024, label: 'tablet' },
+            { width: 375, height: 812, label: 'mobile' },
+            { width: 320, height: 700, label: 'small-mobile' },
+          ]) {
+            await page.setViewportSize({ width: viewport.width, height: viewport.height });
+            await loadLogin('/');
+            const overflow = await page.evaluate(() => document.documentElement.scrollWidth - window.innerWidth);
+            await assert(overflow <= 1, `${viewport.label} has horizontal overflow of ${overflow}px`);
+            const button = page.getByRole('button', { name: 'Sign in with Google' });
+            const box = await button.boundingBox();
+            await assert(box && box.height >= 44, `${viewport.label} Google sign-in touch target is under 44px high`);
+            console.log(`${viewport.label}: no horizontal overflow, sign-in target ${Math.round(box.height)}px high`);
+          }
+
+          await page.setViewportSize({ width: 1280, height: 800 });
+          for (const path of ['/applications', '/job-scan', '/cvs', '/profile', '/evidence', '/settings']) {
+            await loadLogin(path);
+            const privateTracking = page.getByText('Application tracking', { exact: true });
+            await assert((await privateTracking.count()) === 0, `${path} exposed private application content while signed out`);
+            console.log(`${path}: protected in Chromium`);
+          }
+
+          await loadLogin('/');
+          const startUrl = page.url();
+          await page.getByRole('button', { name: 'Sign in with Google' }).click();
+          await page.waitForTimeout(2500);
+          const oauthUrl = page.url();
+          await assert(oauthUrl !== startUrl, `Google sign-in did not navigate away from ${startUrl}`);
+          await assert(
+            oauthUrl.includes('google') || oauthUrl.includes('supabase') || oauthUrl.includes('/auth/'),
+            `Google sign-in navigated to an unexpected location: ${oauthUrl}`,
+          );
+          console.log(`OAuth initiation navigated to: ${oauthUrl}`);
+
+          await browser.close();
+          EOF
+          node smoke.mjs
