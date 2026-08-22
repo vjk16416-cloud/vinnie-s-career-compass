@@ -5,14 +5,55 @@ function list<T>(v: unknown, fallback: T[]): T[] {
   return Array.isArray(v) ? (v as T[]) : fallback;
 }
 
+export const DEFAULT_JOB_SEARCH_PREFERENCES = {
+  roleFamilies: [
+    "Product",
+    "Project / Delivery",
+    "Technology / Innovation",
+    "Product Marketing",
+    "Digital / MarTech",
+  ],
+  keywords: [
+    "product",
+    "project",
+    "delivery",
+    "technology",
+    "innovation",
+    "product marketing",
+    "digital",
+    "martech",
+  ],
+  locations: ["UK"],
+  includeRemote: true,
+  includeVisaSponsorship: true,
+  includeRelocation: true,
+  maxAgeDays: 30,
+} as const;
+
+function normaliseJobSearchPreferences(settings: unknown) {
+  const savedSettings =
+    settings && typeof settings === "object" ? (settings as Record<string, unknown>) : {};
+  const stored =
+    savedSettings.jobSearchPreferences && typeof savedSettings.jobSearchPreferences === "object"
+      ? (savedSettings.jobSearchPreferences as Record<string, unknown>)
+      : {};
+
+  return {
+    ...DEFAULT_JOB_SEARCH_PREFERENCES,
+    ...stored,
+    roleFamilies: list(stored.roleFamilies, [...DEFAULT_JOB_SEARCH_PREFERENCES.roleFamilies]),
+    keywords: list(stored.keywords, [...DEFAULT_JOB_SEARCH_PREFERENCES.keywords]),
+    locations: list(stored.locations, [...DEFAULT_JOB_SEARCH_PREFERENCES.locations]),
+  };
+}
+
 /**
  * Merge saved (possibly stale/partial) localStorage data onto the current seed
  * shape. Valid saved values always win; only missing/invalid fields are filled.
  */
 export function normaliseData(raw: unknown): CareerOsData {
   const seed = createSeedData();
-  if (!raw || typeof raw !== "object") return seed;
-  const saved = raw as Partial<CareerOsData>;
+  const saved = raw && typeof raw === "object" ? (raw as Partial<CareerOsData>) : {};
 
   const savedProfile = (saved.profile ?? {}) as Partial<CareerOsData["profile"]>;
   const profile: CareerOsData["profile"] = {
@@ -32,6 +73,13 @@ export function normaliseData(raw: unknown): CareerOsData {
     skills: list<string>(e?.skills, []),
     status: e?.status ?? "Needs Evidence",
   }));
+
+  const savedSettings = (saved.settings ?? {}) as Record<string, unknown>;
+  const settings = {
+    ...seed.settings,
+    ...savedSettings,
+    jobSearchPreferences: normaliseJobSearchPreferences(savedSettings),
+  } as CareerOsData["settings"];
 
   return {
     ...seed,
@@ -53,6 +101,6 @@ export function normaliseData(raw: unknown): CareerOsData {
     scans: list(saved.scans, []).map((scan) => ({ ...scan })),
     reviewRuns: list(saved.reviewRuns, []),
     activity: list(saved.activity, seed.activity),
-    settings: { ...seed.settings, ...(saved.settings ?? {}) },
+    settings,
   };
 }
