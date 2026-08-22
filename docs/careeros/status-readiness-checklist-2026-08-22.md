@@ -47,11 +47,11 @@ Purpose: Keep Career OS launch status aligned with the current GitHub implementa
 
 ## 4. Remaining release gates
 
-- [RELEASE GATE] Run one complete live current-main browser journey: sign in → add a real job → extract or paste the JD → Analyse Role → inspect Match and Evidence Map → generate CV → export CV → generate cover letter → export cover letter → run Final Review → approve current documents → reach READY TO APPLY → confirm application state persists.
-- [RELEASE GATE] Verify Supabase persistence across refresh and a fresh browser or second device.
+- [RELEASE GATE] Complete one authenticated release-candidate browser journey: sign in → add a real job → extract or paste the JD → Analyse Role → inspect Match and Evidence Map → generate CV → export CV → generate cover letter → export cover letter → run Final Review → approve current documents → reach READY TO APPLY → confirm application state persists.
+- [RELEASE GATE] Verify the newly created release-candidate state across refresh and a fresh authenticated browser or second device. Live backend persistence, RLS and ownership policies have already passed read-only QA.
 - [RELEASE GATE] From live Settings, explicitly grant Google Drive read-only permission and verify folder listing and source registration.
-- [RELEASE GATE] Run a desktop UX pass and a mobile UX pass on the deployed Worker.
-- [RELEASE GATE] Confirm the currently deployed Worker is built from the intended current `main` commit before final launch sign-off.
+- [RELEASE GATE] Complete the private authenticated desktop and mobile UX pass. The public/login shell has already passed at 1440px, 768px, 375px and 320px with zero horizontal page overflow.
+- [VERIFIED] QA commit `a82b7d83` deployed successfully to both `vinnie-s-career-compass` and `careeros-staging` Cloudflare previews, and live HTTP plus Chromium smoke tests passed against the QA branch preview. Final promotion must still record the exact release commit.
 
 ## 5. Open work that is not a baseline P0 blocker
 
@@ -66,9 +66,9 @@ Purpose: Keep Career OS launch status aligned with the current GitHub implementa
 
 Career OS is no longer blocked on the earlier authentication, Job URL, Analyse Role, scoring, download-control or reviewer items recorded on 14 August.
 
-The core application is at release-candidate level in code and automated verification.
+The core application is at release-candidate level with code, automated, live public-browser, Cloudflare deployment and live Supabase backend verification completed.
 
-The primary remaining P0 activity is live end-to-end verification of the current deployed build, with Supabase persistence and Drive read-only access included in that smoke test.
+The only remaining P0 release block is the authenticated private end-to-end browser proof using Vinnie's authorised Google session, including refresh/second-browser persistence, live Drive read-only access and the private desktop/mobile UX pass.
 
 Open PRs #26 and #28 improve clarity and evidence traceability, but they are not proof that the existing baseline workflow is missing.
 
@@ -87,10 +87,18 @@ GitHub and Google Drive must not carry contradictory current-status information.
 
 Merged implementation evidence includes the P0 trust foundation and Sprints 1 through 8, including evidence-first Job Scan, simplified application workflow, CV versioning and export, cover-letter versioning and export, final reviewer and approval gate, documentation truth cleanup and read-only Google Drive integration.
 
+### Independent QA evidence, 22 August 2026
+
+PR #29 passed 37 automated test files and 192 tests with zero failures, lint with zero errors, the production Cloudflare-targeted build, live HTTP smoke tests and Chromium browser smoke tests.
+
+The `careeros-production` Supabase backend was independently read-checked as ACTIVE_HEALTHY. All eight public Career OS tables have RLS enabled, ownership policies are present, and the persisted Career OS snapshot contains saved jobs, applications, CVs and a cover letter.
+
+The QA agent successfully initiated the real Google OAuth flow from the Cloudflare preview, but did not impersonate or enter credentials for Vinnie's Google account. Therefore the authenticated private workflow remains the final P0 release proof.
+
 The application implementation baseline reviewed immediately before this documentation reconciliation was commit `4b930a6cd07c833c8039569ee8c820036b5942c3`. Subsequent documentation-only reconciliation commits do not change application behaviour.
 
 This status record was reconciled on 22 August 2026.
 
 ## Next action
 
-Complete the live release smoke test. If every release gate above passes, reclassify the release from release candidate to launch ready. If a gate fails, record only the observed failure as the new blocker rather than restoring old blockers that have already been implemented.
+Complete the remaining authenticated release-candidate script recorded in GitHub PR #29. If the private end-to-end journey, refresh/second-browser persistence, Drive read-only permission and private desktop/mobile checks all pass, reclassify Career OS from release candidate to launch ready. If a gate fails, record only the observed failure as the blocker.
