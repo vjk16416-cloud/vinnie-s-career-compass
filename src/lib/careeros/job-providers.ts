@@ -11,7 +11,9 @@ function stringValue(value: unknown): string {
 }
 
 function stringList(value: unknown): string[] {
-  return Array.isArray(value) ? value.filter((item): item is string => typeof item === "string") : [];
+  return Array.isArray(value)
+    ? value.filter((item): item is string => typeof item === "string")
+    : [];
 }
 
 function isoFromEpoch(value: unknown): string {
@@ -71,7 +73,11 @@ function normaliseArbeitnowItem(
   if (!providerJobId || !title || !company || !sourceUrl || !rawDescription) return null;
 
   const explicitVisa =
-    typeof item.visa_sponsorship === "boolean" ? item.visa_sponsorship : sponsoredFeed ? true : null;
+    typeof item.visa_sponsorship === "boolean"
+      ? item.visa_sponsorship
+      : sponsoredFeed
+        ? true
+        : null;
   const description = htmlToText(rawDescription);
   const tags = stringList(item.tags);
 
@@ -126,7 +132,9 @@ export async function fetchArbeitnowUkJobs({
 
   for (const { payload, sponsoredFeed } of responses) {
     const data =
-      payload && typeof payload === "object" && Array.isArray((payload as Record<string, unknown>).data)
+      payload &&
+      typeof payload === "object" &&
+      Array.isArray((payload as Record<string, unknown>).data)
         ? ((payload as Record<string, unknown>).data as unknown[])
         : [];
 
@@ -191,7 +199,9 @@ export async function fetchRemotiveJobs({
   const fetchedAt = new Date().toISOString();
   const payload = await fetchJson(fetchImpl, REMOTIVE_URL, "Remotive");
   const jobs =
-    payload && typeof payload === "object" && Array.isArray((payload as Record<string, unknown>).jobs)
+    payload &&
+    typeof payload === "object" &&
+    Array.isArray((payload as Record<string, unknown>).jobs)
       ? ((payload as Record<string, unknown>).jobs as unknown[])
       : [];
 
