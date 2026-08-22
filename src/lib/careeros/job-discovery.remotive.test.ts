@@ -33,7 +33,8 @@ describe("Remotive discovery adapter", () => {
               publication_date: "2026-08-21T10:00:00Z",
               candidate_required_location: "Worldwide",
               salary: "$80,000 - $100,000",
-              description: "<p>Lead product marketing strategy and launches for a global SaaS business.</p>",
+              description:
+                "<p>Lead product marketing strategy and launches for a global SaaS business.</p>",
             },
           ],
         }),
@@ -75,7 +76,8 @@ describe("Remotive discovery adapter", () => {
               title: "Marketing Manager",
               company_name: "US Co",
               candidate_required_location: "USA only",
-              description: "<p>Marketing role restricted to candidates based in the United States.</p>",
+              description:
+                "<p>Marketing role restricted to candidates based in the United States.</p>",
             },
           ],
         }),
