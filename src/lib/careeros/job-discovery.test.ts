@@ -142,9 +142,9 @@ describe("Job Board discovery model", () => {
       locations: ["UK"],
     };
 
-    expect(filterDiscoveredJobs([relocationRole], { ...base, includeRelocation: false }, NOW)).toEqual(
-      [],
-    );
+    expect(
+      filterDiscoveredJobs([relocationRole], { ...base, includeRelocation: false }, NOW),
+    ).toEqual([]);
     expect(
       filterDiscoveredJobs([relocationRole], { ...base, includeRelocation: true }, NOW).map(
         (item) => item.id,
