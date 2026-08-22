@@ -115,6 +115,8 @@ describe("Job Board providers", () => {
   it("throws a provider-specific error on a failed feed request", async () => {
     const fetchImpl = vi.fn().mockResolvedValue(jsonResponse({}, 503)) as unknown as typeof fetch;
 
-    await expect(fetchRemotiveJobs({ fetchImpl })).rejects.toThrow("Remotive responded with status 503");
+    await expect(fetchRemotiveJobs({ fetchImpl })).rejects.toThrow(
+      "Remotive responded with status 503",
+    );
   });
 });
