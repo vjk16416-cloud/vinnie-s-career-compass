@@ -179,7 +179,7 @@ describe("runJobDiscoveryRefresh", () => {
 });
 
 describe("selectDailyShortlist", () => {
-  it("keeps fresh active jobs, ranks by fit and excludes expired or uncertain roles", async () => {
+  it("keeps fresh active UK-eligible jobs and excludes expired, uncertain or explicitly ineligible roles", async () => {
     const repository = {
       listExistingJobs: vi.fn(async () => [] as DiscoveredJob[]),
       upsertJobs: vi.fn(async () => undefined),
@@ -202,6 +202,13 @@ describe("selectDailyShortlist", () => {
             company: "Expired Ltd",
             providerActive: false,
             sourceUrl: "https://jobs.example.com/expired",
+          }),
+          raw({
+            sourceJobId: "ineligible",
+            company: "US Only Ltd",
+            location: "USA only",
+            ukEligibility: "excluded",
+            sourceUrl: "https://jobs.example.com/us-only",
           }),
         ]),
       ],
