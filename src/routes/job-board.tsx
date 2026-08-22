@@ -102,9 +102,9 @@ function JobCard({
               </span>
             ) : null}
           </div>
-          <p className="mt-1 text-sm text-muted-foreground">
-            {job.company}
-            {job.location ? ` · ${job.location}` : ""}
+          <p className="mt-1 flex flex-wrap gap-x-1 text-sm text-muted-foreground">
+            <span>{job.company}</span>
+            {job.location ? <span>· {job.location}</span> : null}
           </p>
         </div>
         {job.fitScore != null ? (
