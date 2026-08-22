@@ -68,7 +68,7 @@ describe("Job Board discovery model", () => {
     expect(dedupeDiscoveredJobs([first, duplicate])).toHaveLength(1);
   });
 
-  it("filters out stale and unrelated roles while retaining UK and remote matches", () => {
+  it("filters out stale, unrelated and US-only remote roles while retaining UK-eligible remote matches", () => {
     const preferences = {
       ...defaultJobSearchPreferences(),
       keywords: ["product", "project"],
@@ -85,7 +85,19 @@ describe("Job Board discovery model", () => {
         title: "Remote Project Manager",
         location: "Worldwide",
         remote: true,
+        remoteRegion: "Worldwide",
         sourceUrl: "https://remotive.com/remote-jobs/2",
+      }),
+      job({
+        id: "remotive-us-only",
+        provider: "remotive",
+        providerLabel: "Remotive",
+        providerJobId: "3",
+        title: "Remote Product Manager",
+        location: "USA only",
+        remote: true,
+        remoteRegion: "USA only",
+        sourceUrl: "https://remotive.com/remote-jobs/3",
       }),
       job({
         id: "old",
