@@ -1,6 +1,8 @@
 import { Button } from "@/components/ui/button";
-import { Panel, StatusPill } from "./ui-bits";
+import { traceClaimsForCvVersion } from "@/lib/careeros/cv-tailoring-proposal";
+import { useCareerOs } from "@/lib/careeros/store";
 import type { ApplicationGateState, ApplicationReviewRun } from "@/lib/careeros/types";
+import { Panel, StatusPill } from "./ui-bits";
 
 type FinalReviewPanelProps = {
   gateState: ApplicationGateState;
@@ -45,6 +47,12 @@ export function FinalReviewPanel({
   reviewDisabledReason,
   onRunReview,
 }: FinalReviewPanelProps) {
+  const { data } = useCareerOs();
+  const traceClaims = latestReview
+    ? traceClaimsForCvVersion(data, latestReview.cvVersionId)
+    : [];
+  const evidenceById = new Map(data.evidence.map((record) => [record.id, record]));
+
   return (
     <Panel
       title="Final review"
@@ -108,6 +116,61 @@ export function FinalReviewPanel({
               ))}
             </ul>
           </div>
+
+          {traceClaims.length ? (
+            <div>
+              <h3 className="text-xs font-semibold text-muted-foreground">
+                CV claim evidence trace
+              </h3>
+              <p className="mt-1 text-xs text-muted-foreground">
+                Review the original wording, proposed CV claim and verified evidence before approving the document.
+              </p>
+              <div className="mt-2 space-y-3">
+                {traceClaims.map((claim) => (
+                  <div key={claim.id} className="rounded-md border border-border p-3">
+                    <div className="grid gap-3 lg:grid-cols-3">
+                      <div>
+                        <p className="text-[11px] font-semibold uppercase tracking-wide text-muted-foreground">
+                          Original
+                        </p>
+                        <p className="mt-1 text-xs leading-relaxed text-muted-foreground">
+                          {claim.original ?? "No directly matching original bullet."}
+                        </p>
+                      </div>
+                      <div>
+                        <p className="text-[11px] font-semibold uppercase tracking-wide text-muted-foreground">
+                          Proposed
+                        </p>
+                        <p className="mt-1 text-xs leading-relaxed">{claim.proposed}</p>
+                      </div>
+                      <div>
+                        <p className="text-[11px] font-semibold uppercase tracking-wide text-muted-foreground">
+                          Evidence
+                        </p>
+                        <div className="mt-1 space-y-1">
+                          {claim.evidenceIds.map((evidenceId) => {
+                            const evidence = evidenceById.get(evidenceId);
+                            return evidence ? (
+                              <div key={evidenceId} className="rounded border border-border bg-surface-2/40 p-2">
+                                <p className="text-xs font-medium">{evidence.claim}</p>
+                                <p className="mt-1 text-[11px] text-muted-foreground">
+                                  {evidence.employer} · {evidence.status} · {evidenceId}
+                                </p>
+                              </div>
+                            ) : (
+                              <p key={evidenceId} className="text-[11px] text-warning">
+                                Missing evidence reference: {evidenceId}
+                              </p>
+                            );
+                          })}
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          ) : null}
 
           {latestReview.strengths.length ? (
             <div>
