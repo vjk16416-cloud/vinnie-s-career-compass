@@ -1,6 +1,7 @@
 import type { JobSearchPreferences } from "./job-discovery.types";
 
-export type ExternalSearchDestinationId = "linkedin" | "indeed" | "reed" | "totaljobs" | "glassdoor";
+export type ExternalSearchDestinationId =
+  "linkedin" | "indeed" | "reed" | "totaljobs" | "glassdoor";
 
 export interface ExternalSearchDestination {
   id: ExternalSearchDestinationId;
