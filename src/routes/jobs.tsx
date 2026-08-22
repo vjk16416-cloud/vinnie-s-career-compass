@@ -122,7 +122,9 @@ function JobBoardPage() {
 
   function analyse(job: DiscoveredJob) {
     if (job.description.trim().split(/\s+/).length < 40) {
-      toast.error("This source did not provide enough job-description text. Open it and use Job Scan.");
+      toast.error(
+        "This source did not provide enough job-description text. Open it and use Job Scan.",
+      );
       return;
     }
     const key = storeDiscoveredJobForAnalysis(job);
@@ -296,7 +298,10 @@ function JobBoardPage() {
                         {job.company} · {job.location || "Location not supplied"}
                       </p>
                       <div className="mt-2 flex flex-wrap gap-2">
-                        <StatusPill label={`Source: ${job.providerLabel}`} tone={providerTone(job.provider)} />
+                        <StatusPill
+                          label={`Source: ${job.providerLabel}`}
+                          tone={providerTone(job.provider)}
+                        />
                         {job.remote ? <StatusPill label="Remote" tone="success" /> : null}
                         {job.visaSponsorship === true ? (
                           <StatusPill label="Visa sponsorship listed" tone="success" />
@@ -324,7 +329,9 @@ function JobBoardPage() {
                       ))}
                     </ul>
                   ) : null}
-                  {job.salary ? <p className="mt-2 text-xs text-muted-foreground">Salary: {job.salary}</p> : null}
+                  {job.salary ? (
+                    <p className="mt-2 text-xs text-muted-foreground">Salary: {job.salary}</p>
+                  ) : null}
                 </article>
               ))}
             </div>
