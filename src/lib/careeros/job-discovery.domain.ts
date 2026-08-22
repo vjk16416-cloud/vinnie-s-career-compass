@@ -145,7 +145,10 @@ export function evaluateJobStatus(input: {
   if (verifiedActive && closing) {
     const days = daysBetween(input.now, closing);
     if (days >= 0 && days <= 7) {
-      return { status: "closing_soon", reason: `Closing date is within ${days} day${days === 1 ? "" : "s"}.` };
+      return {
+        status: "closing_soon",
+        reason: `Closing date is within ${days} day${days === 1 ? "" : "s"}.`,
+      };
     }
   }
   if (verifiedActive) {
@@ -168,7 +171,9 @@ function listMatches(value: string | null | undefined, selected: string[]) {
 
 function sourceMatches(job: DiscoveredJob, selected: string[]) {
   if (!selected.length) return true;
-  return job.sourceRefs.some((ref) => selected.some((name) => name.toLowerCase() === ref.provider.toLowerCase()));
+  return job.sourceRefs.some((ref) =>
+    selected.some((name) => name.toLowerCase() === ref.provider.toLowerCase()),
+  );
 }
 
 function postedWithin(job: DiscoveredJob, days: number | null, now: Date) {
@@ -206,7 +211,11 @@ export function filterAndSortJobs(
         .toLowerCase();
       if (!corpus.includes(search)) return false;
     }
-    if (filters.fitBands.length && (!job.fitVerdict || !filters.fitBands.includes(job.fitVerdict))) return false;
+    if (
+      filters.fitBands.length &&
+      (!job.fitVerdict || !filters.fitBands.includes(job.fitVerdict))
+    )
+      return false;
     if (!sourceMatches(job, filters.sources)) return false;
     if (filters.matchTypes.length && !filters.matchTypes.includes(job.matchType)) return false;
     if (!listMatches(job.industry, filters.industries)) return false;
@@ -223,7 +232,8 @@ export function filterAndSortJobs(
     )
       return false;
     if (filters.ukScopes.length && !filters.ukScopes.includes(job.ukEligibility)) return false;
-    if (filters.sponsorship.length && !filters.sponsorship.includes(job.visaSponsorship)) return false;
+    if (filters.sponsorship.length && !filters.sponsorship.includes(job.visaSponsorship))
+      return false;
     if (filters.statuses.length && !filters.statuses.includes(job.status)) return false;
     if (filters.minSalary != null) {
       const comparableSalary = job.salaryMax ?? job.salaryMin;
