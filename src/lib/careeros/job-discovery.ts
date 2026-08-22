@@ -60,6 +60,18 @@ const UK_TERMS = [
   "oxford",
 ];
 
+const UK_ELIGIBLE_REMOTE_TERMS = [
+  "worldwide",
+  "anywhere",
+  "global",
+  "united kingdom",
+  "uk",
+  "great britain",
+  "europe",
+  "european",
+  "emea",
+];
+
 function unique(values: string[]): string[] {
   return [...new Set(values.map((value) => value.trim()).filter(Boolean))];
 }
@@ -166,6 +178,13 @@ function isUkLocation(job: DiscoveredJob): boolean {
   return job.provider === "arbeitnow-uk" || UK_TERMS.some((term) => location.includes(term));
 }
 
+function isRemoteOpenToUk(job: DiscoveredJob): boolean {
+  if (!job.remote) return false;
+  if (job.provider === "arbeitnow-uk") return true;
+  const region = normalisedText(job.remoteRegion || job.location);
+  return UK_ELIGIBLE_REMOTE_TERMS.some((term) => region.includes(term));
+}
+
 function matchesSearchTerms(job: DiscoveredJob, preferences: JobSearchPreferences): boolean {
   const haystack = normalisedText(
     `${job.title} ${job.company} ${job.tags.join(" ")} ${job.description}`,
@@ -194,7 +213,9 @@ export function filterDiscoveredJobs(
       preferences.locations.some((value) =>
         normalisedText(job.location).includes(normalisedText(value)),
       ) ||
-      (job.remote && preferences.includeRemote);
+      (job.remote &&
+        preferences.includeRemote &&
+        (!ukWanted || isRemoteOpenToUk(job)));
 
     return locationMatches && matchesSearchTerms(job, preferences);
   });
