@@ -29,6 +29,19 @@ function isoDate(value: unknown): string {
   return Number.isNaN(parsed.getTime()) ? "" : parsed.toISOString();
 }
 
+function explicitRelocationAssistance(description: string, tags: string[]): boolean | null {
+  const text = `${description} ${tags.join(" ")}`;
+  const negative =
+    /\b(?:no|without)\s+relocation\b|\bnot\s+eligible\s+for\s+relocation\b|\brelocation(?: assistance| support)?\s+(?:is\s+)?(?:not|isn't)\s+(?:available|offered|provided|supported)\b/i;
+  if (negative.test(text)) return false;
+
+  const positive =
+    /\brelocation\s+(?:assistance|support|package)\b|\b(?:assistance|support)\s+with\s+relocation\b|\brelocation\s+(?:is\s+)?(?:available|offered|provided|supported)\b/i;
+  if (positive.test(text)) return true;
+
+  return null;
+}
+
 function responseError(provider: string, status: number): Error {
   return new Error(`${provider} responded with status ${status}.`);
 }
@@ -59,6 +72,8 @@ function normaliseArbeitnowItem(
 
   const explicitVisa =
     typeof item.visa_sponsorship === "boolean" ? item.visa_sponsorship : sponsoredFeed ? true : null;
+  const description = htmlToText(rawDescription);
+  const tags = stringList(item.tags);
 
   return {
     id: `arbeitnow-uk:${providerJobId}`,
@@ -71,10 +86,11 @@ function normaliseArbeitnowItem(
     remote: item.remote === true,
     remoteRegion: item.remote === true ? "United Kingdom / provider specified" : "",
     visaSponsorship: explicitVisa,
+    relocationAssistance: explicitRelocationAssistance(description, tags),
     employmentType: stringList(item.job_types).join(", "),
     salary: "",
-    description: htmlToText(rawDescription),
-    tags: stringList(item.tags),
+    description,
+    tags,
     sourceUrl,
     postedAt: isoFromEpoch(item.created_at),
     fetchedAt,
@@ -142,6 +158,9 @@ function normaliseRemotiveItem(raw: unknown, fetchedAt: string): DiscoveredJob |
 
   if (!providerJobId || !title || !company || !sourceUrl || !rawDescription) return null;
 
+  const description = htmlToText(rawDescription);
+  const tags = stringList(item.tags);
+
   return {
     id: `remotive:${providerJobId}`,
     provider: "remotive",
@@ -153,10 +172,11 @@ function normaliseRemotiveItem(raw: unknown, fetchedAt: string): DiscoveredJob |
     remote: true,
     remoteRegion: stringValue(item.candidate_required_location) || "Worldwide",
     visaSponsorship: null,
+    relocationAssistance: explicitRelocationAssistance(description, tags),
     employmentType: stringValue(item.job_type),
     salary: stringValue(item.salary),
-    description: htmlToText(rawDescription),
-    tags: stringList(item.tags),
+    description,
+    tags,
     sourceUrl,
     postedAt: isoDate(item.publication_date),
     fetchedAt,
