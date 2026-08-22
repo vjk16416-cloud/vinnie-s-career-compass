@@ -244,10 +244,18 @@ export function filterAndSortJobs(
       return dateValue(a.closingDate, Infinity) - dateValue(b.closingDate, Infinity);
     }
     if (sort === "salary") {
-      const floorDifference =
-        (b.salaryMin ?? b.salaryMax ?? -Infinity) - (a.salaryMin ?? a.salaryMax ?? -Infinity);
-      if (floorDifference !== 0) return floorDifference;
-      return (b.salaryMax ?? -Infinity) - (a.salaryMax ?? -Infinity);
+      const aFloor = a.salaryMin ?? a.salaryMax;
+      const bFloor = b.salaryMin ?? b.salaryMax;
+      if (aFloor == null && bFloor == null) return 0;
+      if (aFloor == null) return 1;
+      if (bFloor == null) return -1;
+      if (aFloor !== bFloor) return bFloor - aFloor;
+      const aMax = a.salaryMax;
+      const bMax = b.salaryMax;
+      if (aMax == null && bMax == null) return 0;
+      if (aMax == null) return 1;
+      if (bMax == null) return -1;
+      return bMax - aMax;
     }
     const scoreDifference = (b.fitScore ?? -Infinity) - (a.fitScore ?? -Infinity);
     if (scoreDifference !== 0) return scoreDifference;
