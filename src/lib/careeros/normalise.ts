@@ -40,6 +40,7 @@ export function normaliseData(raw: unknown): CareerOsData {
     evidence,
     profileVersions: list(saved.profileVersions, seed.profileVersions),
     jobs: list(saved.jobs, []),
+    jobBoardListings: list(saved.jobBoardListings, []),
     applications: list(saved.applications, seed.applications).map((a) => ({
       ...a,
       history: list(a?.history, []),
