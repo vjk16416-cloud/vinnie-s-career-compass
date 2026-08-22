@@ -6,6 +6,7 @@ import {
   Gauge,
   Home,
   Radar,
+  Search,
   Settings as SettingsIcon,
   ShieldCheck,
   UserRound,
@@ -26,6 +27,7 @@ import { cn } from "@/lib/utils";
 
 export const NAV_ITEMS = [
   { to: "/", label: "Home", icon: Home },
+  { to: "/jobs", label: "Job Board", icon: Search },
   { to: "/applications", label: "Applications", icon: BriefcaseBusiness },
   { to: "/job-scan", label: "Job Scan", icon: Radar },
   { to: "/cvs", label: "CVs", icon: FileText },
@@ -36,11 +38,11 @@ export const NAV_ITEMS = [
 ] as const;
 
 const MOBILE_NAV = NAV_ITEMS.filter((n) =>
-  ["/", "/applications", "/job-scan", "/evidence", "/cvs"].includes(n.to),
+  ["/", "/jobs", "/applications", "/job-scan", "/evidence"].includes(n.to),
 );
 
 const MOBILE_MORE_NAV = NAV_ITEMS.filter((n) =>
-  ["/profile", "/market", "/settings"].includes(n.to),
+  ["/cvs", "/profile", "/market", "/settings"].includes(n.to),
 );
 
 export function AppShell({
