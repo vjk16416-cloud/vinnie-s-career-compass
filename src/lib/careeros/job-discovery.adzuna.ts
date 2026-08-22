@@ -33,15 +33,18 @@ function mapResult(value: unknown, country: string): RawJobListing | null {
   if (!value || typeof value !== "object") return null;
   const row = value as Record<string, unknown>;
   const title = stringValue(row.title);
-  const companyRow = row.company && typeof row.company === "object"
-    ? (row.company as Record<string, unknown>)
-    : null;
-  const locationRow = row.location && typeof row.location === "object"
-    ? (row.location as Record<string, unknown>)
-    : null;
-  const categoryRow = row.category && typeof row.category === "object"
-    ? (row.category as Record<string, unknown>)
-    : null;
+  const companyRow =
+    row.company && typeof row.company === "object"
+      ? (row.company as Record<string, unknown>)
+      : null;
+  const locationRow =
+    row.location && typeof row.location === "object"
+      ? (row.location as Record<string, unknown>)
+      : null;
+  const categoryRow =
+    row.category && typeof row.category === "object"
+      ? (row.category as Record<string, unknown>)
+      : null;
   const company = stringValue(companyRow?.display_name);
   if (!title || !company) return null;
 
@@ -90,7 +93,9 @@ async function search(
   const fetchImpl = env.fetchImpl ?? fetch;
   const country = input.country.trim().toLowerCase() || "gb";
   const page = Math.max(1, Math.trunc(input.page || 1));
-  const url = new URL(`https://api.adzuna.com/v1/api/jobs/${encodeURIComponent(country)}/search/${page}`);
+  const url = new URL(
+    `https://api.adzuna.com/v1/api/jobs/${encodeURIComponent(country)}/search/${page}`,
+  );
   url.searchParams.set("app_id", env.ADZUNA_APP_ID!.trim());
   url.searchParams.set("app_key", env.ADZUNA_APP_KEY!.trim());
   url.searchParams.set("results_per_page", String(Math.max(1, Math.trunc(input.resultsPerPage))));
