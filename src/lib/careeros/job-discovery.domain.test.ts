@@ -179,7 +179,7 @@ describe("job discovery domain", () => {
     const jobs = [
       job({ id: "a", datePosted: "2026-08-20", closingDate: "2026-08-30", salaryMin: 70000 }),
       job({ id: "b", datePosted: "2026-08-22", closingDate: "2026-08-24", salaryMin: 90000 }),
-      job({ id: "c", datePosted: null, closingDate: null, salaryMin: null }),
+      job({ id: "c", datePosted: null, closingDate: null, salaryMin: null, salaryMax: null }),
     ];
     expect(filterAndSortJobs(jobs, base, "newest", now).map((item) => item.id)).toEqual([
       "b",
