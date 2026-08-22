@@ -211,10 +211,7 @@ export function filterAndSortJobs(
         .toLowerCase();
       if (!corpus.includes(search)) return false;
     }
-    if (
-      filters.fitBands.length &&
-      (!job.fitVerdict || !filters.fitBands.includes(job.fitVerdict))
-    )
+    if (filters.fitBands.length && (!job.fitVerdict || !filters.fitBands.includes(job.fitVerdict)))
       return false;
     if (!sourceMatches(job, filters.sources)) return false;
     if (filters.matchTypes.length && !filters.matchTypes.includes(job.matchType)) return false;
