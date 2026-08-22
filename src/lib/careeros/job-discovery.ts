@@ -206,7 +206,8 @@ export function filterDiscoveredJobs(
     if (!preferences.includeRemote && job.remote) return false;
     if (!preferences.includeVisaSponsorship && job.visaSponsorship === true) return false;
 
-    const locationWanted = preferences.locations.length === 0 || preferences.locations.includes("Any");
+    const locationWanted =
+      preferences.locations.length === 0 || preferences.locations.includes("Any");
     const ukWanted = preferences.locations.some((value) => /^(uk|united kingdom)$/i.test(value));
     const locationMatches =
       locationWanted ||
