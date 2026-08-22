@@ -1,11 +1,15 @@
 import "./lib/error-capture";
 
+import { runScheduledJobDiscovery } from "./lib/careeros/job-discovery.scheduled";
+import type { JobDiscoveryServerEnv } from "./lib/careeros/job-discovery.server";
 import { consumeLastCapturedError } from "./lib/error-capture";
 import { renderErrorPage } from "./lib/error-page";
 
 type ServerEntry = {
   fetch: (request: Request, env: unknown, ctx: unknown) => Promise<Response> | Response;
 };
+
+type ScheduledContext = { waitUntil(promise: Promise<unknown>): void };
 
 let serverEntryPromise: Promise<ServerEntry> | undefined;
 
@@ -57,5 +61,13 @@ export default {
         headers: { "content-type": "text/html; charset=utf-8" },
       });
     }
+  },
+
+  scheduled(_event: unknown, env: JobDiscoveryServerEnv, ctx: ScheduledContext) {
+    ctx.waitUntil(
+      runScheduledJobDiscovery(env).catch((error) => {
+        console.error("Scheduled CareerOS job discovery failed", error);
+      }),
+    );
   },
 };
