@@ -7,15 +7,15 @@ import type {
   JobSourceRef,
 } from "./job-discovery.types";
 
+type JobDiscoveryPersistenceOperation =
+  | "preferences-read"
+  | "preferences-save"
+  | "jobs-read"
+  | "job-save"
+  | "runs-read";
+
 export class JobDiscoveryPersistenceError extends Error {
-  constructor(
-    readonly operation:
-      | "preferences-read"
-      | "preferences-save"
-      | "jobs-read"
-      | "job-save"
-      | "runs-read",
-  ) {
+  constructor(readonly operation: JobDiscoveryPersistenceOperation) {
     super(`CareerOS job discovery ${operation} failed`);
     this.name = "JobDiscoveryPersistenceError";
   }
