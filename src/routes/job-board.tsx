@@ -71,7 +71,7 @@ function JobBoardPage() {
 
   const [filters, setFilters] = useState<JobBoardFilters>({ query: "", savedOnly: false });
 
-  const listings = data.jobBoardListings ?? [];
+  const listings = useMemo(() => data.jobBoardListings ?? [], [data.jobBoardListings]);
   const filterOptions = useMemo(() => jobBoardFilterOptions(listings), [listings]);
   const visibleListings = useMemo(
     () => filterJobBoardListings(listings, filters),
@@ -166,7 +166,10 @@ function JobBoardPage() {
   function createApplication(listing: JobBoardListing) {
     const analysis = latestAnalysisForListing(listing.id, data.jobs, data.scans);
     if (!analysis) {
-      setAnalysisError({ id: listing.id, message: "Analyse this role before creating an application." });
+      setAnalysisError({
+        id: listing.id,
+        message: "Analyse this role before creating an application.",
+      });
       return;
     }
 
@@ -453,7 +456,9 @@ function JobBoardPage() {
                     </div>
                     {analysis ? (
                       <div className="shrink-0 rounded-md border border-border px-3 py-2 text-left sm:text-right">
-                        <p className="text-lg font-semibold">{analysis.scan.overall}% compatibility</p>
+                        <p className="text-lg font-semibold">
+                          {analysis.scan.overall}% compatibility
+                        </p>
                         <p className="text-xs text-muted-foreground">{analysis.scan.verdict}</p>
                       </div>
                     ) : null}
@@ -476,7 +481,11 @@ function JobBoardPage() {
                   ) : null}
 
                   <div className="mt-4 flex flex-wrap gap-2">
-                    <Button type="button" variant="secondary" onClick={() => toggleSaved(listing.id)}>
+                    <Button
+                      type="button"
+                      variant="secondary"
+                      onClick={() => toggleSaved(listing.id)}
+                    >
                       {listing.saved ? "Unsave job" : "Save job"}
                     </Button>
                     <Button type="button" onClick={() => analyseRole(listing)}>
