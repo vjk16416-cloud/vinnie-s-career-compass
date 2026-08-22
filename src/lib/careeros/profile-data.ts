@@ -9,6 +9,7 @@ import type {
   CareerProfileDecision,
   CareerProfileItem,
   CareerProfileSource,
+  JobBoardListing,
   ProfileSourceExtractionStatus,
 } from "./types";
 
@@ -124,6 +125,7 @@ export type CareerOsDataWithMasterProfile = CareerOsData & {
   profileItems: CareerProfileItem[];
   profileClaimVariants: CareerClaimVariant[];
   profileDecisions: CareerProfileDecision[];
+  jobBoardListings: JobBoardListing[];
 };
 
 export function withMasterProfileFoundation(data: CareerOsData): CareerOsDataWithMasterProfile {
@@ -133,6 +135,7 @@ export function withMasterProfileFoundation(data: CareerOsData): CareerOsDataWit
     profileItems: mergeById(SEEDED_PROFILE_ITEMS, data.profileItems),
     profileClaimVariants: mergeById(PROFILE_CLAIM_VARIANTS, data.profileClaimVariants),
     profileDecisions: data.profileDecisions ?? [],
+    jobBoardListings: data.jobBoardListings ?? [],
   };
 }
 

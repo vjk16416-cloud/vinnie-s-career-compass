@@ -93,6 +93,7 @@ describe("CareerOS route guard", () => {
     "/applications/abc-123",
     "/cvs",
     "/evidence",
+    "/job-board",
     "/job-scan",
     "/market",
     "/profile",

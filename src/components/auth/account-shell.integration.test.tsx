@@ -114,7 +114,7 @@ describe("authorised account shell", () => {
     ).toBeInTheDocument();
   });
 
-  it("uses the sixth mobile slot for More and exposes secondary destinations", async () => {
+  it("uses the sixth mobile slot for More and exposes Job Board as a secondary destination", async () => {
     createRepository.mockReturnValue(resolvedRepository());
     renderPrivateContent(
       <AppShell title="CareerOS home">
@@ -123,20 +123,35 @@ describe("authorised account shell", () => {
     );
 
     expect(await screen.findByText("Private workspace")).toBeInTheDocument();
+
+    const desktopNav = screen.getByRole("navigation", { name: "Main" });
+    expect(within(desktopNav).getByRole("link", { name: "Job Board" })).toHaveAttribute(
+      "href",
+      "/job-board",
+    );
+
     const mobileNav = screen.getByRole("navigation", { name: "Primary mobile" });
     expect(within(mobileNav).queryByText("Add")).not.toBeInTheDocument();
 
     fireEvent.click(within(mobileNav).getByRole("button", { name: "More" }));
 
-    expect(screen.getByRole("link", { name: "Career Profile" })).toHaveAttribute(
+    const moreNav = screen.getByRole("navigation", { name: "More CareerOS sections" });
+    expect(within(moreNav).getByRole("link", { name: "Job Board" })).toHaveAttribute(
+      "href",
+      "/job-board",
+    );
+    expect(within(moreNav).getByRole("link", { name: "Career Profile" })).toHaveAttribute(
       "href",
       "/profile",
     );
-    expect(screen.getByRole("link", { name: "Job Market Intelligence" })).toHaveAttribute(
+    expect(within(moreNav).getByRole("link", { name: "Job Market Intelligence" })).toHaveAttribute(
       "href",
       "/market",
     );
-    expect(screen.getByRole("link", { name: "Settings" })).toHaveAttribute("href", "/settings");
+    expect(within(moreNav).getByRole("link", { name: "Settings" })).toHaveAttribute(
+      "href",
+      "/settings",
+    );
   });
 
   it("renders the GET logout confirmation without invoking the POST logout action", () => {
