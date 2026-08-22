@@ -1,8 +1,5 @@
 import { afterEach, describe, expect, it } from "vitest";
-import {
-  consumeDiscoveredJobForAnalysis,
-  storeDiscoveredJobForAnalysis,
-} from "./job-handoff";
+import { consumeDiscoveredJobForAnalysis, storeDiscoveredJobForAnalysis } from "./job-handoff";
 import type { DiscoveredJob } from "./job-discovery";
 
 const job: DiscoveredJob = {
@@ -36,7 +33,10 @@ describe("Job Board analysis handoff", () => {
   });
 
   it("rejects malformed handoff payloads", () => {
-    window.sessionStorage.setItem("careeros:discovered-job:bad", JSON.stringify({ title: "Only title" }));
+    window.sessionStorage.setItem(
+      "careeros:discovered-job:bad",
+      JSON.stringify({ title: "Only title" }),
+    );
 
     expect(consumeDiscoveredJobForAnalysis("bad")).toBeNull();
   });
