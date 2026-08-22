@@ -9,10 +9,7 @@ import {
 } from "./job-board";
 import type { CareerOsData, JobBoardListing, ScanResult } from "./types";
 
-const longDescription = Array.from(
-  { length: 48 },
-  (_, index) => `word${index + 1}`,
-).join(" ");
+const longDescription = Array.from({ length: 48 }, (_, index) => `word${index + 1}`).join(" ");
 
 function listing(overrides: Partial<JobBoardListing> = {}): JobBoardListing {
   return {
@@ -91,9 +88,27 @@ describe("structured Job Board domain", () => {
       listingToJobRecord(listing({ id: "board-2" }), "job-other", "2026-08-22T11:00:00.000Z"),
     ];
     const scans = [
-      { id: "scan-old", jobId: "job-old", createdAt: "2026-08-22T09:01:00.000Z", overall: 61, verdict: "Competitive" },
-      { id: "scan-new", jobId: "job-new", createdAt: "2026-08-22T10:01:00.000Z", overall: 82, verdict: "Strong Fit" },
-      { id: "scan-other", jobId: "job-other", createdAt: "2026-08-22T11:01:00.000Z", overall: 99, verdict: "Strong Fit" },
+      {
+        id: "scan-old",
+        jobId: "job-old",
+        createdAt: "2026-08-22T09:01:00.000Z",
+        overall: 61,
+        verdict: "Competitive",
+      },
+      {
+        id: "scan-new",
+        jobId: "job-new",
+        createdAt: "2026-08-22T10:01:00.000Z",
+        overall: 82,
+        verdict: "Strong Fit",
+      },
+      {
+        id: "scan-other",
+        jobId: "job-other",
+        createdAt: "2026-08-22T11:01:00.000Z",
+        overall: 99,
+        verdict: "Strong Fit",
+      },
     ] as ScanResult[];
 
     const result = latestAnalysisForListing("board-1", jobs, scans);
@@ -119,7 +134,9 @@ describe("structured Job Board domain", () => {
     ];
 
     expect(filterJobBoardListings(listings, { query: "acme", savedOnly: false })).toHaveLength(1);
-    expect(filterJobBoardListings(listings, { query: "transformation", savedOnly: false })[0]?.id).toBe("two");
+    expect(
+      filterJobBoardListings(listings, { query: "transformation", savedOnly: false })[0]?.id,
+    ).toBe("two");
     expect(filterJobBoardListings(listings, { query: "", savedOnly: true })[0]?.id).toBe("one");
     expect(
       filterJobBoardListings(listings, {
