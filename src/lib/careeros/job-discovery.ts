@@ -14,6 +14,7 @@ export interface DiscoveredJob {
   remote: boolean;
   remoteRegion: string;
   visaSponsorship: boolean | null;
+  relocationAssistance?: boolean | null;
   employmentType: string;
   salary: string;
   description: string;
@@ -213,9 +214,8 @@ export function filterDiscoveredJobs(
       preferences.locations.some((value) =>
         normalisedText(job.location).includes(normalisedText(value)),
       ) ||
-      (job.remote &&
-        preferences.includeRemote &&
-        (!ukWanted || isRemoteOpenToUk(job)));
+      (job.remote && preferences.includeRemote && (!ukWanted || isRemoteOpenToUk(job))) ||
+      (preferences.includeRelocation && job.relocationAssistance === true);
 
     return locationMatches && matchesSearchTerms(job, preferences);
   });
@@ -282,6 +282,10 @@ export function rankDiscoveredJobs(
       if (job.visaSponsorship === true && preferences.includeVisaSponsorship) {
         score += 6;
         matchReasons.push("Visa sponsorship listed");
+      }
+      if (job.relocationAssistance === true && preferences.includeRelocation) {
+        score += 4;
+        matchReasons.push("Relocation support listed");
       }
 
       const age = ageDays(job, now);
