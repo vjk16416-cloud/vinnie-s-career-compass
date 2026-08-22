@@ -159,7 +159,9 @@ describe("structured Job Board workflow", () => {
     expect(screen.getByRole("heading", { name: "Senior Product Manager" })).toBeInTheDocument();
 
     fireEvent.change(screen.getByLabelText("Search jobs"), { target: { value: "no-match" } });
-    expect(screen.queryByRole("heading", { name: "Senior Product Manager" })).not.toBeInTheDocument();
+    expect(
+      screen.queryByRole("heading", { name: "Senior Product Manager" }),
+    ).not.toBeInTheDocument();
   });
 
   it("analyses a structured listing with the existing scoring engine before creating an application", async () => {
