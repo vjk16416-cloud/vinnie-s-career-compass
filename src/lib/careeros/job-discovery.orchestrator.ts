@@ -215,6 +215,7 @@ export function selectDailyShortlist(jobs: DiscoveredJob[], now = new Date(), li
   return jobs
     .filter(
       (job) =>
+        job.ukEligibility !== "excluded" &&
         sameUtcDay(job.firstSeenAt, now) &&
         (job.status === "active" || job.status === "closing_soon"),
     )
