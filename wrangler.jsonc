@@ -12,6 +12,9 @@
   "observability": {
     "enabled": true,
   },
+  "triggers": {
+    "crons": ["0 7 * * *"],
+  },
   "no_bundle": true,
   "rules": [
     {
