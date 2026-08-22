@@ -81,12 +81,14 @@ async function addListing() {
   fireEvent.change(screen.getByLabelText("Salary"), {
     target: { value: "£80,000 - £95,000" },
   });
-  fireEvent.change(screen.getByLabelText("Working arrangement"), {
-    target: { value: "Hybrid" },
-  });
-  fireEvent.change(screen.getByLabelText("Employment type"), {
-    target: { value: "Permanent" },
-  });
+  fireEvent.change(
+    screen.getByLabelText("Working arrangement", { selector: "#job-board-workplace" }),
+    { target: { value: "Hybrid" } },
+  );
+  fireEvent.change(
+    screen.getByLabelText("Employment type", { selector: "#job-board-employment" }),
+    { target: { value: "Permanent" } },
+  );
   fireEvent.change(screen.getByLabelText("Closing date"), {
     target: { value: "2026-09-30" },
   });
@@ -108,7 +110,9 @@ describe("structured Job Board workflow", () => {
 
     fireEvent.click(screen.getByRole("button", { name: "Add to Job Board" }));
 
-    expect(await screen.findByText("Add a role title, company and job description.")).toBeInTheDocument();
+    expect(
+      await screen.findByText("Add a role title, company and job description."),
+    ).toBeInTheDocument();
     expect(screen.queryByRole("heading", { name: "Unspecified role" })).not.toBeInTheDocument();
   });
 
@@ -147,7 +151,9 @@ describe("structured Job Board workflow", () => {
     );
 
     fireEvent.click(screen.getByRole("button", { name: "Save job" }));
-    await waitFor(() => expect(screen.getByRole("button", { name: "Unsave job" })).toBeInTheDocument());
+    await waitFor(() =>
+      expect(screen.getByRole("button", { name: "Unsave job" })).toBeInTheDocument(),
+    );
 
     fireEvent.click(screen.getByLabelText("Saved jobs only"));
     expect(screen.getByRole("heading", { name: "Senior Product Manager" })).toBeInTheDocument();
@@ -221,7 +227,9 @@ describe("structured Job Board workflow", () => {
     await screen.findByRole("heading", { name: "Product Manager" });
     fireEvent.click(screen.getByRole("button", { name: "Analyse role" }));
 
-    expect(await screen.findByText("Add at least 40 words before analysing this role.")).toBeInTheDocument();
+    expect(
+      await screen.findByText("Add at least 40 words before analysing this role."),
+    ).toBeInTheDocument();
     expect(screen.getByRole("button", { name: "Create application" })).toBeDisabled();
   });
 });
