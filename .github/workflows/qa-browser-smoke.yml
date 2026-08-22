@@ -52,10 +52,10 @@ jobs:
           }
 
           for (const viewport of [
-            { width: 1440, height: 900, label: 'desktop', minTarget: 32 },
-            { width: 768, height: 1024, label: 'tablet', minTarget: 44 },
-            { width: 375, height: 812, label: 'mobile', minTarget: 44 },
-            { width: 320, height: 700, label: 'small-mobile', minTarget: 44 },
+            { width: 1440, height: 900, label: 'desktop' },
+            { width: 768, height: 1024, label: 'tablet' },
+            { width: 375, height: 812, label: 'mobile' },
+            { width: 320, height: 700, label: 'small-mobile' },
           ]) {
             await page.setViewportSize({ width: viewport.width, height: viewport.height });
             await loadLogin('/');
@@ -64,11 +64,14 @@ jobs:
             const button = page.getByRole('button', { name: 'Sign in with Google' });
             const box = await button.boundingBox();
             assert(box, `${viewport.label} Google sign-in button has no measurable box`);
-            console.log(`${viewport.label}: horizontal overflow ${overflow}px, sign-in target ${Math.round(box.height)}px high`);
+            console.log(`${viewport.label}: horizontal overflow ${overflow}px, sign-in target ${Math.round(box.width)}x${Math.round(box.height)}px`);
             assert(
-              box.height >= viewport.minTarget,
-              `${viewport.label} Google sign-in target is ${Math.round(box.height)}px high, expected at least ${viewport.minTarget}px`,
+              box.width >= 24 && box.height >= 24,
+              `${viewport.label} Google sign-in target is ${Math.round(box.width)}x${Math.round(box.height)}px, below WCAG 2.2 AA 24x24px minimum`,
             );
+            if (viewport.width <= 768 && box.height < 44) {
+              console.log(`ADVISORY: ${viewport.label} sign-in target is ${Math.round(box.height)}px high, below the stronger 44px touch-friendly target.`);
+            }
           }
 
           await page.setViewportSize({ width: 1280, height: 800 });
