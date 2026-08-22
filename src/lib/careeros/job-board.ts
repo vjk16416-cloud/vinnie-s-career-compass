@@ -1,9 +1,4 @@
-import type {
-  JobBoardFilters,
-  JobBoardListing,
-  JobRecord,
-  ScanResult,
-} from "./types";
+import type { JobBoardFilters, JobBoardListing, JobRecord, ScanResult } from "./types";
 
 function cleanOptional(value: string | undefined): string | undefined {
   const cleaned = value?.trim();
