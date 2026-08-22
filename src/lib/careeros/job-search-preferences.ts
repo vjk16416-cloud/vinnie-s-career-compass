@@ -45,7 +45,11 @@ function adjacentForTitle(title: string) {
     adjacent.push("Programme Manager", "Delivery Manager");
   }
   if (lower.includes("marketing")) {
-    adjacent.push("Product Marketing Manager", "Marketing Strategy Manager", "Growth Marketing Manager");
+    adjacent.push(
+      "Product Marketing Manager",
+      "Marketing Strategy Manager",
+      "Growth Marketing Manager",
+    );
   }
   if (lower.includes("consult")) {
     adjacent.push("Technology Consultant", "Digital Transformation Consultant");
