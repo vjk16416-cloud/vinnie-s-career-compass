@@ -76,13 +76,6 @@ export function JobSearchPreferencesPanel({
             value={listText(draft.exactTitles)}
             onChange={(event) => markOverride("exactTitles", parseList(event.target.value))}
           />
-          <div className="mt-2 flex flex-wrap gap-1.5">
-            {draft.exactTitles.map((title) => (
-              <span key={title} className="rounded-full border border-border px-2 py-0.5 text-xs">
-                {title}
-              </span>
-            ))}
-          </div>
         </div>
 
         <div>
