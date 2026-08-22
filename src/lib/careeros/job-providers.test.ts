@@ -45,12 +45,13 @@ describe("Job Board providers", () => {
       location: "London",
       employmentType: "Full-time",
       visaSponsorship: true,
+      relocationAssistance: null,
     });
     expect(jobs[0]?.description).toContain("Lead product delivery");
     expect(jobs[0]?.description).not.toContain("<strong>");
   });
 
-  it("normalises Remotive jobs and preserves Remotive as the application source", async () => {
+  it("normalises Remotive jobs, preserves attribution and detects explicit relocation support", async () => {
     const fetchImpl = vi.fn().mockResolvedValue(
       jsonResponse({
         jobs: [
@@ -64,7 +65,8 @@ describe("Job Board providers", () => {
             publication_date: "2026-08-21T12:00:00Z",
             candidate_required_location: "UK, Europe",
             salary: "£65k - £80k",
-            description: "<p>Own product strategy and cross-functional delivery.</p>",
+            description:
+              "<p>Own product strategy and cross-functional delivery. Relocation support is offered for the right candidate.</p>",
             tags: ["Product Management", "Strategy"],
           },
         ],
@@ -82,7 +84,32 @@ describe("Job Board providers", () => {
       remoteRegion: "UK, Europe",
       sourceUrl: "https://remotive.com/remote-jobs/product/product-manager-42",
       salary: "£65k - £80k",
+      relocationAssistance: true,
     });
+  });
+
+  it("does not infer relocation support when a provider explicitly says it is unavailable", async () => {
+    const fetchImpl = vi.fn().mockResolvedValue(
+      jsonResponse({
+        jobs: [
+          {
+            id: 43,
+            url: "https://remotive.com/remote-jobs/product/product-manager-43",
+            title: "Product Manager",
+            company_name: "Remote Co",
+            job_type: "full_time",
+            publication_date: "2026-08-21T12:00:00Z",
+            candidate_required_location: "UK, Europe",
+            description: "<p>Relocation support is not available for this role.</p>",
+            tags: ["Product Management"],
+          },
+        ],
+      }),
+    ) as unknown as typeof fetch;
+
+    const jobs = await fetchRemotiveJobs({ fetchImpl });
+
+    expect(jobs[0]?.relocationAssistance).toBe(false);
   });
 
   it("throws a provider-specific error on a failed feed request", async () => {
