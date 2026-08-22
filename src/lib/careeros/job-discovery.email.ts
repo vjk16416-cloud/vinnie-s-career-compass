@@ -36,11 +36,17 @@ export async function sendDailyJobShortlist(
     now?: Date;
     runAlreadyEmailed: boolean;
   },
-  env: Pick<JobDiscoveryServerEnv, "RESEND_API_KEY" | "JOB_DISCOVERY_FROM_EMAIL" | "PUBLIC_APP_URL">,
+  env: Pick<
+    JobDiscoveryServerEnv,
+    "RESEND_API_KEY" | "JOB_DISCOVERY_FROM_EMAIL" | "PUBLIC_APP_URL"
+  >,
   fetchImpl: DiscoveryFetch = fetch,
 ): Promise<JobDiscoveryEmailResult> {
   if (!input.preferences.emailAlertsEnabled) {
-    return { status: "disabled", message: "Daily shortlist email is disabled in Job Search Preferences." };
+    return {
+      status: "disabled",
+      message: "Daily shortlist email is disabled in Job Search Preferences.",
+    };
   }
   if (input.runAlreadyEmailed) {
     return { status: "duplicate", message: "This scheduled run already sent its shortlist." };
@@ -51,7 +57,10 @@ export async function sendDailyJobShortlist(
     return { status: "unavailable", message: "Resend email delivery is not configured." };
   }
   if (!input.to.trim()) {
-    return { status: "unavailable", message: "No authorised email address is available for this user." };
+    return {
+      status: "unavailable",
+      message: "No authorised email address is available for this user.",
+    };
   }
 
   const now = input.now ?? new Date();
@@ -61,7 +70,9 @@ export async function sendDailyJobShortlist(
   }
 
   const appUrl = env.PUBLIC_APP_URL?.trim();
-  const boardLink = appUrl ? `<p><a href="${escapeHtml(`${appUrl.replace(/\/$/, "")}/job-board`)}">Open Job Board</a></p>` : "";
+  const boardLink = appUrl
+    ? `<p><a href="${escapeHtml(`${appUrl.replace(/\/$/, "")}/job-board`)}">Open Job Board</a></p>`
+    : "";
   const html = `<h1>Your CareerOS daily job shortlist</h1><p>Fresh active matches found today:</p><ol>${shortlist.map(jobLine).join("")}</ol>${boardLink}<p>CareerOS only includes roles it can represent without inventing missing job data.</p>`;
 
   try {

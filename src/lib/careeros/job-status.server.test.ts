@@ -10,7 +10,10 @@ function response(status: number, body = "") {
 
 describe("direct job status checks", () => {
   it.each([404, 410])("treats %s as expired", async (status) => {
-    const result = await checkDirectJobStatus(URL, vi.fn(() => response(status)));
+    const result = await checkDirectJobStatus(
+      URL,
+      vi.fn(() => response(status)),
+    );
     expect(result.status).toBe("expired");
   });
 

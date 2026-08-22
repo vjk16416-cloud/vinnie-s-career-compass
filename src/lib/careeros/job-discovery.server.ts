@@ -173,9 +173,10 @@ export function createServiceRefreshRepository(client: SupabaseClient, userId: s
     },
     async upsertJobs(ownerUserId: string, jobs: DiscoveredJob[]) {
       if (!jobs.length) return;
-      const { error } = await client
-        .from("discovered_jobs")
-        .upsert(jobs.map((job) => jobRow(job, ownerUserId)), { onConflict: "user_id,dedupe_key" });
+      const { error } = await client.from("discovered_jobs").upsert(
+        jobs.map((job) => jobRow(job, ownerUserId)),
+        { onConflict: "user_id,dedupe_key" },
+      );
       if (error) throw new Error("CareerOS discovery could not save refreshed jobs.");
     },
   };
@@ -240,7 +241,11 @@ export async function finishDiscoveryRun(
   if (error) throw new Error("Could not complete discovery run.");
 }
 
-export async function markDiscoveryEmailSent(client: SupabaseClient, runId: string, sentAt: string) {
+export async function markDiscoveryEmailSent(
+  client: SupabaseClient,
+  runId: string,
+  sentAt: string,
+) {
   const { error } = await client
     .from("job_discovery_runs")
     .update({ email_sent_at: sentAt })

@@ -44,7 +44,13 @@ export const Route = createFileRoute("/job-board")({
 type BoardData = Awaited<ReturnType<typeof getJobBoard>>;
 
 function unique(values: Array<string | null | undefined>) {
-  return [...new Set(values.filter((value): value is string => Boolean(value?.trim())).map((value) => value.trim()))];
+  return [
+    ...new Set(
+      values
+        .filter((value): value is string => Boolean(value?.trim()))
+        .map((value) => value.trim()),
+    ),
+  ];
 }
 
 function sameUtcDay(value: string, now: Date) {
@@ -97,7 +103,9 @@ function JobCard({
               {statusLabel(job.status)}
             </span>
             {job.fitVerdict ? (
-              <span className={`rounded-full border px-2 py-0.5 text-xs ${fitTone(job.fitVerdict)}`}>
+              <span
+                className={`rounded-full border px-2 py-0.5 text-xs ${fitTone(job.fitVerdict)}`}
+              >
                 {job.fitVerdict}
               </span>
             ) : null}
@@ -117,13 +125,19 @@ function JobCard({
 
       <div className="mt-3 flex flex-wrap gap-1.5 text-xs">
         <span className="rounded-full border border-border px-2 py-0.5">
-          {job.matchType === "exact" ? "Exact title" : job.matchType === "adjacent" ? "Adjacent role" : "Plausible match"}
+          {job.matchType === "exact"
+            ? "Exact title"
+            : job.matchType === "adjacent"
+              ? "Adjacent role"
+              : "Plausible match"}
         </span>
         {job.workplaceType ? (
           <span className="rounded-full border border-border px-2 py-0.5">{job.workplaceType}</span>
         ) : null}
         {job.employmentType ? (
-          <span className="rounded-full border border-border px-2 py-0.5">{job.employmentType}</span>
+          <span className="rounded-full border border-border px-2 py-0.5">
+            {job.employmentType}
+          </span>
         ) : null}
         {job.salaryText ? (
           <span className="rounded-full border border-border px-2 py-0.5">{job.salaryText}</span>
@@ -167,10 +181,17 @@ function SummaryList({ jobs, empty }: { jobs: DiscoveredJob[]; empty: string }) 
   return (
     <ul className="space-y-2 text-sm">
       {jobs.slice(0, 10).map((job) => (
-        <li key={job.id} className="flex items-center justify-between gap-3 rounded-md border border-border px-3 py-2">
+        <li
+          key={job.id}
+          className="flex items-center justify-between gap-3 rounded-md border border-border px-3 py-2"
+        >
           <span className="truncate">{job.company}</span>
           <span className="shrink-0 text-xs text-muted-foreground">
-            {job.fitScore != null ? `${job.fitScore}%` : job.matchType === "exact" ? "Exact" : "Adjacent"}
+            {job.fitScore != null
+              ? `${job.fitScore}%`
+              : job.matchType === "exact"
+                ? "Exact"
+                : "Adjacent"}
           </span>
         </li>
       ))}
@@ -223,7 +244,8 @@ export function JobBoardContent({
           <div>
             <h2 className="text-base font-semibold">Search the major job boards</h2>
             <p className="mt-1 text-sm text-muted-foreground">
-              These open personalised searches on the job board itself. CareerOS does not scrape protected sites.
+              These open personalised searches on the job board itself. CareerOS does not scrape
+              protected sites.
             </p>
           </div>
           <div className="flex flex-wrap gap-2">
@@ -247,7 +269,9 @@ export function JobBoardContent({
       <section className="grid gap-4 lg:grid-cols-2">
         <div className="rounded-lg border border-border bg-card p-4">
           <h2 className="text-base font-semibold">New today</h2>
-          <p className="mt-1 mb-3 text-xs text-muted-foreground">{newToday.length} fresh role{newToday.length === 1 ? "" : "s"}</p>
+          <p className="mt-1 mb-3 text-xs text-muted-foreground">
+            {newToday.length} fresh role{newToday.length === 1 ? "" : "s"}
+          </p>
           <SummaryList jobs={newToday} empty="No new active roles have arrived today yet." />
         </div>
         <div className="rounded-lg border border-border bg-card p-4">
@@ -259,7 +283,9 @@ export function JobBoardContent({
 
       <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
         <p className="text-xs text-muted-foreground">
-          {lastRefreshedAt ? `Last refreshed ${new Date(lastRefreshedAt).toLocaleString("en-GB")}` : "Automatic feeds have not refreshed yet."}
+          {lastRefreshedAt
+            ? `Last refreshed ${new Date(lastRefreshedAt).toLocaleString("en-GB")}`
+            : "Automatic feeds have not refreshed yet."}
         </p>
         <Button type="button" onClick={() => void onRefresh?.()} disabled={refreshing}>
           {refreshing ? "Refreshing…" : "Refresh jobs"}
@@ -281,7 +307,9 @@ export function JobBoardContent({
         <div className="flex items-end justify-between gap-3">
           <div>
             <h2 className="text-base font-semibold">All active jobs</h2>
-            <p className="text-xs text-muted-foreground">{filtered.length} matching current filters</p>
+            <p className="text-xs text-muted-foreground">
+              {filtered.length} matching current filters
+            </p>
           </div>
         </div>
         {filtered.length ? (
@@ -300,7 +328,9 @@ export function JobBoardContent({
       <section className="space-y-3">
         <div>
           <h2 className="text-base font-semibold">Archived / expired</h2>
-          <p className="text-xs text-muted-foreground">Closed roles stay here with their source history.</p>
+          <p className="text-xs text-muted-foreground">
+            Closed roles stay here with their source history.
+          </p>
         </div>
         {archived.length ? (
           <div className="grid gap-3 xl:grid-cols-2">
@@ -404,7 +434,10 @@ function JobBoardPage() {
       await setJobSaved({ data: { jobId: job.id, saved } });
       setBoard((current) =>
         current
-          ? { ...current, jobs: current.jobs.map((item) => (item.id === job.id ? { ...item, saved } : item)) }
+          ? {
+              ...current,
+              jobs: current.jobs.map((item) => (item.id === job.id ? { ...item, saved } : item)),
+            }
           : current,
       );
       toast.success(saved ? "Job saved." : "Job removed from saved jobs.");
@@ -415,7 +448,9 @@ function JobBoardPage() {
 
   function handleAnalyse(job: DiscoveredJob) {
     if (!job.description || job.descriptionWordCount < 40) {
-      toast.warning("This listing does not contain enough reliable description text. Open the source or capture the full job description first.");
+      toast.warning(
+        "This listing does not contain enough reliable description text. Open the source or capture the full job description first.",
+      );
       return;
     }
     const record: JobRecord = {
@@ -435,7 +470,9 @@ function JobBoardPage() {
       draft.scans = [scan, ...(draft.scans ?? [])];
       return draft;
     });
-    logActivity(`Analysed discovered role ${record.title} at ${record.company}: ${scan.overall}% fit.`);
+    logActivity(
+      `Analysed discovered role ${record.title} at ${record.company}: ${scan.overall}% fit.`,
+    );
     toast.success(`Role analysed: ${scan.overall}% compatibility.`);
   }
 

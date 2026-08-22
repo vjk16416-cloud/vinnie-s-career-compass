@@ -12,10 +12,7 @@ describe("Job Capture", () => {
   it("prefills a valid HTTPS job URL without analysing it automatically", () => {
     const analyse = vi.fn();
     render(
-      <JobCaptureContent
-        initialUrl="https://www.linkedin.com/jobs/view/123"
-        onAnalyse={analyse}
-      />,
+      <JobCaptureContent initialUrl="https://www.linkedin.com/jobs/view/123" onAnalyse={analyse} />,
     );
 
     expect(screen.getByLabelText("Job URL")).toHaveValue("https://www.linkedin.com/jobs/view/123");

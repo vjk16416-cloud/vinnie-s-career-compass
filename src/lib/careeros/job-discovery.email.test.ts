@@ -100,7 +100,13 @@ describe("daily job shortlist email", () => {
   it("sends nothing when alerts are disabled", async () => {
     const fetchImpl = vi.fn();
     const result = await sendDailyJobShortlist(
-      { preferences: { ...preferences, emailAlertsEnabled: false }, jobs: [job()], to: "vinnie@example.com", now: NOW, runAlreadyEmailed: false },
+      {
+        preferences: { ...preferences, emailAlertsEnabled: false },
+        jobs: [job()],
+        to: "vinnie@example.com",
+        now: NOW,
+        runAlreadyEmailed: false,
+      },
       configured,
       fetchImpl,
     );

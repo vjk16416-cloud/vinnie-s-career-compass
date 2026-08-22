@@ -128,7 +128,10 @@ export const refreshJobs = createServerFn({ method: "POST" }).handler(async () =
     const service = createJobDiscoveryServiceClient(env);
     const careerState = await loadCareerStateForUser(service, user.id);
     if (!careerState) {
-      return { ok: false as const, reason: "CareerOS career state is not available for discovery." };
+      return {
+        ok: false as const,
+        reason: "CareerOS career state is not available for discovery.",
+      };
     }
 
     const requestRepository = createJobDiscoveryRepository(service, user.id);
