@@ -163,7 +163,8 @@ The personalised Job Board is deliberately hybrid. LinkedIn, Indeed, Reed,
 Totaljobs and Glassdoor are external search destinations generated from the
 user's Job Search Preferences. CareerOS does not scrape those protected job
 boards or bypass anti-bot controls. Automatic discovery uses permitted provider
-adapters, starting with Adzuna.
+adapters. Remotive is the zero-key baseline source; Adzuna is an optional
+additional source when credentials are configured.
 
 The Supabase migration `20260822120500_create_job_discovery.sql` creates the
 user-owned `job_search_preferences`, `discovered_jobs` and
@@ -190,9 +191,11 @@ archives expired roles, and creates a fresh shortlist. Protected job-board
 pages are not status-crawled. A 403 or 429 is treated as `uncertain`, not as a
 signal to retry around the site's protection.
 
-If Adzuna credentials are absent, CareerOS reports the automatic source as not
-configured and the external LinkedIn/Indeed/Reed/Totaljobs/Glassdoor search
-buttons continue to work. If Resend is absent, the daily email is reported as
-unavailable and no successful delivery is claimed. Missing provider metadata,
-including salary or work eligibility, remains unknown rather than being
-invented.
+Remotive requires no private API key and provides the baseline automatic feed.
+CareerOS keeps Remotive attribution and links each listing back to its Remotive
+source. If Adzuna credentials are absent, CareerOS reports Adzuna as not
+configured while Remotive and the external LinkedIn/Indeed/Reed/Totaljobs/
+Glassdoor search buttons continue to work. If Resend is absent, the daily email
+is reported as unavailable and no successful delivery is claimed. Missing
+provider metadata, including salary or work eligibility, remains unknown rather
+than being invented.
