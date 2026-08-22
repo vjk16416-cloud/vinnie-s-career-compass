@@ -5,6 +5,7 @@ import { requireAuthorisedUser } from "@/lib/auth/auth.server";
 import { createRequestSupabase } from "@/lib/auth/supabase.server";
 import { adzunaAdapter } from "./job-discovery.adzuna";
 import { runJobDiscoveryRefresh } from "./job-discovery.orchestrator";
+import { remotiveAdapter } from "./job-discovery.remotive";
 import { createJobDiscoveryRepository } from "./job-discovery.repository";
 import {
   createJobDiscoveryServiceClient,
@@ -155,7 +156,7 @@ export const refreshJobs = createServerFn({ method: "POST" }).handler(async () =
         userId: user.id,
         preferences,
         careerState,
-        adapters: [adzunaAdapter],
+        adapters: [remotiveAdapter, adzunaAdapter],
         env,
         repository: refreshRepository,
       });
