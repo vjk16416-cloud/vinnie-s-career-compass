@@ -120,6 +120,38 @@ describe("Job Board discovery model", () => {
     ]);
   });
 
+  it("admits a non-UK onsite role only when the provider explicitly lists relocation support", () => {
+    const relocationRole = {
+      ...job({
+        id: "relocation-berlin",
+        provider: "remotive",
+        providerLabel: "Remotive",
+        providerJobId: "relocation-berlin",
+        title: "Product Manager",
+        location: "Berlin, Germany",
+        remote: false,
+        remoteRegion: "",
+        sourceUrl: "https://remotive.com/remote-jobs/product/relocation-berlin",
+      }),
+      relocationAssistance: true,
+    } as DiscoveredJob;
+    const base = {
+      ...defaultJobSearchPreferences(),
+      keywords: ["product"],
+      roleFamilies: [],
+      locations: ["UK"],
+    };
+
+    expect(filterDiscoveredJobs([relocationRole], { ...base, includeRelocation: false }, NOW)).toEqual(
+      [],
+    );
+    expect(
+      filterDiscoveredJobs([relocationRole], { ...base, includeRelocation: true }, NOW).map(
+        (item) => item.id,
+      ),
+    ).toEqual(["relocation-berlin"]);
+  });
+
   it("ranks a recent product role above a loosely related role and explains why", () => {
     const data = createCareerOsData();
     const preferences = {
