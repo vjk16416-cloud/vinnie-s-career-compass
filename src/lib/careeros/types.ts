@@ -209,6 +209,34 @@ export interface ApplicationHistoryEntry {
 export type JobExtractionCompleteness = "complete" | "partial" | "manual";
 export type JobExtractionMethod = "structured" | "semantic" | "manual";
 
+export type JobBoardSourceKind = "manual" | "imported" | "feed";
+
+export interface JobBoardListing {
+  id: string;
+  title: string;
+  company: string;
+  location: string;
+  description: string;
+  sourceKind: JobBoardSourceKind;
+  sourceName?: string | undefined;
+  sourceUrl?: string | undefined;
+  applyUrl?: string | undefined;
+  salary?: string | undefined;
+  workplaceType?: string | undefined;
+  employmentType?: string | undefined;
+  closingDate?: string | undefined;
+  postedAt?: string | undefined;
+  importedAt: string;
+  saved: boolean;
+}
+
+export interface JobBoardFilters {
+  query: string;
+  savedOnly: boolean;
+  workplaceType?: string | undefined;
+  employmentType?: string | undefined;
+}
+
 export interface JobRecord {
   id: string;
   company: string;
@@ -217,10 +245,11 @@ export interface JobRecord {
   url?: string | undefined;
   description: string;
   createdAt: string;
-  sourceType: "url" | "paste";
+  sourceType: "url" | "paste" | "board";
   extractionCompleteness?: JobExtractionCompleteness;
   extractionMethod?: JobExtractionMethod;
   descriptionWordCount?: number;
+  boardListingId?: string | undefined;
 }
 
 export interface Application {
@@ -415,6 +444,7 @@ export interface CareerOsData {
   profileDecisions?: CareerProfileDecision[];
   evidence: EvidenceRecord[];
   jobs: JobRecord[];
+  jobBoardListings?: JobBoardListing[];
   applications: Application[];
   cvs: CvDocument[];
   coverLetters: CoverLetter[];
