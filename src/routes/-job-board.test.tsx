@@ -92,7 +92,11 @@ afterEach(() => {
 
 describe("CareerOS Job Board", () => {
   it("renders ranked live jobs with Remotive attribution and source link", async () => {
-    discoverJobs.mockResolvedValue({ jobs: [remotiveJob], warnings: [], fetchedAt: new Date().toISOString() });
+    discoverJobs.mockResolvedValue({
+      jobs: [remotiveJob],
+      warnings: [],
+      fetchedAt: new Date().toISOString(),
+    });
     renderBoard();
 
     expect(await screen.findByRole("heading", { name: "Product Manager" })).toBeInTheDocument();
@@ -119,7 +123,11 @@ describe("CareerOS Job Board", () => {
   });
 
   it("persists edited Job Board preferences through the existing cloud state save", async () => {
-    discoverJobs.mockResolvedValue({ jobs: [remotiveJob], warnings: [], fetchedAt: new Date().toISOString() });
+    discoverJobs.mockResolvedValue({
+      jobs: [remotiveJob],
+      warnings: [],
+      fetchedAt: new Date().toISOString(),
+    });
     const repository = renderBoard();
 
     await screen.findByRole("heading", { name: "Product Manager" });
