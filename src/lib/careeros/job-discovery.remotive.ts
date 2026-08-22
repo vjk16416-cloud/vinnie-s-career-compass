@@ -39,7 +39,9 @@ function ukEligibility(value: unknown): JobUkEligibility {
   const location = text(value)?.toLowerCase();
   if (!location) return "unknown";
   if (/\b(worldwide|anywhere|global)\b/.test(location)) return "confirmed";
-  if (/\b(united kingdom|uk|great britain|england|scotland|wales|northern ireland)\b/.test(location)) {
+  if (
+    /\b(united kingdom|uk|great britain|england|scotland|wales|northern ireland)\b/.test(location)
+  ) {
     return "confirmed";
   }
   if (/\b(europe|emea)\b/.test(location)) return "likely";
@@ -96,7 +98,10 @@ async function search(
 ): Promise<JobDiscoverySourceResult> {
   const url = new URL("https://remotive.com/api/remote-jobs");
   if (input.what.trim()) url.searchParams.set("search", input.what.trim());
-  url.searchParams.set("limit", String(Math.min(50, Math.max(1, Math.trunc(input.resultsPerPage)))));
+  url.searchParams.set(
+    "limit",
+    String(Math.min(50, Math.max(1, Math.trunc(input.resultsPerPage)))),
+  );
 
   const fetchImpl = env.fetchImpl ?? fetch;
   try {
