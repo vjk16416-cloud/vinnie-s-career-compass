@@ -1,6 +1,7 @@
 import { adzunaAdapter } from "./job-discovery.adzuna";
 import { sendDailyJobShortlist, type JobDiscoveryEmailResult } from "./job-discovery.email";
 import { runJobDiscoveryRefresh } from "./job-discovery.orchestrator";
+import { remotiveAdapter } from "./job-discovery.remotive";
 import {
   createJobDiscoveryServiceClient,
   createServiceRefreshRepository,
@@ -125,7 +126,7 @@ export async function runScheduledJobDiscovery(env: JobDiscoveryServerEnv, now =
           userId: preferences.userId,
           preferences,
           careerState,
-          adapters: [adzunaAdapter],
+          adapters: [remotiveAdapter, adzunaAdapter],
           env,
           repository,
           now,
