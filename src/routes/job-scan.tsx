@@ -1,5 +1,5 @@
-import { createFileRoute, useNavigate } from "@tanstack/react-router";
-import { useRef, useState } from "react";
+import { createFileRoute, useNavigate, useSearch } from "@tanstack/react-router";
+import { useEffect, useRef, useState } from "react";
 import { toast } from "sonner";
 import { AppShell } from "@/components/careeros/app-shell";
 import {
@@ -24,6 +24,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { extractJobFromUrl } from "@/lib/careeros/job-extract.functions";
+import { consumeDiscoveredJobForAnalysis } from "@/lib/careeros/job-handoff";
 import { runScan } from "@/lib/careeros/scoring";
 import { uid, useCareerOs } from "@/lib/careeros/store";
 import type {
@@ -116,6 +117,7 @@ function DetailList({ title, items }: { title: string; items: string[] }) {
 function JobScanPage() {
   const { data, update, logActivity } = useCareerOs();
   const navigate = useNavigate();
+  const search = useSearch({ strict: false }) as { discovered?: string };
   const resultsRef = useRef<HTMLDivElement | null>(null);
   const busy = useRef(false);
 
@@ -132,6 +134,40 @@ function JobScanPage() {
   const [scanError, setScanError] = useState<string | null>(null);
   const [scan, setScan] = useState<ScanResult | null>(null);
   const [job, setJob] = useState<JobRecord | null>(null);
+
+  useEffect(() => {
+    const key = search.discovered;
+    if (!key) return;
+    const discoveredJob = consumeDiscoveredJobForAnalysis(key);
+    if (!discoveredJob) return;
+
+    const wordCount = words(discoveredJob.description);
+    setUrl(discoveredJob.sourceUrl);
+    setCompany(discoveredJob.company);
+    setTitle(discoveredJob.title);
+    setLocation(discoveredJob.location);
+    setDescription(discoveredJob.description);
+    setDetail({
+      confidence: "medium",
+      completeness: wordCount >= 120 ? "complete" : "partial",
+      method: "semantic",
+      wordCount,
+      qualityNotes: ["Prefilled from the live Job Board source. Review before analysing."],
+      workplaceType: discoveredJob.remote ? "Remote" : "",
+      employmentType: discoveredJob.employmentType,
+      salary: discoveredJob.salary,
+      closingDate: "",
+      responsibilities: [],
+      requiredSkills: [],
+      preferredSkills: [],
+      qualifications: [],
+      experience: [],
+      tools: discoveredJob.tags,
+      competencies: [],
+      applyUrl: discoveredJob.sourceUrl,
+    });
+    toast.success("Job Board role loaded. Review it before analysing.");
+  }, [search.discovered]);
 
   const jdWords = words(description);
   const insufficient = jdWords < 40;
