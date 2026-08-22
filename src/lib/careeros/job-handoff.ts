@@ -7,11 +7,11 @@ function isDiscoveredJob(value: unknown): value is DiscoveredJob {
   const job = value as Partial<DiscoveredJob>;
   return Boolean(
     job.id &&
-      job.title &&
-      job.company &&
-      job.description &&
-      job.sourceUrl &&
-      (job.provider === "arbeitnow-uk" || job.provider === "remotive"),
+    job.title &&
+    job.company &&
+    job.description &&
+    job.sourceUrl &&
+    (job.provider === "arbeitnow-uk" || job.provider === "remotive"),
   );
 }
 
